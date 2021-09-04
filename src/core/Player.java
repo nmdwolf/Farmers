@@ -1,4 +1,6 @@
-package items;
+package core;
+
+import core.GameConstants;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -15,23 +17,25 @@ public class Player {
     public final static int START_COAL = 10;
 
     private String name;
-    private Color color;
+    private Color color, alternativeColor;
 
     private int viewLevel;
 
     private HashMap<Integer, Integer> resources;
 
-    public Player(String name, Color color) {
+    public Player(String name, Color color, Color alternativeColor) {
         this.name = name;
         this.color = color;
+        this.alternativeColor = alternativeColor;
+        viewLevel = 0;
 
         resources = new HashMap<>();
-        resources.put(Cell.FOOD, START_FOOD);
-        resources.put(Cell.WOOD, START_WOOD);
-        resources.put(Cell.WATER, START_WATER);
-        resources.put(Cell.STONE, START_STONE);
-        resources.put(Cell.COAL, START_COAL);
-        resources.put(Cell.IRON, START_IRON);
+        resources.put(GameConstants.FOOD, START_FOOD);
+        resources.put(GameConstants.WOOD, START_WOOD);
+        resources.put(GameConstants.WATER, START_WATER);
+        resources.put(GameConstants.STONE, START_STONE);
+        resources.put(GameConstants.COAL, START_COAL);
+        resources.put(GameConstants.IRON, START_IRON);
 
     }
 
@@ -42,6 +46,12 @@ public class Player {
     public Color getColor() {
         return color;
     }
+
+    public Color getAlternativeColor() {
+        return alternativeColor;
+    }
+
+    public void changeViewLevel(int amount) { viewLevel += amount; }
 
     public int getViewLevel() { return viewLevel; }
 

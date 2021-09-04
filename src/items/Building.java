@@ -1,33 +1,39 @@
 package items;
 
+import core.GameConstants;
+import core.Player;
+
 import java.util.HashMap;
 
 public abstract class Building implements Destroyable {
 
-    public final static int X_KEY = 0;
-    public final static int Y_KEY = 1;
-    public final static int HEALTH_KEY = 2;
-    public final static int STATUS_KEY = 3;
-
-    public final static int FOUNDATION = 1000;
-    public final static int CONSTRUCTION = 1001;
-    public final static int BUILT = 1002;
-
-    private int status, maxHealth, health, x, y;
+    private int x, y, viewLevel;
+    private int status, maxHealth, health, space, size;
     private int maxFoundation;
     private Player player;
 
     public Building(Player p, HashMap<Integer, Integer> params) {
         player = p;
-        x = params.get(X_KEY);
-        y = params.get(Y_KEY);
-        maxHealth = params.get(HEALTH_KEY);
-        health = params.get(HEALTH_KEY);
-        status = params.get(STATUS_KEY);
+        x = params.get(GameConstants.X_KEY);
+        y = params.get(GameConstants.Y_KEY);
+        viewLevel = params.get(GameConstants.VIEW_KEY);
+        maxHealth = params.get(GameConstants.HEALTH_KEY);
+        health = params.get(GameConstants.HEALTH_KEY);
+        status = params.get(GameConstants.STATUS_KEY);
+        space = params.get(GameConstants.SPACE_KEY);
+        size = params.get(GameConstants.SIZE_KEY);
     }
 
     public int getStatus() {
         return status;
+    }
+
+    public int getSpace() {
+        return space;
+    }
+
+    public int getSize() {
+        return size;
     }
 
     @Override
@@ -53,6 +59,26 @@ public abstract class Building implements Destroyable {
     @Override
     public int getY() {
         return y;
+    }
+
+    @Override
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    @Override
+    public int getViewLevel() {
+        return viewLevel;
+    }
+
+    @Override
+    public void setViewLevel(int level) {
+        viewLevel = level;
     }
 
     @Override

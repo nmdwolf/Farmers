@@ -1,32 +1,27 @@
 package items;
 
+import core.GameConstants;
+import core.Player;
+
 import java.util.HashMap;
 
-public abstract class Unit implements Destroyable {
+public abstract class Unit implements Destroyable, Movable {
 
-    public final static int X_KEY = 0;
-    public final static int Y_KEY = 1;
-    public final static int HEALTH_KEY = 2;
-    public final static int STATUS_KEY = 3;
-    public final static int ENERGY_KEY = 4;
-
-    public final static int ACTIVE = 1000;
-    public final static int PASSIVE = 1001;
-    public final static int DEFENSIVE = 1002;
-
-    private int x, y;
-    private int status, maxHealth, health, maxEnergy, energy;
+    private int x, y, viewLevel;
+    private int status, size, maxHealth, health, maxEnergy, energy;
     private Player player;
 
     public Unit(Player p, HashMap<Integer, Integer> params) {
         player = p;
-        x = params.get(X_KEY);
-        y = params.get(Y_KEY);
-        maxHealth = params.get(HEALTH_KEY);
-        health = params.get(HEALTH_KEY);
-        status = params.get(STATUS_KEY);
-        maxEnergy = params.get(ENERGY_KEY);
-        energy = params.get(ENERGY_KEY);
+        x = params.get(GameConstants.X_KEY);
+        y = params.get(GameConstants.Y_KEY);
+        viewLevel = params.get(GameConstants.VIEW_KEY);
+        maxHealth = params.get(GameConstants.HEALTH_KEY);
+        health = params.get(GameConstants.HEALTH_KEY);
+        status = params.get(GameConstants.STATUS_KEY);
+        maxEnergy = params.get(GameConstants.ENERGY_KEY);
+        energy = params.get(GameConstants.ENERGY_KEY);
+        size = params.get(GameConstants.SIZE_KEY);
     }
 
     public int getStatus() {
@@ -48,12 +43,21 @@ public abstract class Unit implements Destroyable {
         health += amount;
     }
 
+    @Override
     public int getEnergy() {
         return energy;
     }
 
-    public void setEnergy(int energy) {
-        this.energy = energy;
+    @Override
+    public void changeEnergy(int amount) {
+        energy += amount;
+    }
+
+    public int getSize() { return size; }
+
+    @Override
+    public void reset() {
+        energy = maxEnergy;
     }
 
     @Override
@@ -67,7 +71,34 @@ public abstract class Unit implements Destroyable {
     }
 
     @Override
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    @Override
+    public int getViewLevel() {
+        return viewLevel;
+    }
+
+    @Override
+    public void setViewLevel(int level) {
+        viewLevel = level;
+    }
+
+    @Override
     public Player getPlayer() {
         return player;
+    }
+
+    @Override
+    public String toString() {
+        return "Type: " + getType() + "\ncore.Player: " + player.getName() +
+                "\nHealth: " + health + "/" + maxHealth +
+                "\nEnergy: " + energy + "/" + maxEnergy;
     }
 }
