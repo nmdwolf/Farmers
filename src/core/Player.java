@@ -1,42 +1,70 @@
 package core;
 
-import core.GameConstants;
+import items.GameObject;
+import items.upgrade.Upgrade;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.*;
+
+import static core.GameConstants.START_POP_CAP;
+import static core.Resource.*;
 
 public class Player {
 
-    public final static int POPULATION = 100;
+    private final String name;
+    private final Color color, altColor;
+    private final HashSet<Upgrade> enabledUpgrades;
+    private final HashSet<GameObject> objects;
+    private final HashSet<Location> discovered, spotted;
+    private final HashMap<Resource, Integer> resources, totalResources;
 
-    public final static int START_FOOD = 300;
-    public final static int START_WOOD = 100;
-    public final static int START_WATER = 100;
-    public final static int START_STONE = 50;
-    public final static int START_IRON = 0;
-    public final static int START_COAL = 10;
-
-    private String name;
-    private Color color, alternativeColor;
-
-    private int viewLevel;
-
-    private HashMap<Integer, Integer> resources;
+    private int pop, popCap;
+    private boolean viewLocked;
+    private Location viewpoint;
 
     public Player(String name, Color color, Color alternativeColor) {
         this.name = name;
         this.color = color;
-        this.alternativeColor = alternativeColor;
-        viewLevel = 0;
+        altColor = alternativeColor;
+        popCap = START_POP_CAP;
+        viewLocked = true;
+        viewpoint = new Location(0, 0, 0);
+        objects = new HashSet<>();
+        enabledUpgrades = new HashSet<>();
+        discovered = new HashSet<>();
+        spotted = new HashSet<>();
 
         resources = new HashMap<>();
-        resources.put(GameConstants.FOOD, START_FOOD);
-        resources.put(GameConstants.WOOD, START_WOOD);
-        resources.put(GameConstants.WATER, START_WATER);
-        resources.put(GameConstants.STONE, START_STONE);
-        resources.put(GameConstants.COAL, START_COAL);
-        resources.put(GameConstants.IRON, START_IRON);
+        resources.put(FOOD, GameConstants.START_FOOD);
+        resources.put(WOOD, GameConstants.START_WOOD);
+        resources.put(WATER, GameConstants.START_WATER);
+        resources.put(STONE, GameConstants.START_STONE);
+        resources.put(COAL, GameConstants.START_COAL);
+        resources.put(IRON, GameConstants.START_IRON);
 
+        totalResources = new HashMap<>(resources);
+    }
+
+    public Set<GameObject> getObjects() {
+        return objects;
+    }
+
+    public void addObject(GameObject object) {
+        objects.add(object);
+
+        Location loc = object.getLocation();
+        discover(loc);
+        spot(new Location(loc.x + 1, loc.y, loc.z));
+        spot(new Location(loc.x - 1, loc.y, loc.z));
+        spot(new Location(loc.x, loc.y + 1, loc.z));
+        spot(new Location(loc.x, loc.y - 1, loc.z));
+
+        for(Upgrade upgrade : enabledUpgrades)
+            upgrade.notifyObserver(object);
+    }
+
+    public void removeObject(GameObject object) {
+        objects.remove(object);
     }
 
     public String getName() {
@@ -48,18 +76,78 @@ public class Player {
     }
 
     public Color getAlternativeColor() {
-        return alternativeColor;
+        return altColor;
     }
 
-    public void changeViewLevel(int amount) { viewLevel += amount; }
+    public Location getViewPoint() { return viewpoint; }
 
-    public int getViewLevel() { return viewLevel; }
+    public void changeViewpoint(Location loc) { viewpoint = loc; }
 
-    public int getResource(int type) {
+    public int getResource(Resource type) {
         return resources.get(type);
     }
 
-    public void changeResource(int type, int amount) {
+    public int getTotalResource(Resource type) {
+        return totalResources.get(type);
+    }
+
+    /**
+     *
+     * @param res Map with Resource-value pairs. Every value is assumed to be negative (it represents a cost).
+     * @return true if Player has the requested resources
+     */
+    public boolean hasResources(Map<Resource,Integer> res) {
+        for(Resource resource : res.keySet())
+            if(resources.get(resource) < -res.get(resource))
+                return false;
+        return true;
+    }
+
+    public void changeResource(Resource type, int amount) {
         resources.put(type, resources.get(type) + amount);
+        totalResources.put(type, totalResources.get(type) + amount);
+    }
+
+    public void changeResources(Map<Resource,Integer> res) {
+        for(Resource resource : res.keySet()) {
+            resources.put(resource, resources.get(resource) + res.get(resource));
+            totalResources.put(resource, totalResources.get(resource) + res.get(resource));
+        }
+    }
+
+    public boolean isViewLocked() { return viewLocked; }
+
+    public void unlockView() {
+        viewLocked = false;
+    }
+
+    public boolean hasUpgrade(Upgrade upgrade) {
+        return enabledUpgrades.contains(upgrade);
+    }
+
+    public void enableUpgrade(Upgrade upgrade) {
+        enabledUpgrades.add(upgrade);
+    }
+
+    public int getPop() { return pop; }
+
+    public int getPopCap() { return popCap; }
+
+    public void changePop(int amount) { pop += amount; }
+
+    public void changePopCap(int amount) { popCap += amount; }
+
+    public boolean hasSpotted(Location loc) { return spotted.contains(loc); }
+
+    public void spot(Location loc) {
+        if(!discovered.contains(loc))
+            spotted.add(loc);
+    }
+
+    public boolean hasDiscovered(Location loc) { return discovered.contains(loc); }
+
+    public void discover(Location loc) {
+        spotted.remove(loc);
+        discovered.add(loc);
     }
 }

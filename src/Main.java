@@ -1,34 +1,49 @@
-import core.Cell;
-import core.LaborContract;
-import core.Player;
+import core.*;
+
+import general.CustomBorder;
+import general.CustomMethods;
+import general.RoundedButton;
+
 import items.*;
+import items.buildings.Building;
+import items.buildings.MainBuilding;
+import items.sources.Source;
+import items.units.Unit;
+import items.units.Villager;
+import items.upgrade.Upgrade;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static javax.swing.MenuSelectionManager.defaultManager;
+
 import static core.GameConstants.*;
 
 public class Main extends JFrame{
 
     private int mouseX, mouseY;
-    private Pair clickPos;
+    private Location clickPos;
     private int cellWidth, cellHeight, poolSize, screenWidth, screenHeight;
-    private int current, cycle;
+    private int current, cycle, upgradePage, constructPage;
     private boolean clicked;
 
-    private HashMap<Pair, ArrayList<GameObject>> objects;
-    private HashMap<Pair, Cell> cells;
-    private ArrayList<Player> players;
+    private final HashMap<Location, Cell> cells;
+    private final ArrayList<Player> players;
+    private List<Upgrade> upgrades;
+    private List<Constructable> products;
     private GameObject selected;
 
     private JMenu playerMenu, viewMenu, cellMenu;
-    private JMenuItem[] playerLabels;
-    private JMenuItem[] resourceLabels;
-    private JPanel infoPanel, resourcePanel;
+    private JMenuItem cycleLabel, popLabel;
+    private JMenuItem[] playerLabels, resourceLabels;
+    private JPanel infoPanel, resourcePanel, upgradePanel, constructPanel;
+
+    private final ExecutorService workerPool;
 
     public static void main(String[] args) {
         Main mainframe = new Main();
@@ -38,25 +53,33 @@ public class Main extends JFrame{
 
     public Main() {
         cells = new HashMap<>();
-        objects = new HashMap<>();
-        this.players = new ArrayList<>();
-        current = 0;
-        cycle = 0;
-        clickPos = new Pair(0, 0);
+        products = new ArrayList<>();
+        players = new ArrayList<>();
+        upgrades = new ArrayList<>();
+        cycle = 1;
+        clickPos = new Location(0, 0, 0);
 
-        for(int i = 0; i < NUMBER_OF_CELLS; i++) {
-            for(int j = 0; j < NUMBER_OF_CELLS; j++) {
-                cells.put(new Pair(i, j), new Cell(INITIAL_CELL_UNIT_SPACE, INITIAL_CELL_BUILDING_SPACE));
-                objects.put(new Pair(i, j), new ArrayList<>(INITIAL_CELL_UNIT_SPACE + INITIAL_CELL_BUILDING_SPACE));
-            }
-        }
+        for(int i = 0; i < NUMBER_OF_CELLS; i++)
+            for(int j = 0; j < NUMBER_OF_CELLS; j++)
+                cells.put(new Location(i, j, 0), new Cell(INITIAL_CELL_UNIT_SPACE, INITIAL_CELL_BUILDING_SPACE));
+
+        workerPool = Executors.newFixedThreadPool(5);
     }
 
     public void addPlayer(Player p) {
         players.add(p);
-        addObject(new Base(p, 2, 2));
-        addObject(new Villager(p, 2, 2));
-        addObject(new Villager(p, 7, 3));
+
+        Constructable base = new FreeDecorator(new MainBuilding(p, new Location(2, 2, 0)));
+        Constructable v1 = new FreeDecorator(new Villager(p, new Location(2, 1, 0)));
+        Constructable v2 = new FreeDecorator(new Villager(p, new Location(2, 1, 0)));
+
+        base.construct();
+        v1.construct();
+        v2.construct();
+
+        addObject(base);
+        addObject(v1);
+        addObject(v2);
     }
 
     /**
@@ -68,63 +91,94 @@ public class Main extends JFrame{
             current = 0;
         } else
             current++;
-        playerMenu.setText("Player: " + players.get(current).getName());
 
-        for(ArrayList<GameObject> list : objects.values()) {
-            for(GameObject object : list) {
-                object.reset();
-                if(object.getPlayer() == players.get(current) && object instanceof Productive) {
-                    Productive producer = (Productive)object;
-                    producer.work();
-                }
+        for(GameObject object : players.get(current).getObjects()) {
+            object.cycle(cycle);
+            if(object.getDescriptions().contains(WORKER_TYPE)) {
+                Worker producer = (Worker)object.getObject(WORKER_TYPE);
+                producer.work();
+            }
+            if(object.getDescriptions().contains(SOURCE_TYPE)) {
+                Source source = (Source)object.getObject(SOURCE_TYPE);
+                cells.get(source.getLocation()).changeResources(source.getResources());
             }
         }
 
-        for(int i = 0; i < RESOURCE_LABELS.length; i++) {
-            playerLabels[i].setText(RESOURCE_LABELS[i] + ": " + players.get(current).getResource(i));
-        }
+        selected = null;
+        upgradePage = 0;
+        upgrades = null;
+
+        hidePanels();
+        refreshWindow();
     }
 
     /**
-     * Adds a new object to the game
-     * @param object
+     * Adds a new game object to the game
+     * @param object new object
      */
     private void addObject(GameObject object) {
-        Pair p = new Pair(object.getX(), object.getY());
-        objects.get(p).add(object);
-        if(object instanceof Unit) {
-            Unit u = (Unit)object;
-            cells.get(p).changeUnitOccupied(u.getSize());
-        } else if(object instanceof Building) {
-            Building b = (Building)object;
-            cells.get(p).changeBuildingOccupied(b.getSize());
-            cells.get(p).changeUnitSpace(b.getSpace());
+        Location loc = object.getLocation();
+        if(object.getDescriptions().contains(UNIT_TYPE)) {
+            Unit u = (Unit) object.getObject(UNIT_TYPE);
+            cells.get(loc).changeUnitOccupied(u.getSize());
+        } else if(object.getDescriptions().contains(BUILDING_TYPE)) {
+            Building b = (Building) object.getObject(BUILDING_TYPE);
+            cells.get(loc).changeBuildingOccupied(b.getSize());
+            cells.get(loc).changeUnitSpace(b.getSpace());
         }
+
+        if(object.getDescriptions().contains(OBSTRUCTION_TYPE))
+            cells.get(loc).changeTravelCost(100);
+    }
+
+    /**
+     * Removes a game object from the game
+     * @param object object to remove
+     */
+    private void removeObject(GameObject object) {
+        Location loc = object.getLocation();
+        if(object.getDescriptions().contains(UNIT_TYPE)) {
+            Unit u = (Unit) object.getObject(UNIT_TYPE);
+            cells.get(loc).changeUnitOccupied(-u.getSize());
+        } else if(object.getDescriptions().contains(BUILDING_TYPE)) {
+            Building b = (Building) object.getObject(BUILDING_TYPE);
+            cells.get(loc).changeBuildingOccupied(-b.getSize());
+            cells.get(loc).changeUnitSpace(-b.getSpace());
+        }
+
+        if(object.getDescriptions().contains(OBSTRUCTION_TYPE))
+            cells.get(loc).changeTravelCost(-100);
     }
 
     /**
      * Moves an existing object
-     * @param object
-     * @param coord
+     * @param object object to move
+     * @param target new Location of object
      */
-    private void moveObject(Movable object, Pair coord) {
-        Pair p = new Pair(object.getX(), object.getY());
-        object.setX(coord.X);
-        object.setY(coord.Y);
-        object.setViewLevel(object.getPlayer().getViewLevel());
-        objects.get(p).remove(object);
-        objects.get(coord).add(object);
-        if(object instanceof Unit) {
-            Unit u = (Unit)object;
-            cells.get(p).changeUnitOccupied(-u.getSize());
-            cells.get(coord).changeUnitOccupied(u.getSize());
-        } else if(object instanceof Building) {
-            Building b = (Building)object;
-            cells.get(p).changeBuildingOccupied(-b.getSize());
-            cells.get(p).changeUnitSpace(-b.getSpace());
-            cells.get(coord).changeBuildingOccupied(b.getSize());
-            cells.get(coord).changeUnitSpace(b.getSpace());
+    private void moveObject(Movable object, Location target) {
+
+        // Do nothing if new coord == old coord
+        if(object.getLocation().equals(target))
+            return;
+
+        if(object.getDescriptions().contains(UNIT_TYPE)) {
+            Unit u = (Unit) object.getObject(UNIT_TYPE);
+            cells.get(object.getLocation()).changeUnitOccupied(-u.getSize());
+            cells.get(target).changeUnitOccupied(u.getSize());
+        } else if(object.getDescriptions().contains(BUILDING_TYPE)) {
+            Building b = (Building) object.getObject(BUILDING_TYPE);
+            cells.get(object.getLocation()).changeBuildingOccupied(-b.getSize());
+            cells.get(object.getLocation()).changeUnitSpace(-b.getSpace());
+            cells.get(target).changeBuildingOccupied(b.getSize());
+            cells.get(target).changeUnitSpace(b.getSpace());
         }
+
+        object.getPlayer().discover(target);
+        object.getPlayer().spot(new Location(target.x + 1, target.y, target.z));
+        object.getPlayer().spot(new Location(target.x - 1, target.y, target.z));
+        object.getPlayer().spot(new Location(target.x, target.y + 1, target.z));
+        object.getPlayer().spot(new Location(target.x, target.y - 1, target.z));
+        object.setLocation(target);
     }
 
     /**
@@ -141,49 +195,20 @@ public class Main extends JFrame{
         poolSize = 0;
         clicked = false;
 
+        // new content panel
         JPanel contentPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                super.setBackground(Color.white);
-                Graphics2D gr = (Graphics2D)g;
-                gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                for(int i = 0; i < NUMBER_OF_CELLS-1; i++) {
-                    gr.drawLine((i+1)*cellWidth, 0, (i+1)*cellWidth, screenHeight - frame.getInsets().top);
-                    gr.drawLine( 0,  (i+1)*cellHeight, screenWidth, (i+1)*cellHeight);
-                }
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+
+                drawObjects(gr);
 
                 gr.setColor(players.get(current).getAlternativeColor());
                 gr.setStroke(new BasicStroke(2));
-                Pair p = posToPair(mouseX, mouseY);
-                gr.drawRect(p.X * cellWidth, p.Y * cellHeight, cellWidth, cellHeight);
-
-                for (Pair key : cells.keySet()) {
-                    Cell cell = cells.get(key);
-                    if(cell.getResource(WATER) >= WATER_THRESHOLD) {
-                        gr.setColor(Color.blue);
-                        gr.fillOval((int)Math.round((key.X + 0.5) * cellWidth) - Math.floorDiv(poolSize, 2), (int)Math.round((key.Y + 0.5) * cellHeight) - Math.floorDiv(poolSize, 2), poolSize, poolSize);
-                    }
-                    gr.setColor(Color.black);
-                }
-
-                for (ArrayList<GameObject> list : objects.values()) {
-                    int unitCounter = 0;
-                    int buildingCounter = 0;
-                    for(GameObject object : list) {
-                        if(object.getViewLevel() == players.get(current).getViewLevel()) {
-                            gr.setColor(object == selected ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
-                            if(object instanceof Unit) {
-                                unitCounter++;
-                                gr.drawString(object.getToken(), object.getX() * cellWidth + 10 * unitCounter, object.getY() * cellHeight + 20);
-                            } else {
-                                buildingCounter++;
-                                gr.drawString(object.getToken(), object.getX() * cellWidth + 10 * buildingCounter, (object.getY() + 1) * cellHeight - g.getFontMetrics().getHeight());
-                            }
-                        }
-                    }
-                }
+                Location p = posToPair(mouseX, mouseY, 0);
+                gr.drawRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
             }
         };
         super.setContentPane(contentPanel);
@@ -192,13 +217,58 @@ public class Main extends JFrame{
 
         // Cycle players on "n" stroke
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('n'), "cycle");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "right");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
         contentPanel.getActionMap().put("cycle", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 cyclePlayers();
             }
         });
+        contentPanel.getActionMap().put("left", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Player player = players.get(current);
+                if(player.getViewPoint().x > 0) {
+                    players.get(current).changeViewpoint(players.get(current).getViewPoint().add(-1, 0, 0));
+                    refreshWindow();
+                }
+            }
+        });
+        contentPanel.getActionMap().put("right", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Player player = players.get(current);
+                if(player.getViewPoint().x < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                    players.get(current).changeViewpoint(players.get(current).getViewPoint().add(1, 0, 0));
+                    refreshWindow();
+                }
+            }
+        });
+        contentPanel.getActionMap().put("up", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Player player = players.get(current);
+                if(player.getViewPoint().y > 0) {
+                    players.get(current).changeViewpoint(players.get(current).getViewPoint().add(0, -1, 0));
+                    refreshWindow();
+                }
+            }
+        });
+        contentPanel.getActionMap().put("down", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Player player = players.get(current);
+                if(player.getViewPoint().y < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                    players.get(current).changeViewpoint(players.get(current).getViewPoint().add(0, 1, 0));
+                    refreshWindow();
+                }
+            }
+        });
 
+        // Mouse input for game panel
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -212,56 +282,60 @@ public class Main extends JFrame{
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 super.mouseWheelMoved(e);
-                players.get(current).changeViewLevel(e.getWheelRotation());
-                viewMenu.setText("View: " + players.get(current).getViewLevel());
-                frame.repaint();
-                frame.revalidate();
+                if(e.getWheelRotation() != 0 && !players.get(current).isViewLocked()) {
+                    players.get(current).changeViewpoint(players.get(current).getViewPoint().add(0, 0, e.getWheelRotation()));
+                    viewMenu.setText("View: " + (players.get(current).getViewPoint().z));
+                    selected = null;
+                    contentPanel.remove(infoPanel);
+                    frame.repaint();
+                    frame.revalidate();
+                }
             }
 
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                clickPos = posToPair(e.getX(), e.getY());
+                clickPos = players.get(current).getViewPoint().add(posToPair(e.getX(), e.getY(), players.get(current).getViewPoint().z));
                 Cell cell = cells.get(clickPos);
 
-                // left-click events
-                if(e.getButton() == MouseEvent.BUTTON1) {
-                    cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
-                            " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
-                    for(int i = 0; i < RESOURCE_LABELS.length; i++)
-                        resourceLabels[i].setText(RESOURCE_LABELS[i] + ": " + cell.getResource(i));
+                hidePanels();
 
+                /*
+                 * left-click events
+                 */
+                if(SwingUtilities.isLeftMouseButton(e)) {
                     // Any existing info panels should be removed on click
-                    if(clicked) {
+                    if(clicked)
                         selected = null;
-                        contentPanel.remove(infoPanel);
-                    }
 
                     // If clicked on cell with objects, show info panel
-                    if(objects.get(clickPos).size() > 0) {
+                    if(players.get(current).getObjects().stream().anyMatch(obj -> obj.getLocation().equals(clickPos))) {
                         infoPanel = createInfoPanel();
                         contentPanel.add(infoPanel);
-                        layout.putConstraint(SpringLayout.WEST, infoPanel, (clickPos.X >= Math.floorDiv(NUMBER_OF_CELLS, 2)) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
+                        layout.putConstraint(SpringLayout.WEST, infoPanel, (clickPos.x >= Math.floorDiv(NUMBER_OF_CELLS_IN_VIEW, 2)) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                         layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
                         clicked = true;
                     } else {clicked = false;}
                 // right-click events
-                } else if(e.getButton() == MouseEvent.BUTTON3) {
-                    if(selected != null && selected instanceof Depletable) {
-                        Depletable object = (Depletable)selected;
-                        int distance = (Math.abs(object.getViewLevel() - players.get(current).getViewLevel()) + travelDistance(object, clickPos));
-                        if(object instanceof Movable && object.getEnergy() >= distance) {
-                            moveObject((Movable) object, clickPos);
-                            object.changeEnergy(-distance);
-                            cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
-                                    " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
-                        }
+                } else if(SwingUtilities.isRightMouseButton(e)) {
+                    if(selected != null && selected.getDescriptions().contains(MOVABLE_TYPE)) {
+                        Movable movable = (Movable) selected.getObject(MOVABLE_TYPE);
+                        Motion motion = getShortestAdmissiblePath(movable, clickPos);
+                        if (motion != null && (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() > movable.getSize())) {
+                            movable.changeEnergy(-motion.getSize());
+                            motionToThread(motion);
 
-                        if(object instanceof Productive)
-                            resourcePanel.setVisible(true);
+                            if(movable.getDescriptions().contains(WORKER_TYPE))
+                                resourcePanel.setVisible(true);
+                        }
                     }
                 }
+
+                cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
+                        " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
+                for(int i = 0; i < Resource.values().length; i++)
+                    resourceLabels[i].setText(Resource.values()[i].name + ": " + cell.getResource(Resource.values()[i]));
 
                 // Redraw game panel
                 // ?? MIGHT NEED TO BE OPTIMIZED ??
@@ -270,51 +344,34 @@ public class Main extends JFrame{
                 frame.revalidate();
             }
         };
-
         contentPanel.addMouseListener(mouseAdapter);
         contentPanel.addMouseMotionListener(mouseAdapter);
         contentPanel.addMouseWheelListener(mouseAdapter);
 
+        // Rescale game elements on screen resize
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
                 resetScales();
                 constructResourcePanel();
+                constructUpgradePanel();
                 contentPanel.repaint();
                 contentPanel.revalidate();
             }
         });
 
+        // Create menus
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
         playerMenu = new JMenu("Player: " + players.get(current).getName());
-        viewMenu = new JMenu("View: " + players.get(current).getViewLevel());
+        viewMenu = new JMenu("View: " + players.get(current).getViewPoint().z);
         cellMenu = new JMenu("Nothing to show");
         menubar.add(playerMenu);
         menubar.add(viewMenu);
         menubar.add(cellMenu);
 
-        cellMenu.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                super.mouseEntered(e);
-                cellMenu.doClick();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                super.mouseExited(e);
-                defaultManager().clearSelectedPath();
-            }
-        });
-        resourceLabels = new JMenuItem[RESOURCE_LABELS.length];
-        for(int i = 0; i < RESOURCE_LABELS.length; i++) {
-            JMenuItem label = new JMenuItem(RESOURCE_LABELS[i] + ": N/A");
-            cellMenu.add(label);
-            resourceLabels[i] = label;
-        }
-
+        // Enables mouse hover coloring
         playerMenu.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -328,18 +385,59 @@ public class Main extends JFrame{
                 defaultManager().clearSelectedPath();
             }
         });
-        playerLabels = new JMenuItem[RESOURCE_LABELS.length];
-        for(int i = 0; i < RESOURCE_LABELS.length; i++) {
-            JMenuItem label = new JMenuItem(RESOURCE_LABELS[i] + ": " + players.get(current).getResource(i));
+        viewMenu.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                viewMenu.doClick();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                super.mouseExited(e);
+                defaultManager().clearSelectedPath();
+            }
+        });
+        cellMenu.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                cellMenu.doClick();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                super.mouseExited(e);
+                defaultManager().clearSelectedPath();
+            }
+        });
+
+        // Initializes resource labels for player and cell menus
+        playerLabels = new JMenuItem[Resource.values().length];
+        for(int i = 0; i < Resource.values().length; i++) {
+            JMenuItem label = new JMenuItem(Resource.values()[i].name + ": " + players.get(current).getResource(Resource.values()[i]));
             playerMenu.add(label);
             playerLabels[i] = label;
         }
+        resourceLabels = new JMenuItem[Resource.values().length];
+        for(int i = 0; i < Resource.values().length; i++) {
+            JMenuItem label = new JMenuItem(Resource.values()[i].name + ": N/A");
+            cellMenu.add(label);
+            resourceLabels[i] = label;
+        }
+
+        cycleLabel = new JMenuItem("Cycle: " + 1);
+        viewMenu.add(cycleLabel);
+        popLabel = new JMenuItem("Population: " + players.get(current).getPop() + "/" + players.get(current).getPopCap());
+        playerMenu.add(popLabel);
 
         super.setVisible(true);
         super.setExtendedState(MAXIMIZED_BOTH);
 
         resetScales();
+        constructConstructPanel();
         constructResourcePanel();
+        constructUpgradePanel();
 
         super.setDefaultCloseOperation(EXIT_ON_CLOSE);
         contentPanel.requestFocus();
@@ -350,7 +448,18 @@ public class Main extends JFrame{
         if(resourcePanel != null)
             getContentPane().remove(resourcePanel);
 
-        resourcePanel = new JPanel();
+        resourcePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+
+                gr.setColor(new Color(255, 255, 255, 200));
+                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+            }
+        };
+
+        // Intercepts mouse events
         resourcePanel.addMouseListener(new MouseAdapter() {});
 
         resourcePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -358,17 +467,18 @@ public class Main extends JFrame{
         GridBagConstraints c = new GridBagConstraints();
 
         Dimension buttonSize = new Dimension((int)Math.round(cellWidth / 1.5) + 2, Math.floorDiv(cellHeight, 2) + 2);
-        for(int i = 0; i < RESOURCE_LABELS.length; i++) {
+        for(int i = 0; i < Resource.values().length; i++) {
             final int step = i;
 
-            RoundedButton button = new RoundedButton(RESOURCE_LABELS[step], buttonSize, players.get(current).getAlternativeColor());
+            RoundedButton button = new RoundedButton(Resource.values()[step].name, buttonSize, players.get(current).getAlternativeColor());
 
             button.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    Productive producer = (Productive)selected;
-                    producer.addContract(new LaborContract(producer, step, 1, 5, cells.get(clickPos)));
-                    resourcePanel.setVisible(false);
+                    Worker producer = (Worker) selected.getObject(WORKER_TYPE);
+                    producer.addContract(new LaborContract(producer, Resource.values()[step], 1, 5, cells.get(clickPos)));
+                    refreshWindow();
+                    hidePanels();
                 }
             });
 
@@ -390,14 +500,224 @@ public class Main extends JFrame{
         layout.putConstraint(SpringLayout.NORTH, resourcePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
     }
 
+    private void constructUpgradePanel() {
+
+        if(upgradePanel != null)
+            getContentPane().remove(upgradePanel);
+
+        JButton[] buttons = new JButton[8];
+
+        upgradePanel = new JPanel() {
+
+            @Override
+            public void setVisible(boolean aFlag) {
+                super.setVisible(aFlag);
+                if(aFlag) {
+                    if (upgrades.size() == 0 || upgrades.size() < upgradePage * 7) {
+                        super.setVisible(false);
+                        upgrades = null;
+                    }
+                    else if (buttons[0] != null) {
+                        for (int i = 0; i < 7; i++) {
+                            if(upgradePage * 7 + i < upgrades.size()) {
+                                buttons[i].setVisible(true);
+                                buttons[i].setText(upgrades.get(upgradePage * 7 + i).toString());
+                            } else
+                                buttons[i].setVisible(false);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+
+                gr.setColor(new Color(255, 255, 255, 200));
+                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+            }
+        };
+
+        // Intercepts mouse events
+        upgradePanel.addMouseListener(new MouseAdapter() {});
+
+        upgradePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        upgradePanel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        Dimension buttonSize = new Dimension((int)Math.round(cellWidth / 1.5) + 2, Math.floorDiv(cellHeight, 2) + 2);
+        for(int i = 0; i < 8; i++) {
+            final int step = i;
+
+            RoundedButton button = new RoundedButton(step == 7 ? "Switch" : "N/A", buttonSize, players.get(current).getAlternativeColor());
+            buttons[step] = button;
+
+            if(step < 7) {
+                button.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        Upgrade upgrade = upgrades.get(upgradePage * 7 + step);
+                        if(upgrade.isPossible(cycle)) {
+                            upgrade.upgrade();
+                            upgrades.remove(upgradePage * 7 + step);
+                            upgradePage = 0;
+                            refreshWindow();
+                        }
+                        upgradePanel.setVisible(false);
+                    }
+                });
+            } else {
+                button.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if(SwingUtilities.isLeftMouseButton(e)) {
+                            upgradePage++;
+                            upgradePanel.setVisible(true);
+                        } else if(SwingUtilities.isRightMouseButton(e)) {
+                            upgradePage = Math.max(upgradePage - 1, 0);
+                            upgradePanel.setVisible(true);
+                        }
+                    }
+                });
+            }
+
+            button.setPreferredSize(buttonSize);
+            c.gridx = step % 4;
+            c.gridy = Math.floorDiv(step, 4);
+            c.weightx = 0.5;
+            c.weighty = 0.5;
+            if(c.gridx < 2)
+                c.anchor = GridBagConstraints.WEST;
+            else
+                c.anchor = GridBagConstraints.EAST;
+            upgradePanel.add(button, c);
+        }
+
+        upgradePanel.setVisible(false);
+        upgradePanel.setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+        upgradePanel.setOpaque(false);
+
+        getContentPane().add(upgradePanel);
+        SpringLayout layout = (SpringLayout)getContentPane().getLayout();
+        layout.putConstraint(SpringLayout.WEST, upgradePanel, Math.floorDiv(screenWidth - 3 * cellWidth, 2), SpringLayout.WEST, getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, upgradePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+    }
+
+    private void constructConstructPanel() {
+
+        if(constructPanel != null)
+            getContentPane().remove(constructPanel);
+
+        JButton[] buttons = new JButton[8];
+
+        constructPanel = new JPanel() {
+
+            @Override
+            public void setVisible(boolean aFlag) {
+                super.setVisible(aFlag);
+                if(aFlag) {
+                    if (products.size() == 0 || products.size() < constructPage * 7) {
+                        super.setVisible(false);
+                        products = null;
+                    }
+                    else if (buttons[0] != null) {
+                        for (int i = 0; i < 7; i++) {
+                            if(constructPage * 7 + i < products.size()) {
+                                buttons[i].setVisible(true);
+                                buttons[i].setText(products.get(constructPage * 7 + i).getType());
+                            } else
+                                buttons[i].setVisible(false);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+
+                gr.setColor(new Color(255, 255, 255, 200));
+                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+            }
+        };
+
+        // Intercepts mouse events
+        constructPanel.addMouseListener(new MouseAdapter() {});
+
+        constructPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        constructPanel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        Dimension buttonSize = new Dimension((int)Math.round(cellWidth / 1.5) + 2, Math.floorDiv(cellHeight, 2) + 2);
+        for(int i = 0; i < 8; i++) {
+            final int step = i;
+
+            RoundedButton button = new RoundedButton(step == 7 ? "Switch" : "N/A", buttonSize, players.get(current).getAlternativeColor());
+            buttons[step] = button;
+
+            if(step < 7) {
+                button.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        Constructable product = products.get(constructPage * 7 + step);
+                        Constructor constructor = (Constructor)selected.getObject(CONSTRUCTOR_TYPE);
+                        if(product.canConstruct()) {
+                            if((product.getDescriptions().contains(UNIT_TYPE) && cells.get(constructor.getConstructionLocation()).getUnitAvailable() >= product.getSize()) ||
+                                    (product.getDescriptions().contains(BUILDING_TYPE) && cells.get(constructor.getConstructionLocation()).getBuildingAvailable() >= product.getSize())) {
+                                product.construct();
+                                addObject(product);
+                                products = constructor.getProducts();
+                                refreshWindow();
+                            }
+                        }
+                    }
+                });
+            } else {
+                button.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if(SwingUtilities.isLeftMouseButton(e)) {
+                            constructPage++;
+                            constructPanel.setVisible(true);
+                        } else if(SwingUtilities.isRightMouseButton(e)) {
+                            constructPage = Math.max(constructPage - 1, 0);
+                            constructPanel.setVisible(true);
+                        }
+                    }
+                });
+            }
+
+            button.setPreferredSize(buttonSize);
+            c.gridx = step % 4;
+            c.gridy = Math.floorDiv(step, 4);
+            c.weightx = 0.5;
+            c.weighty = 0.5;
+            if(c.gridx < 2)
+                c.anchor = GridBagConstraints.WEST;
+            else
+                c.anchor = GridBagConstraints.EAST;
+            constructPanel.add(button, c);
+        }
+
+        constructPanel.setVisible(false);
+        constructPanel.setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+        constructPanel.setOpaque(false);
+
+        getContentPane().add(constructPanel);
+        SpringLayout layout = (SpringLayout)getContentPane().getLayout();
+        layout.putConstraint(SpringLayout.WEST, constructPanel, Math.floorDiv(screenWidth - 3 * cellWidth, 2), SpringLayout.WEST, getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, constructPanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+    }
+
     private JPanel createInfoPanel() {
 
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D gr = (Graphics2D) g;
-                gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
 
                 gr.setColor(Color.lightGray);
                 gr.fillRoundRect(1, 1, 2 * cellWidth - 3, 5 * cellHeight - 3, 10, 10);
@@ -416,14 +736,26 @@ public class Main extends JFrame{
 
         Dimension buttonSize = new Dimension(Math.floorDiv(cellWidth, 2), Math.floorDiv(cellHeight, 2));
         int counter = 0;
-        for(GameObject object : objects.get(clickPos)) {
+        for (Iterator<GameObject> it = players.get(current).getObjects().stream().filter(obj -> obj.getLocation().equals(clickPos)).iterator(); it.hasNext(); ) {
+            GameObject object = it.next();
             RoundedButton objectButton = new RoundedButton(object.getToken(), buttonSize, players.get(current).getAlternativeColor());
 
-            objectButton.addActionListener(new ActionListener() {
+            objectButton.addMouseListener(new MouseAdapter() {
                 @Override
-                public void actionPerformed(ActionEvent actionEvent) {
+                public void mouseClicked(MouseEvent e) {
                     selected = object;
-                    Main.this.repaint();
+                    if(SwingUtilities.isLeftMouseButton(e) && object.getDescriptions().contains(CONSTRUCTOR_TYPE)) {
+                        Constructor constructor = (Constructor) object.getObject(CONSTRUCTOR_TYPE);
+                        products = constructor.getProducts();
+                        upgradePanel.setVisible(false);
+                        constructPanel.setVisible(true);
+                    } else if(SwingUtilities.isRightMouseButton(e) && object.getDescriptions().contains(UPGRADER_TYPE)) {
+                        Upgrader upgrader = (Upgrader) object.getObject(UPGRADER_TYPE);
+                        upgrades = extractUpgrades(upgrader.getUpgrades());
+                        constructPanel.setVisible(false);
+                        upgradePanel.setVisible(true);
+                    }
+                    refreshWindow();
                 }
             });
 
@@ -453,24 +785,341 @@ public class Main extends JFrame{
         return panel;
     }
 
+    /**
+     * Recalculates screen size and rescales derived dimensions
+     */
     private void resetScales() {
         screenWidth = getWidth();
         screenHeight = getHeight();
-        cellWidth = Math.floorDiv(getWidth(), NUMBER_OF_CELLS);
-        cellHeight = Math.floorDiv(getHeight() - getInsets().top, NUMBER_OF_CELLS);
+        cellWidth = Math.floorDiv(getWidth(), NUMBER_OF_CELLS_IN_VIEW);
+        cellHeight = Math.floorDiv(getHeight() - getInsets().top, NUMBER_OF_CELLS_IN_VIEW);
         poolSize = Math.min(Math.floorDiv(cellWidth, 2), Math.floorDiv(cellHeight, 2));
     }
 
-    private Pair posToPair(int x, int y) {
-        return new Pair (Math.floorDiv(x, cellWidth), Math.floorDiv(y, cellHeight));
+    /**
+     * Draws currently visible/relevant game objects
+     * @param gr Graphics object of the game panel
+     */
+    private void drawObjects(Graphics2D gr) {
+        gr.setColor(Color.black);
+
+        /*
+         * Redraw background image
+         */
+        for(int i = 0; i < NUMBER_OF_CELLS_IN_VIEW -1; i++) {
+            gr.fillRect((i+1)*cellWidth - 1, 0, 1, screenHeight - getInsets().top);
+            gr.fillRect( 0,  (i+1)*cellHeight - 1, screenWidth, 1);
+        }
+
+        /*
+         * Draw all (visible) cells
+         */
+
+        for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
+            for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
+                Location key = players.get(current).getViewPoint().add(x, y, 0);
+                Location loc = key.subtract(players.get(current).getViewPoint());
+                Cell cell = cells.get(key);
+                if(cell != null && (players.get(current).hasDiscovered(key) || players.get(current).hasSpotted(key))) {
+                    if (cell.isRiver()) {
+                        gr.setColor(new Color(0, 100, 255, 255));
+                        if (key.x < NUMBER_OF_CELLS - 2 && key.y < NUMBER_OF_CELLS - 2 && cells.get(key.add(1, 0, 0)).isRiver() && cells.get(key.add(0, 1, 0)).isRiver() && cells.get(key.add(1, 1, 0)).isRiver())
+                            gr.fillRoundRect((int) Math.round((loc.x + 0.5) * cellWidth) - Math.floorDiv(poolSize, 2), (int) Math.round((loc.y + 0.5) * cellHeight) - Math.floorDiv(poolSize, 2), cellWidth + poolSize, cellHeight + poolSize, poolSize, poolSize);
+                        else {
+                            boolean singleFlag = true;
+                            if (key.x < NUMBER_OF_CELLS - 1 && cells.get(key.add(1, 0, 0)).isRiver())
+                                gr.fillRect((int) Math.round((loc.x + 0.5) * cellWidth), (int) Math.round((loc.y + 0.5) * cellHeight) - Math.floorDiv(poolSize, 2), Math.floorDiv(cellWidth, 2) + 1, poolSize);
+                            if (key.x > 0 && cells.get(key.add(-1, 0, 0)).isRiver())
+                                gr.fillRect(loc.x * cellWidth - 1, (int) Math.round((loc.y + 0.5) * cellHeight) - Math.floorDiv(poolSize, 2), Math.floorDiv(cellWidth, 2), poolSize);
+                            if (key.y < NUMBER_OF_CELLS - 1 && cells.get(key.add(0, 1, 0)).isRiver()) {
+                                gr.fillRect((int) Math.round((loc.x + 0.5) * cellWidth) - Math.floorDiv(poolSize, 2), (int) Math.round((loc.y + 0.5) * cellHeight), poolSize, Math.floorDiv(cellHeight, 2) + 1);
+                                singleFlag = false;
+                            }
+                            if (key.y > 0 && cells.get(key.add(0, -1, 0)).isRiver()) {
+                                gr.fillRect((int) Math.round((loc.x + 0.5) * cellWidth) - Math.floorDiv(poolSize, 2), loc.y * cellHeight - 1, poolSize, Math.floorDiv(cellHeight, 2));
+                                singleFlag = false;
+                            }
+
+                            if (singleFlag)
+                                gr.fillOval((int) Math.round((loc.x + 0.5) * cellWidth) - poolSize, (int) Math.round((loc.y + 0.5) * cellHeight) - Math.floorDiv(poolSize, 2), poolSize * 2, poolSize);
+                            else
+                                gr.fillOval((int) Math.round((loc.x + 0.5) * cellWidth) - Math.floorDiv(poolSize, 2), (int) Math.round((loc.y + 0.5) * cellHeight) - Math.floorDiv(poolSize, 2), poolSize, poolSize);
+                        }
+                    }
+
+                    if(cell.isForest()) {
+                        gr.setColor(new Color(20, 150, 20));
+
+                        gr.fillArc(loc.x * cellWidth - Math.floorDiv(poolSize, 2), loc.y * cellHeight - Math.floorDiv(poolSize, 2), poolSize, poolSize, 270, 90);
+                        gr.fillArc(loc.x * cellWidth - poolSize, (loc.y + 1) * cellHeight - poolSize, 2 * poolSize, 2 * poolSize, 0, 90);
+                    }
+
+                    /*
+                     * Draw all (visible/relevant) game objects
+                     * taking into account their state
+                     */
+                    int unitCounter = 0;
+                    int buildingCounter = 0;
+
+                    for(Player player : players) {
+                        for (Iterator<GameObject> it = player.getObjects().stream().filter(obj -> obj.getLocation().equals(key)).iterator(); it.hasNext(); ) {
+                            GameObject object = it.next();
+                            gr.setColor(object == selected ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
+                            if (object.getDescriptions().contains(UNIT_TYPE)) {
+                                unitCounter++;
+                                gr.drawString(object.getToken(), loc.x * cellWidth + 10 * unitCounter, loc.y * cellHeight + 15);
+                                if (object.getDescriptions().contains(WORKER_TYPE) && ((Worker) object.getObject(WORKER_TYPE)).hasContract())
+                                    gr.drawLine(loc.x * cellWidth + 10 * unitCounter, loc.y * cellHeight + 15 + 2, loc.x * cellWidth + 10 * unitCounter + gr.getFontMetrics().stringWidth(object.getToken()), loc.y * cellHeight + 15 + 2);
+                            } else {
+                                buildingCounter++;
+                                gr.drawString(object.getToken(), loc.x * cellWidth + 10 * buildingCounter, (loc.y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2);
+                                if (object.getDescriptions().contains(WORKER_TYPE) && ((Worker) object.getObject(WORKER_TYPE)).hasContract())
+                                    gr.drawLine(loc.x * cellWidth + 10 * buildingCounter, (loc.y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2, loc.x * cellWidth + 10 * buildingCounter + gr.getFontMetrics().stringWidth(object.getToken()), (loc.y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2);
+                            }
+                        }
+                    }
+                }
+
+                if(players.get(current).hasSpotted(key)) {
+                    gr.setColor(new Color(192, 192, 192, 200));
+                    gr.fillRect(loc.x * cellWidth - 1, loc.y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
+                } else if(!players.get(current).hasDiscovered(key)) {
+                    gr.setColor(Color.lightGray);
+                    gr.fillRect(loc.x * cellWidth - 1, loc.y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
+                }
+            }
+        }
     }
 
-    private static void customDrawString(Graphics g, String text, int x, int y) {
-        for (String line : text.split("\n"))
-            g.drawString(line, x, y += g.getFontMetrics().getHeight());
+    /**
+     * Refreshes the game window components that are not drawn (menus, ...)
+     */
+    private void refreshWindow() {
+        playerMenu.setText("Player: " + players.get(current).getName());
+        cycleLabel.setText("Cycle: " + cycle);
+
+        popLabel.setText("Population: " + players.get(current).getPop() + "/" + players.get(current).getPopCap());
+
+        for(int i = 0; i < Resource.values().length; i++)
+            playerLabels[i].setText(Resource.values()[i].name + ": " + players.get(current).getResource(Resource.values()[i]));
+
+        Cell cell = cells.get(clickPos);
+        for(int i = 0; i < Resource.values().length; i++)
+            resourceLabels[i].setText(Resource.values()[i].name + ": " + cell.getResource(Resource.values()[i]));
+
+        repaint();
+        revalidate();
     }
 
-    private static int travelDistance(GameObject object, Pair p) {
-        return Math.abs(object.getX() - p.X) + Math.abs(object.getY() - p.Y);
+    private void hidePanels() {
+        resourcePanel.setVisible(false);
+        upgradePanel.setVisible(false);
+        constructPanel.setVisible(false);
+        if(infoPanel != null)
+            getContentPane().remove(infoPanel);
+    }
+
+    /**
+     * Converts coordinates to a core.Location object
+     * @param x horizontal coordinate
+     * @param y vertical coordinate
+     * @param l elevation
+     * @return core.Location representation of the coordinates
+     */
+    private Location posToPair(int x, int y, int l) {
+        return new Location(Math.floorDiv(x, cellWidth), Math.floorDiv(y, cellHeight), l);
+    }
+
+    /**
+     * Removes all upgrades that are already enabled.
+     * @param list list of potential upgrades
+     * @return filtered upgrades
+     */
+    private List<Upgrade> extractUpgrades(List<Upgrade> list) {
+        list.removeIf(upgrade -> upgrade.getPlayer().hasUpgrade(upgrade) || !upgrade.isVisible(cycle));
+        return list;
+    }
+
+    /**
+     * Calculates the required energy to travel from the current Location to the target Location
+     * based on Dijkstra's algorithm
+     * @param object travelling object
+     * @param target target Location
+     * @return required energy cost
+     */
+    @Deprecated
+    private int calculateTravelCost(Movable object, Location target) {
+        int locX = object.getMaxEnergy();
+        int locY = object.getMaxEnergy();
+        int locLevel = object.getMaxEnergy();
+
+        ArrayList<Location> toDo = new ArrayList<>();
+        ArrayList<Location> done = new ArrayList<>();
+        done.add(target);
+
+        if(target.distanceTo(object.getLocation()) > object.getMaxEnergy())
+            return NUMBER_OF_CELLS;
+
+        if(object.getLocation().z == target.z) {
+            int[][] grid = new int[2 * object.getMaxEnergy() + 1][2 * object.getMaxEnergy() + 1];
+            for (int x = -locX; x < locX + 1; x++) {
+                for (int y = -locY; y < locY + 1; y++) {
+                    grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? cells.get(target).getTravelCost() : 9;
+                    if (Math.abs(x + y) == 1 && x * y == 0)
+                        toDo.add(new Location(target.x + x, target.y + y, target.z));
+                }
+            }
+
+            while(toDo.size() != 0) {
+                done.addAll(toDo);
+                ArrayList<Location> tempList = new ArrayList<>();
+                for(Iterator<Location> it = toDo.iterator(); it.hasNext();) {
+                    Location loc = it.next();
+
+                    if(!cells.containsKey(loc))
+                        continue;
+
+                    int min = NUMBER_OF_CELLS;
+                    for(int x = (target.x - loc.x == locX ? 0 : -1); x < (loc.x - target.x == locX ? 1 : 2); x++)
+                        for(int y = (target.y - loc.y == locY ? 0 : -1); y < (loc.y - target.y == locY ? 1 : 2); y++)
+                            if(x + y != 0 && x * y == 0)
+                                min = Math.min(grid[locX + (loc.x - target.x) + x][locY + (loc.y - target.y) + y], min);
+
+                    grid[locX + (loc.x - target.x)][locY + (loc.y - target.y)] = min + cells.get(loc).getTravelCost();
+
+                    done.add(loc);
+                    for (int x = -1; x < 2; x++) {
+                        for (int y = -1; y < 2; y++) {
+                            if(x * y == 0) {
+                                Location next = new Location(loc.x + x, loc.y + y, loc.z);
+                                if (target.distanceTo(next) <= object.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
+                                    tempList.add(next);
+                            }
+                        }
+                    }
+
+                    it.remove();
+                }
+                toDo = tempList;
+            }
+
+            int deltaX = object.getLocation().x - target.x;
+            int deltaY = object.getLocation().y - target.y;
+
+//            printTranspose(grid);
+
+            return grid[locX + deltaX][locY + deltaY] - cells.get(object.getLocation()).getTravelCost();
+        } else
+            return NUMBER_OF_CELLS;
+    }
+
+    private Motion getShortestAdmissiblePath(Movable object, Location target) {
+        if(target.distanceTo(object.getLocation()) > object.getEnergy())
+            return null;
+
+        int locX = object.getEnergy();
+        int locY = object.getEnergy();
+        int locLevel = object.getEnergy();
+
+        ArrayList<Location> toDo = new ArrayList<>();
+        ArrayList<Location> done = new ArrayList<>();
+        done.add(target);
+
+        if(object.getLocation().z == target.z) {
+            int[][] grid = new int[2 * object.getEnergy() + 1][2 * object.getEnergy() + 1];
+            for (int x = -locX; x < locX + 1; x++) {
+                for (int y = -locY; y < locY + 1; y++) {
+                    grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? cells.get(target).getTravelCost() : object.getEnergy() * 2;
+                    if (Math.abs(x + y) == 1 && x * y == 0)
+                        toDo.add(new Location(target.x + x, target.y + y, target.z));
+                }
+            }
+
+            while(toDo.size() != 0) {
+                done.addAll(toDo);
+                ArrayList<Location> tempList = new ArrayList<>();
+                for(Iterator<Location> it = toDo.iterator(); it.hasNext();) {
+                    Location loc = it.next();
+
+                    if(!cells.containsKey(loc))
+                        continue;
+
+                    int min = object.getEnergy() * 2;
+                    for(int x = (target.x - loc.x == locX ? 0 : -1); x < (loc.x - target.x == locX ? 1 : 2); x++)
+                        for(int y = (target.y - loc.y == locY ? 0 : -1); y < (loc.y - target.y == locY ? 1 : 2); y++)
+                            if(x + y != 0 && x * y == 0)
+                                min = Math.min(grid[locX + (loc.x - target.x) + x][locY + (loc.y - target.y) + y], min);
+
+                    grid[locX + (loc.x - target.x)][locY + (loc.y - target.y)] = min + cells.get(loc).getTravelCost();
+
+                    done.add(loc);
+                    for (int x = -1; x < 2; x++) {
+                        for (int y = -1; y < 2; y++) {
+                            if(x * y == 0) {
+                                Location next = new Location(loc.x + x, loc.y + y, loc.z);
+                                if (target.distanceTo(next) <= object.getEnergy() && !done.contains(next) && !tempList.contains(next))
+                                    tempList.add(next);
+                            }
+                        }
+                    }
+
+                    it.remove();
+                }
+                toDo = tempList;
+            }
+
+            int deltaX = object.getLocation().x - target.x;
+            int deltaY = object.getLocation().y - target.y;
+            int cost = grid[locX + deltaX][locY + deltaY] - cells.get(object.getLocation()).getTravelCost();
+
+            if(cost > object.getEnergy())
+                return null;
+
+            ArrayList<Location> path = new ArrayList<>();
+            Location current = object.getLocation();
+
+            while(!current.equals(target)) {
+                int min = object.getEnergy() * 2;
+                Location temp = null;
+                for(int x = (target.x - current.x == locX ? 0 : -1); x < (current.x - target.x == locX ? 1 : 2); x++) {
+                    for (int y = (target.y - current.y == locY ? 0 : -1); y < (current.y - target.y == locY ? 1 : 2); y++) {
+                        if (x + y != 0 && x * y == 0) {
+                            if (grid[locX + (current.x - target.x) + x][locY + (current.y - target.y) + y] < min && grid[locX + (current.x - target.x) + x][locY + (current.y - target.y) + y] < grid[locX + (current.x - target.x)][locY + (current.y - target.y)]) {
+                                min = Math.min(grid[locX + (current.x - target.x) + x][locY + (current.y - target.y) + y], min);
+                                temp = new Location(current.x + x, current.y + y, current.z);
+                            }
+                        }
+                    }
+                }
+                current = temp;
+                path.add(current);
+            }
+
+            return new Motion(object, path, cost);
+        } else
+            return null;
+    }
+
+    /**
+     * Turns a given Motion object into a thread that moves the object along the given path.
+     * If the thread is interrupted, the path is completed instantly.
+     * @param motion path to complete
+     */
+    private void motionToThread(Motion motion) {
+        workerPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                while(!motion.isDone()) {
+                    moveObject(motion.getObject(), motion.next());
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        while(!motion.isDone())
+                            moveObject(motion.getObject(), motion.next());
+                    }
+                    refreshWindow();
+                }
+            }
+        });
     }
 }

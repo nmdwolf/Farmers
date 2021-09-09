@@ -1,35 +1,35 @@
 package core;
 
-import items.Productive;
+import items.Worker;
 
 public class LaborContract extends Contract {
 
-    private int resource;
+    private Resource resource;
     private int cost, amount;
     private Cell station;
 
-    public LaborContract(Productive p, int r, int c, int a, Cell s) {
-        super(p, GameConstants.LABOR);
+    public LaborContract(Worker p, Resource r, int c, int a, Cell s) {
+        super(p, GameConstants.LABOR_KEY);
         amount = a;
         cost = c;
         resource = r;
         station = s;
     }
 
-    public int getResource() { return resource; }
+    public Resource getResource() { return resource; }
 
     @Override
-    public int getCost() {
+    public int getEnergyCost() {
         return cost;
     }
 
     @Override
     public int getType() {
-        return GameConstants.LABOR;
+        return GameConstants.LABOR_KEY;
     }
 
     @Override
-    public boolean complete() {
+    public boolean work() {
         getParty().getPlayer().changeResource(resource, Math.min(station.getResource(resource), amount));
         station.changeResource(resource, -Math.min(station.getResource(resource), amount));
         return station.getResource(resource) == 0;

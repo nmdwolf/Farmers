@@ -1,3 +1,5 @@
+package general;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -60,8 +62,7 @@ public class RoundedButton extends JButton {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D gr = (Graphics2D)g;
-        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
         gr.setColor(Color.lightGray);
         gr.fillRoundRect(1, 1, width - 2, height - 2, 10, 10);
 

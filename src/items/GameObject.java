@@ -2,19 +2,29 @@ package items;
 
 import core.Player;
 
+import core.Location;
+
+import java.util.Set;
+
 public interface GameObject {
 
-    public int getX();
-    public int getY();
-    public void setX(int x);
-    public void setY(int y);
-    public int getViewLevel();
-    public void setViewLevel(int level);
+    Location getLocation();
 
-    public Player getPlayer();
+    Player getPlayer();
 
-    public String getType();
-    public String getToken();
+    String getType();
+    String getToken();
+    int getObjectIdentifier();
 
-    public void reset();
+    int getSize();
+
+    int getLineOfSight();
+    void changeLineOfSight(int amount);
+
+    void cycle(int cycle);
+
+    Set<Integer> getDescriptions();
+    void updateDescriptions(int... descriptions);
+
+    GameObject getObject(int description);
 }

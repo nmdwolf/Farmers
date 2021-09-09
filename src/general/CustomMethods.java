@@ -1,0 +1,43 @@
+package general;
+
+import java.awt.*;
+import java.util.Arrays;
+
+public class CustomMethods {
+
+    private static int CONSTRUCT_COUNT;
+
+    public static int getNewIdentifier() {
+        return CONSTRUCT_COUNT++;
+    }
+
+    public static void printTranspose(int[][] grid, String toReplace, String replacement) {
+        int[][] temp = new int[grid.length][grid[0].length];
+        for(int x = 0; x < temp.length; x++)
+            for(int y = 0; y < temp.length; y++)
+                temp[y][x] = grid[x][y];
+        System.out.println(Arrays.deepToString(temp).replace("], ", "]\n").replace(toReplace, replacement) + "\n\n");
+    }
+
+    public static void customDrawString(Graphics g, String text, int x, int y) {
+        for (String line : text.split("\n"))
+            g.drawString(line, x, y += g.getFontMetrics().getHeight());
+    }
+
+    /**
+     * Sets the rendering hints of the Graphics2D object for maximal quality
+     * @param gr Graphics2D object of a JComponent
+     * @return optimized Graphics2D object
+     */
+    public static Graphics2D optimizeGraphics(Graphics2D gr) {
+        gr.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gr.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+        gr.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_DEFAULT);
+        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        return gr;
+    }
+}

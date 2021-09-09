@@ -2,9 +2,19 @@ package items;
 
 public interface Destroyable extends GameObject {
 
-    public int getHealth();
+    int getHealth();
 
-    public int getMaxHealth();
+    int getMaxHealth();
 
-    public void changeHealth(int amount);
+    void changeHealth(int amount);
+
+    void changeMaxHealth(int amount);
+
+    int getDegradationStart();
+
+    void changeDegradationStart(int amount);
+
+    void degrade();
+
+    void destroy();
 }

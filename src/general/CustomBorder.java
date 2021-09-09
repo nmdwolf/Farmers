@@ -1,8 +1,10 @@
+package general;
+
 import javax.swing.border.AbstractBorder;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-class CustomBorder extends AbstractBorder
+public class CustomBorder extends AbstractBorder
 {
     private Color borderColour;
     private int rectWidth;
@@ -27,18 +29,18 @@ class CustomBorder extends AbstractBorder
     {
         super.paintBorder(c, g, x, y, width, height);
         if (g instanceof Graphics2D) {
-            Graphics2D g2d = (Graphics2D) g;
-            g2d.setColor(borderColour);
-            g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+            gr.setColor(borderColour);
+            gr.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
-            g2d.drawArc(x + 1, y + 1, 10, 10, 90, 90);
-            g2d.drawArc(x + rectWidth - 11, y + 1, 10, 10, 0, 90);
-            g2d.drawArc(x + 1, y + rectHeight - 11, 10, 10, 180, 90);
-            g2d.drawArc(x + rectWidth - 11, y + rectHeight - 11, 10, 10, 270, 90);
-            g2d.fill(new Rectangle2D.Double(x, y + 5, 2, rectHeight - 10));
-            g2d.fill(new Rectangle2D.Double(x + 5, y, rectWidth - 10, 2));
-            g2d.fill(new Rectangle2D.Double(x + rectWidth - 2, y + 5, 2, rectHeight - 10));
-            g2d.fill(new Rectangle2D.Double(x + 5, y + rectHeight - 2, rectWidth - 10, 2));
+            gr.drawArc(x + 1, y + 1, 10, 10, 90, 90);
+            gr.drawArc(x + rectWidth - 11, y + 1, 10, 10, 0, 90);
+            gr.drawArc(x + 1, y + rectHeight - 11, 10, 10, 180, 90);
+            gr.drawArc(x + rectWidth - 11, y + rectHeight - 11, 10, 10, 270, 90);
+            gr.fill(new Rectangle2D.Double(x, y + 5, 2, rectHeight - 10));
+            gr.fill(new Rectangle2D.Double(x + 5, y, rectWidth - 10, 2));
+            gr.fill(new Rectangle2D.Double(x + rectWidth - 2, y + 5, 2, rectHeight - 10));
+            gr.fill(new Rectangle2D.Double(x + 5, y + rectHeight - 2, rectWidth - 10, 2));
         }
     }
 

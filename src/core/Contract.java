@@ -4,7 +4,7 @@ import items.GameObject;
 
 public abstract class Contract {
 
-    private int type;
+    private final int type;
     private GameObject party;
 
     public Contract(GameObject p, int t) {
@@ -24,11 +24,11 @@ public abstract class Contract {
      * Work on the contract
      * @return true if contract is fully completed
      */
-    public abstract boolean complete();
+    public abstract boolean work();
 
     /**
      * Returns the energy cost for one call of complete()
      * @return energy cost
      */
-    public abstract int getCost();
+    public abstract int getEnergyCost();
 }

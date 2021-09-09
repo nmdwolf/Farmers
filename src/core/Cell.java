@@ -1,21 +1,23 @@
 package core;
 
-import core.GameConstants;
-
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+
+import static core.GameConstants.*;
+import static core.Resource.*;
 
 public class Cell {
 
-    public final static Random rand = new Random(123);
+    public final static Random rand = new Random(19970605);
 
-    private int unitSpace, unitOccupied, buildingSpace, buildingOccupied;
-    private HashMap<Integer, Integer> resources;
+    private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost;
+    private final HashMap<Resource, Integer> resources;
 
     public Cell(int s, int b) {
-        unitOccupied = buildingOccupied = 0;
         unitSpace = s;
         buildingSpace = b;
+        travelCost = INITIAL_TRAVEL_COST;
         resources = generateResources();
     }
 
@@ -25,6 +27,10 @@ public class Cell {
 
     public int getUnitOccupied() {
         return unitOccupied;
+    }
+
+    public int getUnitAvailable() {
+        return unitSpace - unitOccupied;
     }
 
     public void changeUnitSpace(int amount) {
@@ -43,6 +49,10 @@ public class Cell {
         return buildingOccupied;
     }
 
+    public int getBuildingAvailable() {
+        return buildingSpace - buildingOccupied;
+    }
+
     public void changeBuildingSpace(int amount) {
         buildingSpace += amount;
     }
@@ -51,25 +61,46 @@ public class Cell {
         buildingOccupied += amount;
     }
 
-    public int getResource(int type) {
+    public int getTravelCost() {
+        return resources.get(WATER) > WATER_THRESHOLD ? travelCost + 3 : travelCost;
+    }
+
+    public void changeTravelCost(int amount) {
+        travelCost += amount;
+    }
+
+    public int getResource(Resource type) {
         return resources.get(type);
     }
 
-    public void changeResource(int type, int amount) {
+    public void changeResource(Resource type, int amount) {
         resources.put(type, resources.get(type) + amount);
     }
 
-    public static  HashMap<Integer, Integer> generateResources() {
-        HashMap<Integer,Integer> resources = new HashMap<>();
-        resources.put(GameConstants.FOOD, rand.nextInt(100));
-        resources.put(GameConstants.WOOD, rand.nextInt(100));
-        resources.put(GameConstants.STONE, rand.nextInt(100));
-        resources.put(GameConstants.IRON, rand.nextInt(50));
-        resources.put(GameConstants.COAL, rand.nextInt(50));
+    public void changeResources(Map<Resource, Integer> res) {
+        for(Resource resource : res.keySet())
+            changeResource(resource, res.get(resource));
+    }
 
-        resources.put(GameConstants.WATER, rand.nextInt(200));
-        if(resources.get(GameConstants.WATER) > GameConstants.WATER_THRESHOLD) {
-            resources.put(GameConstants.WATER, 50000);
+    public boolean isRiver() { return resources.get(WATER) >= WATER_THRESHOLD; }
+
+    public boolean isForest() { return resources.get(WOOD) >= WOOD_THRESHOLD; }
+
+    /**
+     * Generates a random amount of resources to initialize a cell
+     * @return HashMap with random amount of resources
+     */
+    private static HashMap<Resource, Integer> generateResources() {
+        HashMap<Resource,Integer> resources = new HashMap<>();
+        resources.put(FOOD, rand.nextInt(100));
+        resources.put(WOOD, rand.nextInt(250));
+        resources.put(STONE, rand.nextInt(100));
+        resources.put(IRON, rand.nextInt(50));
+        resources.put(COAL, rand.nextInt(50));
+
+        resources.put(WATER, rand.nextInt(200));
+        if(resources.get(WATER) > GameConstants.WATER_THRESHOLD) {
+            resources.put(WATER, 300);
         }
         return resources;
     }
