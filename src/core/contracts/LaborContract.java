@@ -1,17 +1,20 @@
-package core;
+package core.contracts;
 
-import items.Worker;
+import core.Cell;
+import core.GameConstants;
+import core.Resource;
+import items.units.Worker;
 
 public class LaborContract extends Contract {
 
-    private Resource resource;
-    private int cost, amount;
-    private Cell station;
+    private final Resource resource;
+    private final int energyCost, amount;
+    private final Cell station;
 
     public LaborContract(Worker p, Resource r, int c, int a, Cell s) {
         super(p, GameConstants.LABOR_KEY);
         amount = a;
-        cost = c;
+        energyCost = c;
         resource = r;
         station = s;
     }
@@ -20,7 +23,7 @@ public class LaborContract extends Contract {
 
     @Override
     public int getEnergyCost() {
-        return cost;
+        return energyCost;
     }
 
     @Override

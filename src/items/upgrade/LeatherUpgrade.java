@@ -1,7 +1,10 @@
 package items.upgrade;
 
+import core.Options;
 import core.Player;
 import core.Resource;
+import core.ResourceContainer;
+import general.CustomMethods;
 import items.GameObject;
 import items.units.Unit;
 
@@ -9,18 +12,18 @@ import java.util.HashMap;
 
 public class LeatherUpgrade extends Upgrade<Unit> {
 
-    public final static int LEATHER_ID = 1001;
+    public final static int LEATHER_ID = CustomMethods.getNewUpgradeIdentifier();
     public final static int HEALTH_CHANGE = 20;
 
-    public final static int FOOD_COST = -200;
-    public final static int WATER_COST = -100;
     public final static int CYCLE_THRESHOLD = 10;
 
+    public final static ResourceContainer LEATHER_COST = new ResourceContainer() {{
+        put(Resource.FOOD, -200);
+        put(Resource.WATER, -100);
+    }};
+
     public LeatherUpgrade(Player p) {
-        super(p, new HashMap<>(){{
-            put(Resource.FOOD, FOOD_COST);
-            put(Resource.WATER, WATER_COST);
-        }}, CYCLE_THRESHOLD);
+        super(p, LEATHER_COST, CYCLE_THRESHOLD);
     }
 
     @Override
@@ -31,8 +34,8 @@ public class LeatherUpgrade extends Upgrade<Unit> {
 
     @Override
     public void applyTo(Unit object) {
-        object.changeMaxHealth(HEALTH_CHANGE);
-        object.changeMaxHealth(HEALTH_CHANGE);
+        object.changeValue(Options.MAX_HEALTH_KEY, HEALTH_CHANGE);
+        object.changeValue(Options.HEALTH_KEY, HEALTH_CHANGE);
     }
 
     @Override

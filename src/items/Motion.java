@@ -9,10 +9,10 @@ public class Motion {
     private int step;
 
     private final int length;
-    private final Movable object;
+    private final GameObject object;
     private final ArrayList<Location> locations;
 
-    public Motion(Movable obj, ArrayList<Location> path, int effectiveLength) {
+    public Motion(GameObject obj, ArrayList<Location> path, int effectiveLength) {
         length = effectiveLength;
         locations = path;
         object = obj;
@@ -28,5 +28,5 @@ public class Motion {
 
     public int getSize() { return length; }
 
-    public Movable getObject() { return object; }
+    public GameObject getObject() { return object; }
 }

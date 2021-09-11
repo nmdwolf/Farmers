@@ -62,7 +62,7 @@ public class Cell {
     }
 
     public int getTravelCost() {
-        return resources.get(WATER) > WATER_THRESHOLD ? travelCost + 3 : travelCost;
+        return resources.get(WATER) > WATER_THRESHOLD ? travelCost + 2 : travelCost;
     }
 
     public void changeTravelCost(int amount) {

@@ -1,39 +1,35 @@
 package items.sources;
 
 import core.GameConstants;
-import core.Resource;
+import core.Options;
+import core.ResourceContainer;
+import core.Type;
 import items.Decorator;
 import items.GameObject;
 
-import java.util.Map;
+public class SourceDecorator extends Decorator<GameObject> {
 
-public class SourceDecorator extends Decorator<GameObject> implements Source{
+    private final ResourceContainer gain;
+    private boolean primed;
 
-    private final Map<Resource, Integer> resources;
-
-    public SourceDecorator(GameObject obj, Map<Resource, Integer> res) {
+    public SourceDecorator(GameObject obj, ResourceContainer res) {
         super(obj);
-        resources = res;
-
-        if(getDescriptions().contains(GameConstants.SOURCE_TYPE)) {
-            Source source = (Source) obj;
-            for(Resource resource : source.getResources().keySet()) {
-                if(resources.containsKey(resource))
-                    resources.put(resource, source.getResources().get(resource) + resources.get(resource));
-                else
-                    resources.put(resource, source.getResources().get(resource));
-            }
-        }
-        updateDescriptions(GameConstants.SOURCE_TYPE);
+        gain = res.add(obj.getResources(Options.SOURCE_KEY));
+        updateDescriptions(Type.SOURCE_TYPE);
     }
 
     @Override
-    public GameObject getObject(int description) {
-        return (description == GameConstants.SOURCE_TYPE) ? this : super.getObject(description);
+    public GameObject getObject(Type description) {
+        return (description == Type.SOURCE_TYPE) ? this : super.getObject(description);
     }
 
     @Override
-    public Map<Resource, Integer> getResources() {
-        return resources;
+    public ResourceContainer getResources(Options option) {
+        if(option == Options.SOURCE_KEY) {
+            ResourceContainer gains = primed ? gain : ResourceContainer.EMPTY_CONTAINER;
+            primed = false;
+            return gains;
+        } else
+            return super.getResources(option);
     }
 }

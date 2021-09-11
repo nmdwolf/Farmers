@@ -2,31 +2,31 @@ package items.upgrade;
 
 import core.Player;
 import core.Resource;
+import core.ResourceContainer;
+import general.CustomMethods;
 import items.buildings.MainBuilding;
 import items.sources.SourceDecorator;
 
-import java.util.HashMap;
-
 public class WellUpgrade extends InstanceUpgrade<MainBuilding> {
 
-    public final static int WELL_ID = 1002;
+    public final static int WELL_ID = CustomMethods.getNewUpgradeIdentifier();
     public final static int WATER_SOURCE = 5;
 
-    public final static int FOOD_COST = -200;
-    public final static int WATER_COST = -100;
     public final static int CYCLE_THRESHOLD = 10;
 
+    public final static ResourceContainer WELL_COST = new ResourceContainer() {{
+        put(Resource.WOOD, -100);
+        put(Resource.WATER, -100);
+    }};
+
     public WellUpgrade(Player p, MainBuilding obj) {
-        super(p, new HashMap<>(){{
-            put(Resource.FOOD, FOOD_COST);
-            put(Resource.WATER, WATER_COST);
-        }}, CYCLE_THRESHOLD, obj);
+        super(obj, WELL_COST, CYCLE_THRESHOLD);
     }
 
     @Override
     public void applyTo(MainBuilding object) {
         getPlayer().removeObject(object);
-        HashMap<Resource, Integer> resources = new HashMap<>();
+        ResourceContainer resources = new ResourceContainer();
         resources.put(Resource.WATER, WATER_SOURCE);
         getPlayer().addObject(new SourceDecorator(object, resources));
     }

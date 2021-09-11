@@ -1,22 +1,23 @@
-package core;
+package core.contracts;
 
-import items.GameObject;
+
+import items.units.Worker;
 
 public abstract class Contract {
 
     private final int type;
-    private GameObject party;
+    private Worker party;
 
-    public Contract(GameObject p, int t) {
-        party = p;
-        type = t;
+    public Contract(Worker party, int type) {
+        this.party = party;
+        this.type = type;
     }
 
     public int getType() {
         return type;
     }
 
-    public GameObject getParty() {
+    public Worker getParty() {
         return party;
     }
 

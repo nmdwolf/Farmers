@@ -1,30 +1,51 @@
 package items;
 
 import core.Location;
-import core.Player;
+import core.Options;
+import core.ResourceContainer;
+import core.Type;
+import items.upgrade.EvolveUpgrade;
+import items.upgrade.Upgrade;
 
+import java.util.List;
 import java.util.Set;
 
-public abstract class Decorator<T extends GameObject> implements GameObject{
+public abstract class Decorator<T extends GameObject> extends GameObject{
 
     private final T object;
 
     public Decorator(T obj) {
+        super(obj.getPlayer(), obj.getLocation(), obj.getValue(Options.SIZE_KEY), obj.getValue(Options.SIGHT_KEY));
         object = obj;
     }
 
     @Override
-    public T getObject(int description) { return object; }
-
-    @Override
-    public Location getLocation() {
-        return object.getLocation();
+    public ResourceContainer getResources(Options option) {
+        return object.getResources(option);
     }
 
     @Override
-    public Player getPlayer() {
-        return object.getPlayer();
+    public boolean checkStatus(Options option) {
+        return object.checkStatus(option);
     }
+
+    @Override
+    public void perform(Options option) {
+        object.perform(option);
+    }
+
+    @Override
+    public int getValue(Options option) {
+        return object.getValue(option);
+    }
+
+    @Override
+    public void changeValue(Options option, int amount) {
+        object.changeValue(option, amount);
+    }
+
+    @Override
+    public T getObject(Type description) { return object; }
 
     @Override
     public String getType() {
@@ -37,31 +58,38 @@ public abstract class Decorator<T extends GameObject> implements GameObject{
     }
 
     @Override
-    public int getSize() {
-        return object.getSize();
+    public Location getLocation() {
+        return object.getLocation();
     }
 
     @Override
-    public void cycle(int cycle) {
-        object.cycle(cycle);
+    public void setLocation(Location loc) {
+        object.setLocation(loc);
     }
 
     @Override
-    public Set<Integer> getDescriptions() {
+    public List<Upgrade> getUpgrades() {
+        return object.getUpgrades();
+    }
+
+    @Override
+    public List<GameObject> getProducts() {
+        return object.getProducts();
+    }
+
+    @Override
+    public List<EvolveUpgrade> getEvolutions() {
+        return object.getEvolutions();
+    }
+
+    @Override
+    public Set<Type> getDescriptions() {
         return object.getDescriptions();
     }
 
     @Override
-    public void updateDescriptions(int... descriptions) { object.updateDescriptions(descriptions); }
-
-    @Override
-    public int getLineOfSight() {
-        return object.getLineOfSight();
-    }
-
-    @Override
-    public void changeLineOfSight(int amount) {
-        object.changeLineOfSight(amount);
+    public void updateDescriptions(Type... descr) {
+        object.updateDescriptions(descr);
     }
 
     @Override

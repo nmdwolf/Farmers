@@ -5,10 +5,14 @@ import java.util.Arrays;
 
 public class CustomMethods {
 
-    private static int CONSTRUCT_COUNT;
+    private static int CONSTRUCT_COUNT, UPGRADE_COUNT;
 
     public static int getNewIdentifier() {
         return CONSTRUCT_COUNT++;
+    }
+
+    public static int getNewUpgradeIdentifier() {
+        return UPGRADE_COUNT++;
     }
 
     public static void printTranspose(int[][] grid, String toReplace, String replacement) {

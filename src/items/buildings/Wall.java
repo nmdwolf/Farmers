@@ -1,18 +1,21 @@
 package items.buildings;
 
-import core.GameConstants;
-import core.Location;
-import core.Player;
-import core.Resource;
+import core.*;
+import items.GameObject;
+import items.upgrade.EvolveUpgrade;
 import items.upgrade.LookoutUpgrade;
+import items.upgrade.Upgrade;
 
 import java.util.HashMap;
+import java.util.List;
 
 import static core.Options.*;
 
 public class Wall extends Building {
 
-    public final static int WALL_WOOD = -200;
+    public final static ResourceContainer WALL_COST = new ResourceContainer() {{
+        put(Resource.WOOD, -200);
+    }};
 
     public final static int WALL_HEALTH = 500;
     public final static int WALL_SPACE = 0;
@@ -23,9 +26,7 @@ public class Wall extends Building {
     public final static int WALL_DEGRADATION_AMOUNT = 5;
 
     public Wall(Player player, Location loc) {
-        super(player, loc, new HashMap<>() {{
-            put(Resource.WOOD, WALL_WOOD);
-        }}, new HashMap<>() {{
+        super(player, loc, WALL_COST, new HashMap<>() {{
             put(HEALTH_KEY, WALL_HEALTH);
             put(STATUS_KEY, GameConstants.FOUNDATION_KEY);
             put(SPACE_KEY, WALL_SPACE);
@@ -34,7 +35,7 @@ public class Wall extends Building {
             put(DEGRADATION_AMOUNT_KEY, WALL_DEGRADATION_AMOUNT);
             put(DEGRADATION_CYCLE_KEY, WALL_DEGRADATION_CYCLE);
         }});
-        updateDescriptions(GameConstants.OBSTRUCTION_TYPE);
+        updateDescriptions(Type.OBSTRUCTION_TYPE);
     }
 
     @Override
@@ -48,7 +49,22 @@ public class Wall extends Building {
     }
 
     @Override
-    public boolean isVisible(int cycle) {
-        return getPlayer().hasUpgrade(new LookoutUpgrade(getPlayer()));
+    public boolean checkStatus(Options option) {
+        return option == ENABLED_KEY ? getPlayer().hasUpgrade(new LookoutUpgrade(getPlayer())) : super.checkStatus(option);
+    }
+
+    @Override
+    public List<GameObject> getProducts() {
+        return null;
+    }
+
+    @Override
+    public List<Upgrade> getUpgrades() {
+        return null;
+    }
+
+    @Override
+    public List<EvolveUpgrade> getEvolutions() {
+        return null;
     }
 }

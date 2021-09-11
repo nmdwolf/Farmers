@@ -1,37 +1,43 @@
 package items;
 
-import core.GameConstants;
-import core.Resource;
+import core.Options;
+import core.ResourceContainer;
+import core.Type;
 
-import java.util.HashMap;
-import java.util.Map;
+import static core.Options.CONSTRUCT_KEY;
 
-public class FreeDecorator extends Decorator<Constructable> implements Constructable{
+public class FreeDecorator<T extends GameObject> extends Decorator<T>{
 
-    public FreeDecorator(Constructable constructable) {
+    public FreeDecorator(T constructable) {
         super(constructable);
     }
 
     @Override
-    public Constructable getObject(int description) {
+    public T getObject(Type description) {
         return super.getObject(description);
     }
 
     @Override
-    public Map<Resource, Integer> getCost() {
-        return new HashMap<>();
+    public ResourceContainer getResources(Options option) {
+        if(option == Options.CONSTRUCT_KEY)
+            return ResourceContainer.EMPTY_CONTAINER;
+        else
+            return super.getResources(option);
     }
 
     @Override
-    public boolean canConstruct() {
-        return true;
+    public boolean checkStatus(Options option) {
+        if(option == CONSTRUCT_KEY)
+            return true;
+        else
+            return super.checkStatus(option);
     }
 
     @Override
-    public void construct() { getPlayer().addObject(this); }
-
-    @Override
-    public boolean isVisible(int cycle) {
-        return true;
+    public void perform(Options option) {
+        if(option == CONSTRUCT_KEY)
+            getPlayer().addObject(this);
+        else
+            super.perform(option);
     }
 }

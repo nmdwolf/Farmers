@@ -1,49 +1,28 @@
 package items.sources;
 
-import core.GameConstants;
-import core.Location;
-import core.Player;
-import core.Resource;
-import general.CustomMethods;
+import core.*;
 import items.GameObject;
+import items.upgrade.EvolveUpgrade;
+import items.upgrade.Upgrade;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
-public class Farm implements Source{
+public class Farm extends GameObject {
 
     public final static int FARM_SIZE = 1;
     public final static int FARM_SIGHT = 1;
 
-    private final int id;
-    private final HashSet<Integer> descriptions;
-    private final HashMap<Resource, Integer> gain;
+    private final ResourceContainer gain;
 
-    private Player player;
-    private Location location;
+    private boolean primed;
 
     public Farm(Player p, Location loc) {
-        player = p;
-        location = loc;
+        super(p, loc, FARM_SIZE, FARM_SIGHT);
 
-        descriptions = new HashSet<>(GameConstants.SOURCE_TYPE);
+        updateDescriptions(Type.SOURCE_TYPE);
 
-        gain = new HashMap<>();
+        gain = new ResourceContainer();
         gain.put(Resource.FOOD, 10);
-
-        id = CustomMethods.getNewIdentifier();
-    }
-
-    @Override
-    public Location getLocation() {
-        return location;
-    }
-
-    @Override
-    public Player getPlayer() {
-        return player;
     }
 
     @Override
@@ -57,59 +36,35 @@ public class Farm implements Source{
     }
 
     @Override
-    public int getObjectIdentifier() {
-        return id;
+    public ResourceContainer getResources(Options option) {
+        return option == Options.SOURCE_KEY ? gain : ResourceContainer.EMPTY_CONTAINER;
     }
 
     @Override
-    public int getSize() {
-        return FARM_SIZE;
+    public void perform(Options option) {
+        if(option == Options.SOURCE_KEY)
+            primed = true;
+        else
+            super.perform(option);
     }
 
     @Override
-    public int getLineOfSight() {
-        return FARM_SIGHT;
+    public boolean checkStatus(Options option) {
+        return (option == Options.SOURCE_KEY) && primed;
     }
 
     @Override
-    public void changeLineOfSight(int amount) {
-
+    public List<Upgrade> getUpgrades() {
+        return null;
     }
 
     @Override
-    public void cycle(int cycle) {
-
+    public List<GameObject> getProducts() {
+        return null;
     }
 
     @Override
-    public Set<Integer> getDescriptions() {
-        return descriptions;
-    }
-
-    @Override
-    public void updateDescriptions(int... descriptions) {
-
-    }
-
-    @Override
-    public GameObject getObject(int description) {
-        return this;
-    }
-
-    @Override
-    public Map<Resource, Integer> getResources() {
-        return gain;
-    }
-
-    @Override
-    public int hashCode() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Farm)
-            return id == ((Farm) obj).getObjectIdentifier();
-        return false;
+    public List<EvolveUpgrade> getEvolutions() {
+        return null;
     }
 }

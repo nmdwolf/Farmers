@@ -27,16 +27,5 @@ public interface GameConstants {
     int DEFENSIVE_KEY = 1002;
 
     int LABOR_KEY = 0;
-
-    int UNIT_TYPE = 5000;
-    int BUILDING_TYPE = 5001;
-    int SOURCE_TYPE = 5003;
-    int DEPLETABLE_TYPE = 5004;
-    int CONSTRUCTABLE_TYPE = 5005;
-    int DESTROYABLE_TYPE = 5006;
-    int CONSTRUCTOR_TYPE = 5007;
-    int WORKER_TYPE = 5008;
-    int MOVABLE_TYPE = 5009;
-    int UPGRADER_TYPE = 5010;
-    int OBSTRUCTION_TYPE = 5011;
+    int PRIME_KEY = 1;
 }
