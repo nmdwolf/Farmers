@@ -2,7 +2,7 @@ package items.upgrade;
 
 import core.Player;
 import core.Resource;
-import core.ResourceContainer;
+import general.ResourceContainer;
 import general.CustomMethods;
 import items.buildings.MainBuilding;
 import items.sources.SourceDecorator;

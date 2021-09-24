@@ -1,10 +1,9 @@
 package items;
 
-import core.Options;
-import core.ResourceContainer;
-import core.Type;
+import core.Option;
+import general.ResourceContainer;
 
-import static core.Options.CONSTRUCT_KEY;
+import static core.Option.CONSTRUCT;
 
 public class FreeDecorator<T extends GameObject> extends Decorator<T>{
 
@@ -13,30 +12,27 @@ public class FreeDecorator<T extends GameObject> extends Decorator<T>{
     }
 
     @Override
-    public T getObject(Type description) {
-        return super.getObject(description);
-    }
-
-    @Override
-    public ResourceContainer getResources(Options option) {
-        if(option == Options.CONSTRUCT_KEY)
+    public ResourceContainer getResources(Option option) {
+        if(option == Option.CONSTRUCT)
             return ResourceContainer.EMPTY_CONTAINER;
         else
             return super.getResources(option);
     }
 
     @Override
-    public boolean checkStatus(Options option) {
-        if(option == CONSTRUCT_KEY)
+    public boolean checkStatus(Option option) {
+        if(option == CONSTRUCT)
             return true;
         else
             return super.checkStatus(option);
     }
 
     @Override
-    public void perform(Options option) {
-        if(option == CONSTRUCT_KEY)
-            getPlayer().addObject(this);
+    public void perform(Option option) {
+        if(option == CONSTRUCT) {
+            super.perform(CONSTRUCT);
+            getPlayer().changeResources(super.getResources(CONSTRUCT).negate());
+        }
         else
             super.perform(option);
     }

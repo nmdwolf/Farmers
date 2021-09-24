@@ -1,32 +1,32 @@
 package items.sources;
 
 import core.*;
-import items.GameObject;
-import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
+import general.ResourceContainer;
 
-import java.util.List;
+import java.util.HashMap;
 
-public class Farm extends GameObject {
+public class Farm extends Source {
 
     public final static int FARM_SIZE = 1;
     public final static int FARM_SIGHT = 1;
 
-    private final ResourceContainer gain;
-
-    private boolean primed;
+    public final static int FARM_HEALTH = 200;
+    public final static int FARM_DEGRADATION_CYCLE = 0;
+    public final static int FARM_DEGRADATION_AMOUNT = 0;
 
     public Farm(Player p, Location loc) {
-        super(p, loc, FARM_SIZE, FARM_SIGHT);
-
-        updateDescriptions(Type.SOURCE_TYPE);
-
-        gain = new ResourceContainer();
-        gain.put(Resource.FOOD, 10);
+        super(p, loc, new HashMap<>() {{
+            put(Option.SIZE, FARM_SIZE);
+            put(Option.SIGHT, FARM_SIGHT);
+            put(Option.STATUS, GameConstants.FOUNDATION_KEY);
+            put(Option.MAX_HEALTH, FARM_HEALTH);
+            put(Option.DEGRADATION_CYCLE, FARM_DEGRADATION_CYCLE);
+            put(Option.DEGRADATION_AMOUNT, FARM_DEGRADATION_AMOUNT);
+        }}, new ResourceContainer(10, 0, 0, 0, 0, 0));
     }
 
     @Override
-    public String getType() {
+    public String getClassIdentifier() {
         return "Farm";
     }
 
@@ -35,36 +35,4 @@ public class Farm extends GameObject {
         return "F";
     }
 
-    @Override
-    public ResourceContainer getResources(Options option) {
-        return option == Options.SOURCE_KEY ? gain : ResourceContainer.EMPTY_CONTAINER;
-    }
-
-    @Override
-    public void perform(Options option) {
-        if(option == Options.SOURCE_KEY)
-            primed = true;
-        else
-            super.perform(option);
-    }
-
-    @Override
-    public boolean checkStatus(Options option) {
-        return (option == Options.SOURCE_KEY) && primed;
-    }
-
-    @Override
-    public List<Upgrade> getUpgrades() {
-        return null;
-    }
-
-    @Override
-    public List<GameObject> getProducts() {
-        return null;
-    }
-
-    @Override
-    public List<EvolveUpgrade> getEvolutions() {
-        return null;
-    }
 }

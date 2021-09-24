@@ -1,8 +1,7 @@
 package items.sources;
 
-import core.GameConstants;
-import core.Options;
-import core.ResourceContainer;
+import core.Option;
+import general.ResourceContainer;
 import core.Type;
 import items.Decorator;
 import items.GameObject;
@@ -14,22 +13,37 @@ public class SourceDecorator extends Decorator<GameObject> {
 
     public SourceDecorator(GameObject obj, ResourceContainer res) {
         super(obj);
-        gain = res.add(obj.getResources(Options.SOURCE_KEY));
-        updateDescriptions(Type.SOURCE_TYPE);
+        gain = res.add(obj.getResources(Option.SOURCE));
+        updateTypes(Type.SOURCE);
     }
 
     @Override
-    public GameObject getObject(Type description) {
-        return (description == Type.SOURCE_TYPE) ? this : super.getObject(description);
+    public GameObject castAs(Type description) {
+        return (description == Type.SOURCE) ? this : super.castAs(description);
     }
 
     @Override
-    public ResourceContainer getResources(Options option) {
-        if(option == Options.SOURCE_KEY) {
-            ResourceContainer gains = primed ? gain : ResourceContainer.EMPTY_CONTAINER;
+    public ResourceContainer getResources(Option option) {
+        if(option == Option.SOURCE) {
+            ResourceContainer gains = (primed ? gain : ResourceContainer.EMPTY_CONTAINER);
             primed = false;
             return gains;
         } else
             return super.getResources(option);
+    }
+
+    @Override
+    public void perform(Option option) {
+        super.perform(option);
+        if(option == Option.SOURCE)
+            primed = true;
+    }
+
+    @Override
+    public boolean checkStatus(Option option) {
+        if(option == Option.SOURCE)
+            return primed;
+        else
+            return super.checkStatus(option);
     }
 }

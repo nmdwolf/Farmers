@@ -1,6 +1,7 @@
 package items.buildings;
 
 import core.*;
+import general.ResourceContainer;
 import items.GameObject;
 import items.upgrade.EvolveUpgrade;
 import items.upgrade.LookoutUpgrade;
@@ -9,7 +10,7 @@ import items.upgrade.Upgrade;
 import java.util.HashMap;
 import java.util.List;
 
-import static core.Options.*;
+import static core.Option.*;
 
 public class Wall extends Building {
 
@@ -27,19 +28,19 @@ public class Wall extends Building {
 
     public Wall(Player player, Location loc) {
         super(player, loc, WALL_COST, new HashMap<>() {{
-            put(HEALTH_KEY, WALL_HEALTH);
-            put(STATUS_KEY, GameConstants.FOUNDATION_KEY);
-            put(SPACE_KEY, WALL_SPACE);
-            put(SIGHT_KEY, WALL_SIGHT);
-            put(SIZE_KEY, WALL_SIZE);
-            put(DEGRADATION_AMOUNT_KEY, WALL_DEGRADATION_AMOUNT);
-            put(DEGRADATION_CYCLE_KEY, WALL_DEGRADATION_CYCLE);
+            put(MAX_HEALTH, WALL_HEALTH);
+            put(STATUS, GameConstants.FOUNDATION_KEY);
+            put(SPACE, WALL_SPACE);
+            put(SIGHT, WALL_SIGHT);
+            put(SIZE, WALL_SIZE);
+            put(DEGRADATION_AMOUNT, WALL_DEGRADATION_AMOUNT);
+            put(DEGRADATION_CYCLE, WALL_DEGRADATION_CYCLE);
         }});
-        updateDescriptions(Type.OBSTRUCTION_TYPE);
+        updateTypes(Type.OBSTRUCTION);
     }
 
     @Override
-    public String getType() {
+    public String getClassIdentifier() {
         return "Wall";
     }
 
@@ -49,8 +50,8 @@ public class Wall extends Building {
     }
 
     @Override
-    public boolean checkStatus(Options option) {
-        return option == ENABLED_KEY ? getPlayer().hasUpgrade(new LookoutUpgrade(getPlayer())) : super.checkStatus(option);
+    public boolean checkStatus(Option option) {
+        return option == ENABLED ? getPlayer().hasUpgrade(new LookoutUpgrade(getPlayer())) : super.checkStatus(option);
     }
 
     @Override

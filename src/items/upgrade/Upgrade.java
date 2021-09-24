@@ -1,11 +1,8 @@
 package items.upgrade;
 
 import core.Player;
-import core.Resource;
-import core.ResourceContainer;
+import general.ResourceContainer;
 import items.GameObject;
-
-import java.util.Map;
 
 public abstract class Upgrade<T extends GameObject> {
 
@@ -13,8 +10,8 @@ public abstract class Upgrade<T extends GameObject> {
     private final Player player;
     private final ResourceContainer resources;
 
-    public Upgrade(Player p, ResourceContainer res, int visibilityThreshold) {
-        cycleVisibilityThreshold = visibilityThreshold;
+    public Upgrade(Player p, ResourceContainer res, int cycleThreshold) {
+        cycleVisibilityThreshold = cycleThreshold;
         player = p;
         resources = res;
     }

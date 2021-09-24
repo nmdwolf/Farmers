@@ -1,9 +1,9 @@
 package core.contracts;
 
 import core.GameConstants;
-import core.Options;
+import core.Option;
 import core.Type;
-import core.TypeException;
+import general.TypeException;
 import items.GameObject;
 import items.units.Worker;
 
@@ -16,15 +16,15 @@ public class PrimeContract<T extends GameObject> extends Contract {
     public PrimeContract(Worker worker, T src) throws TypeException {
         super(worker, GameConstants.PRIME_KEY);
 
-        if(!src.getDescriptions().contains(Type.SOURCE_TYPE))
-            throw new TypeException(Type.SOURCE_TYPE);
+        if(!src.getTypes().contains(Type.SOURCE))
+            throw new TypeException(Type.SOURCE);
 
         source = src;
     }
 
     @Override
     public boolean work() {
-        source.perform(Options.SOURCE_KEY);
+        source.perform(Option.SOURCE);
         return true;
     }
 

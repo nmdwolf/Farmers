@@ -1,4 +1,6 @@
-package core;
+package general;
+
+import core.Type;
 
 public class TypeException extends Exception {
 

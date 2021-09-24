@@ -2,83 +2,129 @@ package items;
 
 import core.*;
 
-import general.CustomMethods;
+import general.*;
 import items.upgrade.EvolveUpgrade;
 import items.upgrade.Upgrade;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.awt.image.BufferedImage;
+import java.util.*;
+
+import static core.Option.*;
 
 public abstract class GameObject {
 
     private final int id;
     private final HashSet<Type> descriptions;
-
-    private int cycle, sight, size;
+    private final Map<Option, Integer> parameters;
 
     protected Location location;
     protected Player player;
 
-    public GameObject(Player player, Location location, int size, int sight) {
+    public GameObject(Player player, Location location, Map<Option, Integer> params) {
         id = CustomMethods.getNewIdentifier();
-
-        descriptions = new HashSet<>();
 
         this.location = location;
         this.player = player;
-        this.sight = sight;
-        this.size = size;
+
+        descriptions = new HashSet<>();
+
+        if(!params.containsKey(SIGHT) || !params.containsKey(SIZE)
+                || !params.containsKey(STATUS) || !params.containsKey(MAX_HEALTH)
+                || !params.containsKey(DEGRADATION_AMOUNT) || !params.containsKey(DEGRADATION_CYCLE))
+            throw new IllegalArgumentException("Missing default parameter");
+
+        parameters = params;
+        parameters.put(LEVEL, 0);
+        parameters.put(CYCLE, 0);
+        parameters.put(TOTAL_CYCLE, 0);
+        parameters.put(OLD_STATUS, parameters.get(OLD_STATUS));
+        parameters.put(HEALTH, parameters.get(MAX_HEALTH));
+
+        if(params.containsKey(SPACE))
+            updateTypes(Type.SPACER);
     }
-
-    public Location getLocation() { return location; }
-    public void setLocation(Location loc) { location = loc;};
-
-    public Player getPlayer() { return player; }
 
     public int getObjectIdentifier() { return id; }
 
-    public Set<Type> getDescriptions() { return descriptions; }
-    public void updateDescriptions(Type... descr) {
-        descriptions.addAll(Arrays.asList(descr));
+    public Location getLocation() { return location; }
+    public void setLocation(Location loc) { location = loc; }
+    public Player getPlayer() { return player; }
+
+    public Set<Type> getTypes() { return descriptions; }
+    public void updateTypes(Type... types) {
+        descriptions.addAll(Arrays.asList(types));
     }
+    public GameObject castAs(Type description) { return this; }
 
-    public GameObject getObject(Type description) { return this; }
-
-    public abstract String getType();
+    public abstract String getClassIdentifier();
     public abstract String getToken();
 
     public abstract List<Upgrade> getUpgrades();
     public abstract List<GameObject> getProducts();
     public abstract List<EvolveUpgrade> getEvolutions();
+    public abstract OperationsList getOperations();
 
-    // Umbrella methods
+    public BufferedImage getSprite() { return null; }
 
-    public ResourceContainer getResources(Options option) { return ResourceContainer.EMPTY_CONTAINER; }
-    public abstract boolean checkStatus(Options option);
-    public void perform(Options option) {
-        if(option == Options.CYCLE_KEY)
-            cycle++;
-    }
-    public int getValue(Options option) {
-        return switch(option) {
-            case CYCLE_KEY: yield cycle;
-            case SIGHT_KEY: yield sight;
-            case SIZE_KEY: yield size;
-            default: yield -1;
-        };
-    }
-    public void changeValue(Options option, int amount) {
-        if(option == Options.SIGHT_KEY)
-            sight += amount;
-    }
+    // Typed methods
 
     public void typedDo(Type type, TypedConsumer toRun) throws TypeException {
-        if(getDescriptions().contains(type))
-            toRun.accept(this.getObject(type));
+        if(getTypes().contains(type))
+            toRun.accept(this.castAs(type));
     }
+    public void perform(Option option) {
+        switch(option) {
+            case DESTROY:
+                player.removeObject(this);
+                break;
+            case TOTAL_CYCLE:
+                parameters.put(TOTAL_CYCLE, parameters.get(TOTAL_CYCLE) + 1);
+                parameters.put(CYCLE, parameters.get(CYCLE) + 1);
+                break;
+            case DEGRADE:
+                if(parameters.get(CYCLE) >= parameters.get(DEGRADATION_CYCLE))
+                    changeValue(HEALTH, -parameters.get(DEGRADATION_AMOUNT));
+                if(getValue(HEALTH) <= 0) {
+                    perform(DESTROY);
+                }
+                break;
+        }
+
+    }
+    public boolean checkStatus(Option option) { return (option == DESTROY && getValue(HEALTH) <= 0); }
+    public int getValue(Option option) {
+        Integer param = parameters.get(option);
+        return param == null ? -1 : param;
+    }
+    public void changeValue(Option option, int amount) {
+        switch(option) {
+            case STATUS: case OLD_STATUS: case MAX_HEALTH:
+                setValue(option, amount);
+                break;
+            default:
+                if(parameters.containsKey(option))
+                    parameters.put(option, parameters.get(option) + amount);
+                else
+                    setValue(option, amount);
+                break;
+        }
+    }
+    public void setValue(Option option, int amount) {
+        switch(option) {
+            case STATUS:
+                parameters.put(OLD_STATUS, parameters.get(STATUS));
+                parameters.put(STATUS, amount);
+                break;
+            case MAX_HEALTH:
+                parameters.put(MAX_HEALTH, amount);
+                parameters.put(HEALTH, amount);
+                break;
+            default:
+                parameters.put(option, amount);
+                break;
+        }
+    }
+    public ResourceContainer getResources(Option option) { return ResourceContainer.EMPTY_CONTAINER; }
 
     // BASE METHODS
 

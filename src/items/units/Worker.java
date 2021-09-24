@@ -3,57 +3,97 @@ package items.units;
 import core.*;
 import core.contracts.Contract;
 import core.contracts.LaborContract;
+import core.contracts.PrimeContract;
+import general.OperationsList;
+import general.ResourceContainer;
+import general.TypeException;
+import general.TypedConsumer;
+import items.GameObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class Worker extends Unit {
 
     private final ArrayList<Contract> contracts;
+    private final HashSet<Option> gains;
 
-    private int constructX, constructY;
+    private HashSet<GameObject> boosters;
 
-    public Worker(Player p, Location loc, ResourceContainer res, Map<Options, Integer> params) {
-        super(p, loc, res, params);
+    public Worker(Player p, Location loc, ResourceContainer cost, Map<Option, Integer> params) {
+        super(p, loc, cost, params);
+        updateTypes(Type.CONSTRUCTOR, Type.WORKER);
+
+        setValue(Option.CONSTRUCT_X, 0);
+        setValue(Option.CONSTRUCT_Y, 0);
+
         contracts = new ArrayList<>();
-        updateDescriptions(Type.CONSTRUCTOR_TYPE, Type.WORKER_TYPE);
+        boosters = new HashSet<>();
 
-        constructX = constructY = 0;
+        gains = new HashSet<>();
+        for(Resource r : Resource.values()) {
+            if(params.containsKey(r.operation))
+                gains.add(r.operation);
+        }
     }
 
     /**
      * Handles contract removal on move, fight, ...
      */
-    private void quitJob() {
+    private void seizeActions() {
         contracts.removeIf(c -> c instanceof LaborContract);
+        changeValue(Option.STATUS, GameConstants.IDLE_STATUS);
     }
 
     @Override
     public void setLocation(Location loc) {
         super.setLocation(loc);
-        quitJob();
+
+        if(getValue(Option.STATUS) != GameConstants.WALKING_STATUS)
+            seizeActions();
+
+        boosters = getPlayer().getObjects().stream().filter(
+                obj -> obj.getTypes().contains(Type.BOOSTER) &&
+                        getLocation().distanceTo(obj.getLocation()) <= GameConstants.BOOSTER_DISTANCE
+        ).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
-    public void perform(Options option) {
-        if(option == Options.WORK_KEY) {
+    public void perform(Option option) {
+        if(option == Option.WORK) {
+            if(contracts.size() > 0)
+                changeValue(Option.STATUS, GameConstants.WORKING_STATUS);
             for (Iterator<Contract> iterator = contracts.iterator(); iterator.hasNext(); ) {
                 Contract c = iterator.next();
-                if (getValue(Options.ENERGY_KEY) >= c.getEnergyCost()) {
-                    changeValue(Options.ENERGY_KEY, -c.getEnergyCost());
+                if (getValue(Option.ENERGY) >= c.getEnergyCost()) {
+                    changeValue(Option.ENERGY, -c.getEnergyCost());
                     boolean done = c.work();
                     if(done)
                         iterator.remove();
                 }
             }
+
+            if(contracts.size() == 0)
+                changeValue(Option.STATUS, GameConstants.IDLE_STATUS);
         } else
             super.perform(option);
     }
 
     @Override
-    public boolean checkStatus(Options option) {
-        if(option == Options.CONTRACT_KEY)
+    public int getValue(Option option) {
+        if(gains != null && gains.contains(option)) {
+            int gain = super.getValue(option);
+            for(GameObject booster : boosters)
+                gain += booster.getValue(option);
+            return gain;
+        }
+        else
+            return super.getValue(option);
+    }
+
+    @Override
+    public boolean checkStatus(Option option) {
+        if(option == Option.CONTRACT)
             return (contracts.size() != 0);
         else
             return super.checkStatus(option);
@@ -64,26 +104,17 @@ public abstract class Worker extends Unit {
     }
 
     @Override
-    public int getValue(Options option) {
-        return switch(option) {
-            case CONSTRUCT_X_KEY: yield constructX;
-            case CONSTRUCT_Y_KEY: yield constructY;
-            default: yield super.getValue(option);
-        };
-    }
-
-    @Override
-    public void changeValue(Options option, int amount) {
-        switch(option) {
-            case CONSTRUCT_X_KEY:
-                constructX += amount;
-                break;
-            case CONSTRUCT_Y_KEY:
-                constructY += amount;
-                break;
-            default:
-                super.changeValue(option, amount);
-                break;
+    public OperationsList getOperations() {
+        OperationsList operations = new OperationsList(super.getOperations());
+        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation()) && obj.getTypes().contains(Type.SOURCE)).iterator(); it.hasNext(); ) {
+            GameObject object = it.next().castAs(Type.SOURCE);
+            operations.put("Prime " + object.getToken(), new TypedConsumer() {
+                @Override
+                public void accept(GameObject obj) throws TypeException {
+                    addContract(new PrimeContract(Worker.this, object));
+                }
+            });
         }
+        return operations;
     }
 }

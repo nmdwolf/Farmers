@@ -5,22 +5,25 @@ import items.upgrade.Upgrade;
 
 import java.awt.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static core.GameConstants.START_POP_CAP;
+import static core.GameConstants.*;
 import static core.Resource.*;
 
 public class Player {
 
     private final String name;
     private final Color color, altColor;
+    private Location viewpoint;
+
+    private final Set<GameObject> objects;
     private final HashSet<Upgrade> enabledUpgrades;
-    private final HashSet<GameObject> objects;
     private final HashSet<Location> discovered, spotted;
     private final HashMap<Resource, Integer> resources, totalResources;
 
     private int pop, popCap;
     private boolean viewLocked;
-    private Location viewpoint;
+    private final HashSet<String> hasConstructed;
 
     public Player(String name, Color color, Color alternativeColor) {
         this.name = name;
@@ -28,11 +31,12 @@ public class Player {
         altColor = alternativeColor;
         popCap = START_POP_CAP;
         viewLocked = true;
-        viewpoint = new Location(0, 0, 0);
-        objects = new HashSet<>();
+        viewpoint = new Location(rand.nextInt(NUMBER_OF_CELLS), rand.nextInt(NUMBER_OF_CELLS), 0);
+        objects = ConcurrentHashMap.newKeySet();
         enabledUpgrades = new HashSet<>();
         discovered = new HashSet<>();
         spotted = new HashSet<>();
+        hasConstructed = new HashSet<>();
 
         resources = new HashMap<>();
         resources.put(FOOD, GameConstants.START_FOOD);
@@ -51,6 +55,7 @@ public class Player {
 
     public void addObject(GameObject object) {
         objects.add(object);
+        hasConstructed.add(object.getToken());
 
         Location loc = object.getLocation();
         discover(loc);
@@ -150,4 +155,6 @@ public class Player {
         spotted.remove(loc);
         discovered.add(loc);
     }
+
+    public boolean hasConstructed(String token) {return hasConstructed.contains(token); }
 }

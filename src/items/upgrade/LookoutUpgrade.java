@@ -2,11 +2,9 @@ package items.upgrade;
 
 import core.*;
 import general.CustomMethods;
+import general.ResourceContainer;
 import items.GameObject;
 import items.buildings.MainBuilding;
-import items.units.Unit;
-
-import java.util.HashMap;
 
 public class LookoutUpgrade extends Upgrade<MainBuilding> {
 
@@ -33,7 +31,7 @@ public class LookoutUpgrade extends Upgrade<MainBuilding> {
 
     @Override
     public void applyTo(MainBuilding object) {
-        object.changeValue(Options.SIGHT_KEY, 1);
+        object.changeValue(Option.SIGHT, 1);
         for(int x = -2; x < 3; x++)
             for (int y = -2; y < 3; y++)
                 if(Math.abs(x) + Math.abs(y) == 2)

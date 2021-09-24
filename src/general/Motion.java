@@ -1,6 +1,7 @@
-package items;
+package general;
 
 import core.Location;
+import items.GameObject;
 
 import java.util.ArrayList;
 
@@ -23,7 +24,7 @@ public class Motion {
     }
 
     public boolean isDone() {
-        return step == locations.size();
+        return step >= locations.size();
     }
 
     public int getSize() { return length; }

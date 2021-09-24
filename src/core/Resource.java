@@ -1,13 +1,18 @@
 package core;
 
+import static core.Option.*;
+
 public enum Resource {
 
-    FOOD("Food"), WATER("Water"), WOOD("Wood"), STONE("Stone"), IRON("Iron"), COAL("Coal");
+    FOOD("Food", HUNT), WATER("Water", DRINK), WOOD("Wood", LOG),
+    STONE("Stone", MASON), IRON("Iron", WELD), COAL("Coal", MINE);
 
     public final String name;
+    public final Option operation;
 
-    Resource(String n) {
+    Resource(String n, Option op) {
         name = n;
+        operation = op;
     }
 
 }

@@ -2,14 +2,11 @@ package core;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import static core.GameConstants.*;
 import static core.Resource.*;
 
 public class Cell {
-
-    public final static Random rand = new Random(19970605);
 
     private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost;
     private final HashMap<Resource, Integer> resources;
@@ -86,13 +83,15 @@ public class Cell {
 
     public boolean isForest() { return resources.get(WOOD) >= WOOD_THRESHOLD; }
 
+    public boolean isField() { return resources.get(FOOD) >= FOOD_THRESHOLD; }
+
     /**
      * Generates a random amount of resources to initialize a cell
      * @return HashMap with random amount of resources
      */
     private static HashMap<Resource, Integer> generateResources() {
         HashMap<Resource,Integer> resources = new HashMap<>();
-        resources.put(FOOD, rand.nextInt(100));
+        resources.put(FOOD, rand.nextInt(200));
         resources.put(WOOD, rand.nextInt(250));
         resources.put(STONE, rand.nextInt(100));
         resources.put(IRON, rand.nextInt(50));

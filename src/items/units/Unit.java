@@ -1,109 +1,96 @@
 package items.units;
 
-import static core.Options.*;
+import static core.Option.*;
 
 import core.*;
+import general.OperationsList;
+import general.ResourceContainer;
+import general.TypeException;
+import general.TypedConsumer;
 import items.GameObject;
 
+import java.util.Iterator;
 import java.util.Map;
 
 public abstract class Unit extends GameObject {
 
-    private int status, maxEnergy, energy;
-    private int maxHealth, health, degradationCycle, degradationAmount;
     private final ResourceContainer cost;
 
-    public Unit(Player p, Location loc, ResourceContainer res, Map<Options, Integer> params) {
-        super(p, loc, params.get(SIZE_KEY), params.get(SIGHT_KEY));
+    public Unit(Player p, Location loc, ResourceContainer cost, Map<Option, Integer> params) {
+        super(p, loc, params);
 
-        health = maxHealth = params.get(HEALTH_KEY);
-        energy = maxEnergy = params.get(ENERGY_KEY);
-        status = params.get(STATUS_KEY);
-        degradationAmount = params.get(DEGRADATION_AMOUNT_KEY);
-        degradationCycle = params.get(DEGRADATION_CYCLE_KEY);
+        this.cost = cost;
 
-        cost = res;
+        if(!params.containsKey(MAX_ENERGY))
+            throw new IllegalArgumentException("Missing energy parameter");
+        changeValue(ENERGY, params.get(MAX_ENERGY));
 
-        updateDescriptions(Type.UNIT_TYPE);
+        updateTypes(Type.UNIT);
     }
 
     @Override
-    public int getValue(Options option) {
-        return switch(option) {
-            case STATUS_KEY: yield status;
-            case HEALTH_KEY: yield health;
-            case MAX_HEALTH_KEY: yield maxHealth;
-            case ENERGY_KEY: yield energy;
-            case MAX_ENERGY_KEY: yield maxEnergy;
-            case DEGRADATION_CYCLE_KEY: yield degradationCycle;
-            case DEGRADATION_AMOUNT_KEY: yield degradationAmount;
-            default: yield super.getValue(option);
-        };
+    public void changeValue(Option option, int amount) {
+        if(option == MAX_ENERGY) {
+            changeValue(MAX_ENERGY, amount);
+            changeValue(ENERGY, amount);
+        } else
+            super.changeValue(option, amount);
     }
 
     @Override
-    public void changeValue(Options option, int amount) {
-        switch (option) {
-            case HEALTH_KEY:
-                health += amount;
+    public void perform(Option option) {
+        switch(option) {
+            case CONSTRUCT:
+                getPlayer().changeResources(cost);
+                getPlayer().changePop(getValue(SIZE));
+                getPlayer().addObject(this);
                 break;
-            case MAX_HEALTH_KEY:
-                maxHealth += amount;
+            case TOTAL_CYCLE:
+                super.perform(TOTAL_CYCLE);
+                setValue(ENERGY, getValue(MAX_ENERGY));
                 break;
-            case ENERGY_KEY:
-                energy += amount;
-                break;
-            case MAX_ENERGY_KEY:
-                maxEnergy += amount;
-                break;
-            case DEGRADATION_CYCLE_KEY:
-                degradationCycle += amount;
+            default:
+                super.perform(option);
                 break;
         }
     }
 
     @Override
-    public ResourceContainer getResources(Options option) {
+    public boolean checkStatus(Option option) {
         return switch(option) {
-            case CONSTRUCT_KEY: yield cost;
+            case CONSTRUCT: yield player.hasResources(cost);
+            default: yield super.checkStatus(option);
+        };
+    }
+
+    @Override
+    public ResourceContainer getResources(Option option) {
+        return switch(option) {
+            case CONSTRUCT: yield cost;
             default: yield ResourceContainer.EMPTY_CONTAINER;
         };
     }
 
     @Override
-    public void perform(Options option) {
-        switch(option) {
-            case CONSTRUCT_KEY:
-                getPlayer().changeResources(cost);
-                getPlayer().addObject(this);
-                break;
-            case CYCLE_KEY:
-                super.perform(CYCLE_KEY);
-                energy = maxEnergy;
-                if(getValue(CYCLE_KEY) >= degradationCycle)
-                    health -= degradationAmount;
-                break;
-            case DEGRADE_KEY:
-                health -= degradationAmount;
-                break;
-            case DESTROY_KEY:
-                player.removeObject(this);
-                break;
+    public OperationsList getOperations() {
+        OperationsList operations = new OperationsList();
+        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation()) && obj.getTypes().contains(Type.HEALER)).iterator(); it.hasNext(); ) {
+            GameObject object = it.next().castAs(Type.HEALER);
+            operations.put("Heal at " + object.getToken(), new TypedConsumer() {
+                @Override
+                public void accept(GameObject obj) throws TypeException {
+                    changeValue(STATUS, GameConstants.HEALING_STATUS);
+                    changeValue(HEAL, object.getValue(HEAL));
+                }
+            });
         }
-    }
-
-    @Override
-    public boolean checkStatus(Options option) {
-        return switch(option) {
-            case CONSTRUCT_KEY: yield player.hasResources(cost);
-            default: yield false;
-        };
+        return operations;
     }
 
     @Override
     public String toString() {
-        return "Type: " + getType() + "\ncore.Player: " + player.getName() +
-                "\nHealth: " + health + "/" + maxHealth +
-                "\nEnergy: " + energy + "/" + maxEnergy;
+        return "Type: " + getClassIdentifier() + "\nPlayer: " + player.getName() +
+                "\nHealth: " + getValue(HEALTH) + "/" + getValue(MAX_HEALTH) +
+                "\nEnergy: " + getValue(ENERGY) + "/" + getValue(MAX_ENERGY);
     }
 }

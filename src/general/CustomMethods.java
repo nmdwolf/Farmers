@@ -1,6 +1,10 @@
 package general;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class CustomMethods {
@@ -43,5 +47,30 @@ public class CustomMethods {
         gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         return gr;
+    }
+
+    public static BufferedImage getSprite(String path, int width, int height) {
+        BufferedImage sprite = null;
+        try {
+            Image img = ImageIO.read(new File(path)).getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            sprite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D gr = optimizeGraphics(sprite.createGraphics());
+            gr.drawImage(img, 0, 0, null);
+            gr.dispose();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sprite;
+    }
+
+    public static BufferedImage selectedSprite(BufferedImage sprite, Color color) {
+        BufferedImage img = new BufferedImage(sprite.getWidth() + 2, sprite.getHeight() + 2, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());
+        gr.setColor(color);
+        gr.setStroke(new BasicStroke(2));
+        gr.drawImage(sprite, 1, 1, null);
+        gr.drawRect(1, 1, sprite.getWidth(), sprite.getHeight());
+        gr.dispose();
+        return img;
     }
 }

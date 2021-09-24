@@ -1,4 +1,4 @@
-package core;
+package general;
 
 import items.GameObject;
 

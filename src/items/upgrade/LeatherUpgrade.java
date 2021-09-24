@@ -1,14 +1,12 @@
 package items.upgrade;
 
-import core.Options;
+import core.Option;
 import core.Player;
 import core.Resource;
-import core.ResourceContainer;
+import general.ResourceContainer;
 import general.CustomMethods;
 import items.GameObject;
 import items.units.Unit;
-
-import java.util.HashMap;
 
 public class LeatherUpgrade extends Upgrade<Unit> {
 
@@ -34,8 +32,8 @@ public class LeatherUpgrade extends Upgrade<Unit> {
 
     @Override
     public void applyTo(Unit object) {
-        object.changeValue(Options.MAX_HEALTH_KEY, HEALTH_CHANGE);
-        object.changeValue(Options.HEALTH_KEY, HEALTH_CHANGE);
+        object.changeValue(Option.MAX_HEALTH, HEALTH_CHANGE);
+        object.changeValue(Option.HEALTH, HEALTH_CHANGE);
     }
 
     @Override
