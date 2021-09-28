@@ -30,4 +30,13 @@ public class Motion {
     public int getSize() { return length; }
 
     public GameObject getObject() { return object; }
+
+    public Location[] getPath() {
+        Location[] path = locations.toArray(new Location[0]);
+        Location[] totalPath = new Location[path.length + 1];
+        totalPath[0] = object.getLocation();
+        System.arraycopy(path, 0, totalPath, 1, path.length);
+        return totalPath;
+    }
+
 }

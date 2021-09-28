@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class CustomMethods {
 
-    private static int CONSTRUCT_COUNT, UPGRADE_COUNT;
+    private static int CONSTRUCT_COUNT, UPGRADE_COUNT, AWARD_COUNT;
 
     public static int getNewIdentifier() {
         return CONSTRUCT_COUNT++;
@@ -18,6 +18,8 @@ public class CustomMethods {
     public static int getNewUpgradeIdentifier() {
         return UPGRADE_COUNT++;
     }
+
+    public static int getNewAwardIdentifier() { return AWARD_COUNT++; }
 
     public static void printTranspose(int[][] grid, String toReplace, String replacement) {
         int[][] temp = new int[grid.length][grid[0].length];

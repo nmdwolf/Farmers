@@ -6,8 +6,6 @@ import core.contracts.LaborContract;
 import core.contracts.PrimeContract;
 import general.OperationsList;
 import general.ResourceContainer;
-import general.TypeException;
-import general.TypedConsumer;
 import items.GameObject;
 
 import java.util.*;
@@ -16,7 +14,6 @@ import java.util.stream.Collectors;
 public abstract class Worker extends Unit {
 
     private final ArrayList<Contract> contracts;
-    private final HashSet<Option> gains;
 
     private HashSet<GameObject> boosters;
 
@@ -30,10 +27,9 @@ public abstract class Worker extends Unit {
         contracts = new ArrayList<>();
         boosters = new HashSet<>();
 
-        gains = new HashSet<>();
-        for(Resource r : Resource.values()) {
-            if(params.containsKey(r.operation))
-                gains.add(r.operation);
+        for(Resource resource : Resource.values()) {
+            if(!params.containsKey(resource.operation))
+                throw new IllegalArgumentException("Resource of type " + resource + " not found.");
         }
     }
 
@@ -81,14 +77,15 @@ public abstract class Worker extends Unit {
 
     @Override
     public int getValue(Option option) {
-        if(gains != null && gains.contains(option)) {
-            int gain = super.getValue(option);
-            for(GameObject booster : boosters)
-                gain += booster.getValue(option);
-            return gain;
+        for(Resource resource : Resource.values()) {
+            if(option == resource.operation && super.getValue(option) != 0) {
+                int gain = super.getValue(option);
+                for(GameObject booster : boosters)
+                    gain += booster.getValue(option);
+                return gain;
+            }
         }
-        else
-            return super.getValue(option);
+        return super.getValue(option);
     }
 
     @Override
@@ -104,16 +101,29 @@ public abstract class Worker extends Unit {
     }
 
     @Override
-    public OperationsList getOperations() {
-        OperationsList operations = new OperationsList(super.getOperations());
-        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation()) && obj.getTypes().contains(Type.SOURCE)).iterator(); it.hasNext(); ) {
-            GameObject object = it.next().castAs(Type.SOURCE);
-            operations.put("Prime " + object.getToken(), new TypedConsumer() {
-                @Override
-                public void accept(GameObject obj) throws TypeException {
-                    addContract(new PrimeContract(Worker.this, object));
+    public OperationsList getOperations(Option... options) {
+        OperationsList operations = new OperationsList(super.getOperations(options));
+        for(Option option : options) {
+
+            // Add resource labor contracts
+            if(option == Option.RESOURCE) {
+                for (Resource res : Resource.values()) {
+                    operations.put(res.name, (obj, params) -> {
+                        LaborContract contract = new LaborContract(Worker.this, res, 1);
+                        contract.setCell((Cell)params[0]);
+                        addContract(contract);
+                        changeValue(Option.OLD_STATUS, GameConstants.WORKING_STATUS);
+                    });
                 }
-            });
+            } else {
+
+                // Add source prime contracts
+                for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation())
+                        && obj.getTypes().contains(Type.SOURCE)).iterator(); option == Option.SOURCE && it.hasNext(); ) {
+                    GameObject object = it.next().castAs(Type.SOURCE);
+                    operations.put("Prime " + object.getToken(), (obj, params) -> addContract(new PrimeContract(Worker.this, object)));
+                }
+            }
         }
         return operations;
     }

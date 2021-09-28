@@ -1,11 +1,8 @@
 package items;
 
-import core.Location;
-import core.Option;
-import core.Player;
+import core.*;
 import general.OperationsList;
 import general.ResourceContainer;
-import core.Type;
 import general.TypeException;
 import general.TypedConsumer;
 import items.upgrade.EvolveUpgrade;
@@ -104,11 +101,6 @@ public abstract class Decorator<T extends GameObject> extends GameObject{
     }
 
     @Override
-    public List<GameObject> getProducts() {
-        return object.getProducts();
-    }
-
-    @Override
     public List<EvolveUpgrade> getEvolutions() {
         return object.getEvolutions();
     }
@@ -131,8 +123,13 @@ public abstract class Decorator<T extends GameObject> extends GameObject{
     }
 
     @Override
-    public OperationsList getOperations() {
-        return object.getOperations();
+    public OperationsList getOperations(Option... options) {
+        return object.getOperations(options);
+    }
+
+    @Override
+    public Award getAward(Option option) {
+        return object.getAward(option);
     }
 
     @Override

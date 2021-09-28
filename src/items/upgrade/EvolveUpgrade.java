@@ -22,6 +22,7 @@ public class EvolveUpgrade<T extends GameObject> extends InstanceUpgrade<T> {
     @Override
     public void applyTo(GameObject object) {
         object.changeValue(Option.LEVEL, 1);
+        object.getPlayer().enable(object.getAward(Option.ENABLED));
         try {
             object.typedDo(Type.EVOLVABLE, evolution);
         } catch (TypeException e) {

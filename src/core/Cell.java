@@ -1,21 +1,30 @@
 package core;
 
-import java.util.HashMap;
-import java.util.Map;
+import general.ResourceContainer;
 
 import static core.GameConstants.*;
 import static core.Resource.*;
 
 public class Cell {
 
-    private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost;
-    private final HashMap<Resource, Integer> resources;
+    private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel;
+    private final ResourceContainer resources;
 
     public Cell(int s, int b) {
         unitSpace = s;
         buildingSpace = b;
         travelCost = INITIAL_TRAVEL_COST;
         resources = generateResources();
+        seasonalCycle(0);
+    }
+
+    public void cycle(int cycle) {
+
+        if(cycle % SEASON_LENGTH == 0)
+            seasonalCycle((cycle % (4 * SEASON_LENGTH)) / SEASON_LENGTH);
+
+        if(heatLevel >= HOT_LEVEL)
+            resources.put(WATER, Math.max(resources.get(WATER) - 2, 0));
     }
 
     public int getUnitSpace() {
@@ -59,7 +68,11 @@ public class Cell {
     }
 
     public int getTravelCost() {
-        return resources.get(WATER) > WATER_THRESHOLD ? travelCost + 2 : travelCost;
+        int cost = travelCost;
+        if(resources.get(WATER) >= WATER_THRESHOLD)
+            cost += 2;
+        cost += Math.max(0, heatLevel - HOT_LEVEL);
+        return cost;
     }
 
     public void changeTravelCost(int amount) {
@@ -70,14 +83,25 @@ public class Cell {
         return resources.get(type);
     }
 
-    public void changeResource(Resource type, int amount) {
+    public int changeResource(Resource type, int amount) {
+
+        if(amount < 0)
+            amount = -Math.min(resources.get(type), -amount);
+        if(type == WATER && heatLevel <= COLD_LEVEL)
+            amount = 0;
+
         resources.put(type, resources.get(type) + amount);
+        return amount;
     }
 
-    public void changeResources(Map<Resource, Integer> res) {
+    public void changeResources(ResourceContainer res) {
         for(Resource resource : res.keySet())
             changeResource(resource, res.get(resource));
     }
+
+    public int getHeatLevel() { return heatLevel; }
+
+    public void changeHeatLevel(int amount) { heatLevel += amount; }
 
     public boolean isRiver() { return resources.get(WATER) >= WATER_THRESHOLD; }
 
@@ -86,11 +110,33 @@ public class Cell {
     public boolean isField() { return resources.get(FOOD) >= FOOD_THRESHOLD; }
 
     /**
+     * Changes parameters of the cell when the season switches
+     * @param season 0: Winter, 1: Spring, 2: Summer, 3: Fall
+     */
+    private void seasonalCycle(int season) {
+        heatLevel = INITIAL_HEAT_LEVEL;
+        if(season == 0)
+            heatLevel -= rand.nextInt(4) + 1;
+        else if(season == 1) {
+            heatLevel += rand.nextInt(3) - 1;
+            if (rand.nextInt(5) >= 3)
+                resources.put(WATER, resources.get(WATER) + rand.nextInt(30));
+        }
+        else if(season == 2)
+            heatLevel += rand.nextInt(5) + 1;
+        else if(season == 3) {
+            heatLevel += rand.nextInt(3) - 1;
+            if(rand.nextInt(5) >= 2)
+                resources.put(WATER, resources.get(WATER) + rand.nextInt(50));
+        }
+    }
+
+    /**
      * Generates a random amount of resources to initialize a cell
      * @return HashMap with random amount of resources
      */
-    private static HashMap<Resource, Integer> generateResources() {
-        HashMap<Resource,Integer> resources = new HashMap<>();
+    private static ResourceContainer generateResources() {
+        ResourceContainer resources = new ResourceContainer();
         resources.put(FOOD, rand.nextInt(200));
         resources.put(WOOD, rand.nextInt(250));
         resources.put(STONE, rand.nextInt(100));
@@ -98,9 +144,9 @@ public class Cell {
         resources.put(COAL, rand.nextInt(50));
 
         resources.put(WATER, rand.nextInt(200));
-        if(resources.get(WATER) > GameConstants.WATER_THRESHOLD) {
-            resources.put(WATER, 300);
-        }
+        if(resources.get(WATER) > GameConstants.WATER_THRESHOLD)
+            resources.put(WATER, 300 + rand.nextInt(100));
+
         return resources;
     }
 }

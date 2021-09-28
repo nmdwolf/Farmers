@@ -7,6 +7,7 @@ import items.upgrade.EvolveUpgrade;
 import items.upgrade.LookoutUpgrade;
 import items.upgrade.Upgrade;
 
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,7 +30,6 @@ public class Wall extends Building {
     public Wall(Player player, Location loc) {
         super(player, loc, WALL_COST, new HashMap<>() {{
             put(MAX_HEALTH, WALL_HEALTH);
-            put(STATUS, GameConstants.FOUNDATION_KEY);
             put(SPACE, WALL_SPACE);
             put(SIGHT, WALL_SIGHT);
             put(SIZE, WALL_SIZE);
@@ -50,13 +50,13 @@ public class Wall extends Building {
     }
 
     @Override
-    public boolean checkStatus(Option option) {
-        return option == ENABLED ? getPlayer().hasUpgrade(new LookoutUpgrade(getPlayer())) : super.checkStatus(option);
+    public BufferedImage getSprite() {
+        return null;
     }
 
     @Override
-    public List<GameObject> getProducts() {
-        return null;
+    public boolean checkStatus(Option option) {
+        return option == ENABLED ? getPlayer().hasUpgrade(new LookoutUpgrade(getPlayer())) : super.checkStatus(option);
     }
 
     @Override
@@ -66,6 +66,11 @@ public class Wall extends Building {
 
     @Override
     public List<EvolveUpgrade> getEvolutions() {
+        return null;
+    }
+
+    @Override
+    public Award getAward(Option option) {
         return null;
     }
 }

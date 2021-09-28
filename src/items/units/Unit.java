@@ -5,8 +5,6 @@ import static core.Option.*;
 import core.*;
 import general.OperationsList;
 import general.ResourceContainer;
-import general.TypeException;
-import general.TypedConsumer;
 import items.GameObject;
 
 import java.util.Iterator;
@@ -23,6 +21,9 @@ public abstract class Unit extends GameObject {
 
         if(!params.containsKey(MAX_ENERGY))
             throw new IllegalArgumentException("Missing energy parameter");
+        if(!params.containsKey(ANIMATION))
+            throw new IllegalArgumentException("Missing animation parameter");
+
         changeValue(ENERGY, params.get(MAX_ENERGY));
 
         updateTypes(Type.UNIT);
@@ -72,16 +73,14 @@ public abstract class Unit extends GameObject {
     }
 
     @Override
-    public OperationsList getOperations() {
+    public OperationsList getOperations(Option... options) {
         OperationsList operations = new OperationsList();
-        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation()) && obj.getTypes().contains(Type.HEALER)).iterator(); it.hasNext(); ) {
+        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation())
+                && obj.getTypes().contains(Type.HEALER)).iterator(); options.length == 0 && it.hasNext(); ) {
             GameObject object = it.next().castAs(Type.HEALER);
-            operations.put("Heal at " + object.getToken(), new TypedConsumer() {
-                @Override
-                public void accept(GameObject obj) throws TypeException {
-                    changeValue(STATUS, GameConstants.HEALING_STATUS);
-                    changeValue(HEAL, object.getValue(HEAL));
-                }
+            operations.put("Heal at " + object.getToken(), (obj, params) -> {
+                changeValue(STATUS, GameConstants.HEALING_STATUS);
+                changeValue(HEAL, object.getValue(HEAL));
             });
         }
         return operations;

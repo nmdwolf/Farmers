@@ -3,7 +3,9 @@ package items.units;
 import static core.Option.*;
 
 import core.*;
+import core.contracts.BuildContract;
 import general.CustomMethods;
+import general.OperationsList;
 import general.ResourceContainer;
 import items.GameObject;
 import items.buildings.House;
@@ -25,6 +27,7 @@ public class Villager extends Worker {
     public final static int VILLAGER_ENERGY = 5;
     public final static int VILLAGER_SIZE = 1;
     public final static int VILLAGER_SIGHT = 1;
+    public final static int VILLAGER_ANIMATION = 1000;
 
     public final static ResourceContainer VILLAGER_COST = new ResourceContainer(-100, -100, 0, 0, 0, 0);
 
@@ -40,10 +43,13 @@ public class Villager extends Worker {
             put(SIZE, VILLAGER_SIZE);
             put(DEGRADATION_AMOUNT, VILLAGER_DEGRADATION_AMOUNT);
             put(DEGRADATION_CYCLE, VILLAGER_DEGRADATION_CYCLE);
+            put(ANIMATION, VILLAGER_ANIMATION);
             put(HUNT, 5);
             put(DRINK, 5);
             put(LOG, 5);
             put(MASON, 5);
+            put(WELD, 0);
+            put(MINE, 0);
         }});
     }
 
@@ -58,19 +64,6 @@ public class Villager extends Worker {
     }
 
     @Override
-    public List<GameObject> getProducts() {
-        ArrayList<GameObject> products = new ArrayList<>();
-        products.add(new House(getPlayer(), getLocation()));
-        products.add(new Lumberjack(getPlayer(), getLocation()));
-        return products;
-    }
-
-    @Override
-    public List<Upgrade> getUpgrades() {
-        return null;
-    }
-
-    @Override
     public boolean checkStatus(Option option) {
         if(option == ENABLED)
             return true;
@@ -79,8 +72,29 @@ public class Villager extends Worker {
     }
 
     @Override
+    public List<Upgrade> getUpgrades() {
+        return null;
+    }
+
+    @Override
     public List<EvolveUpgrade> getEvolutions() {
         return null;
+    }
+
+    @Override
+    public OperationsList getOperations(Option... options) {
+        OperationsList operations =  super.getOperations(options);
+        for(Option option : options) {
+            if (option == CONSTRUCT) {
+                operations.put("House", (v, params) -> {
+                    addContract(new BuildContract(Villager.this, new House(getPlayer(), getLocation())));
+                });
+                operations.put("Lumberjack", (v, params) -> {
+                    addContract(new BuildContract(Villager.this, new Lumberjack(getPlayer(), getLocation())));
+                });
+            }
+        }
+        return operations;
     }
 
     @Override
@@ -89,5 +103,10 @@ public class Villager extends Worker {
             return sprite;
         else
             return workingSprite;
+    }
+
+    @Override
+    public Award getAward(Option option) {
+        return null;
     }
 }

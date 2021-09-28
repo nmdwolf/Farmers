@@ -12,6 +12,10 @@ public class ResourceContainer extends HashMap<Resource, Integer> {
 
     public ResourceContainer() {}
 
+    public ResourceContainer(ResourceContainer old) {
+        putAll(old);
+    }
+
     public ResourceContainer(int food, int water, int wood, int stone, int iron, int coal) {
         put(FOOD, food);
         put(WATER, water);

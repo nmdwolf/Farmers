@@ -8,6 +8,7 @@ import items.buildings.Stable;
 import items.upgrade.EvolveUpgrade;
 import items.upgrade.Upgrade;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ public class Scout extends Unit {
     public final static int SCOUT_ENERGY = 10;
     public final static int SCOUT_SIZE = 2;
     public final static int SCOUT_SIGHT = 2;
+    public final static int SCOUT_ANIMATION = 300;
 
     public final static ResourceContainer SCOUT_COST = new ResourceContainer(){{
         put(Resource.FOOD, -100);
@@ -42,6 +44,7 @@ public class Scout extends Unit {
             put(SIZE, SCOUT_SIZE);
             put(DEGRADATION_AMOUNT, SCOUT_DEGRADATION_AMOUNT);
             put(DEGRADATION_CYCLE, SCOUT_DEGRADATION_CYCLE);
+            put(ANIMATION, SCOUT_ANIMATION);
         }});
     }
 
@@ -58,14 +61,9 @@ public class Scout extends Unit {
     @Override
     public boolean checkStatus(Option option) {
         if(option == ENABLED)
-            return getPlayer().hasConstructed(House.HOUSE_TOKEN);
+            return getPlayer().hasEnabled(House.BUILT_AWARD);
         else
             return super.checkStatus(option);
-    }
-
-    @Override
-    public List<GameObject> getProducts() {
-        return null;
     }
 
     @Override
@@ -75,9 +73,9 @@ public class Scout extends Unit {
 
     @Override
     public List<EvolveUpgrade> getEvolutions() {
-        if(player.hasConstructed(Stable.TOKEN)) {
+        if(player.hasEnabled(Stable.BUILT_AWARD)) {
             ArrayList<EvolveUpgrade> evolutions = new ArrayList<>();
-            evolutions.add(new EvolveUpgrade<>(this, LEVEL1_COST, 0, s -> {
+            evolutions.add(new EvolveUpgrade<>(this, LEVEL1_COST, 0, (s, params) -> {
                 s.changeValue(SIGHT, 1);
                 s.changeValue(MAX_ENERGY, 5);
                 s.changeValue(MAX_HEALTH, 20);
@@ -86,6 +84,16 @@ public class Scout extends Unit {
             }));
             return evolutions;
         }
+        return null;
+    }
+
+    @Override
+    public Award getAward(Option option) {
+        return null;
+    }
+
+    @Override
+    public BufferedImage getSprite() {
         return null;
     }
 }

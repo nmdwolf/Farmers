@@ -3,6 +3,7 @@ package items.sources;
 import core.*;
 import general.ResourceContainer;
 
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
 public class Farm extends Source {
@@ -18,7 +19,6 @@ public class Farm extends Source {
         super(p, loc, new HashMap<>() {{
             put(Option.SIZE, FARM_SIZE);
             put(Option.SIGHT, FARM_SIGHT);
-            put(Option.STATUS, GameConstants.FOUNDATION_KEY);
             put(Option.MAX_HEALTH, FARM_HEALTH);
             put(Option.DEGRADATION_CYCLE, FARM_DEGRADATION_CYCLE);
             put(Option.DEGRADATION_AMOUNT, FARM_DEGRADATION_AMOUNT);
@@ -35,4 +35,13 @@ public class Farm extends Source {
         return "F";
     }
 
+    @Override
+    public Award getAward(Option option) {
+        return null;
+    }
+
+    @Override
+    public BufferedImage getSprite() {
+        return null;
+    }
 }

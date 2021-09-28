@@ -57,17 +57,12 @@ public abstract class Source extends GameObject {
     }
 
     @Override
-    public List<GameObject> getProducts() {
-        return null;
-    }
-
-    @Override
     public List<EvolveUpgrade> getEvolutions() {
         return null;
     }
 
     @Override
-    public OperationsList getOperations() {
+    public OperationsList getOperations(Option... options) {
         return null;
     }
 }

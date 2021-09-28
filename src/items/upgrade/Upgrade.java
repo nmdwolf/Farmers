@@ -33,8 +33,8 @@ public abstract class Upgrade<T extends GameObject> {
 
     public abstract void notifyObserver(GameObject... objects);
 
-    public boolean isVisible(int cycle) {
-        return cycle >= cycleVisibilityThreshold;
+    public boolean isVisible() {
+        return player.getCycle() >= cycleVisibilityThreshold;
     }
 
     @Override

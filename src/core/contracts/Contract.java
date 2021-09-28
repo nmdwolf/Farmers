@@ -5,25 +5,19 @@ import items.units.Worker;
 
 public abstract class Contract {
 
-    private final int type;
-    private Worker party;
+    private final Worker employee;
 
-    public Contract(Worker party, int type) {
-        this.party = party;
-        this.type = type;
+    public Contract(Worker party) {
+        this.employee = party;
     }
 
-    public int getType() {
-        return type;
-    }
-
-    public Worker getParty() {
-        return party;
+    public Worker getEmployee() {
+        return employee;
     }
 
     /**
      * Work on the contract
-     * @return true if contract is fully completed
+     * @return true if contract is completed
      */
     public abstract boolean work();
 

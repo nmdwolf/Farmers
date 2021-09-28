@@ -4,6 +4,7 @@ import static core.Option.*;
 
 import core.*;
 import general.CustomMethods;
+import general.OperationsList;
 import general.ResourceContainer;
 import items.GameObject;
 import items.units.Scout;
@@ -53,14 +54,15 @@ public class MainBuilding extends ConstructiveBuilding {
     public MainBuilding(Player p, Location loc) {
         super(p, loc, BUILD_RESOURCES, new HashMap<>() {{
             put(MAX_HEALTH, BASE_HEALTH);
-            put(STATUS, GameConstants.FOUNDATION_KEY);
             put(SPACE, BASE_SPACE);
             put(SIGHT, BASE_SIGHT);
             put(SIZE, BASE_SIZE);
             put(HEAL, BASE_HEAL);
+            put(CONSTRUCT, 5);
             put(DEGRADATION_AMOUNT, BASE_DEGRADATION_AMOUNT);
             put(DEGRADATION_CYCLE, BASE_DEGRADATION_CYCLE);
         }});
+
         updateTypes(Type.UPGRADER, Type.EVOLVABLE, Type.HEALER);
     }
 
@@ -87,14 +89,6 @@ public class MainBuilding extends ConstructiveBuilding {
     }
 
     @Override
-    public List<GameObject> getProducts() {
-        ArrayList<GameObject> products = new ArrayList<>();
-        products.add(new Villager(getPlayer(), getLocation().add(getValue(CONSTRUCT_X), getValue(CONSTRUCT_Y), 0)));
-        products.add(new Scout(getPlayer(), getLocation().add(getValue(CONSTRUCT_X), getValue(CONSTRUCT_Y), 0)));
-        return products;
-    }
-
-    @Override
     public boolean checkStatus(Option option) {
         if(option == ENABLED)
             return true;
@@ -107,14 +101,14 @@ public class MainBuilding extends ConstructiveBuilding {
         ArrayList<EvolveUpgrade> evolutions = new ArrayList<>(1);
         switch(getValue(LEVEL)) {
             case 0:
-                evolutions.add(new EvolveUpgrade<>(MainBuilding.this, LEVEL1_RESOURCES, 0, m -> {
+                evolutions.add(new EvolveUpgrade<>(MainBuilding.this, LEVEL1_RESOURCES, 0, (m, params) -> {
                     m.changeValue(MAX_HEALTH, 200);
                     m.changeValue(SPACE, 2);
                     m.changeValue(CYCLE, 0);
                 }));
                 break;
             case 1:
-                evolutions.add(new EvolveUpgrade<>(MainBuilding.this, LEVEL2_RESOURCES, 0, m -> {
+                evolutions.add(new EvolveUpgrade<>(MainBuilding.this, LEVEL2_RESOURCES, 0, (m, params) -> {
                     m.changeValue(MAX_HEALTH, 300);
                     m.changeValue(SPACE, 3);
                     m.changeValue(CYCLE, 0);
@@ -131,5 +125,30 @@ public class MainBuilding extends ConstructiveBuilding {
             case 1: yield townSprite;
             default: yield castleSprite;
         };
+    }
+
+    @Override
+    public Award getAward(Option option) {
+        return null;
+    }
+
+    @Override
+    public OperationsList getOperations(Option... options) {
+        OperationsList operations = super.getOperations(options);
+        for(Option option : options) {
+            if(option == CONSTRUCT) {
+                operations.put("Villager", (base, params) -> {
+                    Villager v = new Villager(getPlayer(), getLocation().add(getValue(CONSTRUCT_X), getValue(CONSTRUCT_Y), 0));
+                    if (getPlayer().hasResources(v.getResources(CONSTRUCT)))
+                        v.perform(CONSTRUCT);
+                }); // Construct villager
+                operations.put("Scout", (base, params) -> {
+                    Scout sc = new Scout(getPlayer(), getLocation().add(getValue(CONSTRUCT_X), getValue(CONSTRUCT_Y), 0));
+                    if (getPlayer().hasResources(sc.getResources(CONSTRUCT)))
+                        sc.perform(CONSTRUCT);
+                }); // Construct scout
+            }
+        }
+        return operations;
     }
 }

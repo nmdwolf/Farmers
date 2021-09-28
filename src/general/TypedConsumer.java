@@ -5,6 +5,6 @@ import items.GameObject;
 @FunctionalInterface
 public interface TypedConsumer {
 
-    void accept(GameObject obj) throws TypeException;
+    void run(GameObject obj, Object... params) throws TypeException;
 
 }

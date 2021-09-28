@@ -1,5 +1,6 @@
 package core;
 
+import core.contracts.Contract;
 import core.contracts.LaborContract;
 import general.Main;
 import general.Motion;
@@ -11,6 +12,7 @@ import items.units.Worker;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static core.GameConstants.WORKING_STATUS;
 import static core.GameConstants.rand;
@@ -35,12 +37,10 @@ public class AI extends Player{
 
     public void makeMove(int cycle) throws TypeException {
         // init step
-        if(base == null) {
-            for(GameObject obj : getObjects()) {
+        if(base == null)
+            for(GameObject obj : getObjects())
                 if (obj.castAs(BUILDING) instanceof MainBuilding)
                     base = (MainBuilding) obj.castAs(BUILDING);
-            }
-        }
 
         if(getObjects().stream().filter(obj -> obj.getToken().equals("v")).count() < 5) {
             Villager v = new Villager(this, base.getLocation().add(1, 0, 0));
@@ -55,10 +55,14 @@ public class AI extends Player{
 
             boolean needsToMove = true;
             if(harvested.containsKey(newLoc)) {
-                for(Resource res : Resource.values()) {
+                List<Resource> resources = Arrays.asList(Resource.values());
+                Collections.shuffle(resources, rand);
+                for(Resource res : resources) {
                     if(!harvested.get(newLoc).contains(res) && obj.getValue(res.operation) > 0) {
                         harvested.get(newLoc).add(res);
-                        obj.addContract(new LaborContract(obj, res, 1, main.getCell(newLoc)));
+                        LaborContract contract = new LaborContract(obj, res, 1);
+                        contract.setCell(main.getCell(newLoc));
+                        obj.addContract(contract);
                         obj.changeValue(STATUS, WORKING_STATUS);
                         needsToMove = false;
                         break;
@@ -71,11 +75,10 @@ public class AI extends Player{
                 Motion motion = main.getShortestAdmissiblePath(obj, newLoc);
 
                 int counter = 0;
-                while ((motion == null || harvested.containsKey(newLoc)) && counter <= SEARCH_LIMIT) {
+                while (main.getCell(newLoc).getUnitSpace() - main.getCell(newLoc).getUnitOccupied() < obj.getValue(SIZE)
+                        || (motion == null || (harvested.containsKey(newLoc) && counter++ <= SEARCH_LIMIT))) {
                     newLoc = obj.getLocation().add(rand.nextInt(3) - 1, rand.nextInt(3) - 1, 0);
                     motion = main.getShortestAdmissiblePath(obj, newLoc);
-
-                    counter++;
                 }
 
                 obj.changeValue(ENERGY, -motion.getSize());
@@ -83,7 +86,9 @@ public class AI extends Player{
 
                 harvested.put(newLoc, new ArrayList<>());
                 harvested.get(newLoc).add(FOOD);
-                obj.addContract(new LaborContract(obj, FOOD, 1, main.getCell(newLoc)));
+                LaborContract contract = new LaborContract(obj, FOOD, 1);
+                contract.setCell(main.getCell(newLoc));
+                obj.addContract(contract);
                 obj.changeValue(OLD_STATUS, WORKING_STATUS);
             }
         }

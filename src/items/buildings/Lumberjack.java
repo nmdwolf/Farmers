@@ -6,6 +6,7 @@ import items.GameObject;
 import items.upgrade.EvolveUpgrade;
 import items.upgrade.Upgrade;
 
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,9 +29,9 @@ public class Lumberjack extends Booster{
     public Lumberjack(Player p, Location loc) {
         super(p, loc, LUMBERJACK_COST, new HashMap<>() {{
             put(MAX_HEALTH, LUMBERJACK_HEALTH);
-            put(STATUS, GameConstants.FOUNDATION_KEY);
             put(SIGHT, LUMBERJACK_SIGHT);
             put(SIZE, LUMBERJACK_SIZE);
+            put(CONSTRUCT, 1);
             put(DEGRADATION_AMOUNT, LUMBERJACK_DEGRADATION_AMOUNT);
             put(DEGRADATION_CYCLE, LUMBERJACK_DEGRADATION_CYCLE);
             put(LOG, 1);
@@ -48,17 +49,22 @@ public class Lumberjack extends Booster{
     }
 
     @Override
+    public BufferedImage getSprite() {
+        return null;
+    }
+
+    @Override
     public List<Upgrade> getUpgrades() {
         return null;
     }
 
     @Override
-    public List<GameObject> getProducts() {
+    public List<EvolveUpgrade> getEvolutions() {
         return null;
     }
 
     @Override
-    public List<EvolveUpgrade> getEvolutions() {
+    public Award getAward(Option option) {
         return null;
     }
 }

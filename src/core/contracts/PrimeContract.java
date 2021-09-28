@@ -1,20 +1,19 @@
 package core.contracts;
 
-import core.GameConstants;
 import core.Option;
 import core.Type;
 import general.TypeException;
 import items.GameObject;
 import items.units.Worker;
 
-public class PrimeContract<T extends GameObject> extends Contract {
+public class PrimeContract extends Contract {
 
     public final static int PRIME_COST = 1;
 
-    private final T source;
+    private final GameObject source;
 
-    public PrimeContract(Worker worker, T src) throws TypeException {
-        super(worker, GameConstants.PRIME_KEY);
+    public PrimeContract(Worker employee, GameObject src) throws TypeException {
+        super(employee);
 
         if(!src.getTypes().contains(Type.SOURCE))
             throw new TypeException(Type.SOURCE);

@@ -18,10 +18,10 @@ import static core.Option.*;
 public class House extends Building {
 
     public final static BufferedImage sprite = CustomMethods.getSprite("src/img/hut.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
-
     public final static ResourceContainer HOUSE_COST = new ResourceContainer() {{
         put(Resource.WOOD, -50);
     }};
+    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "You finally gave your people some shelter.");
 
     public final static int HOUSE_HEALTH = 150;
     public final static int HOUSE_SPACE = 3;
@@ -37,11 +37,11 @@ public class House extends Building {
     public House(Player p, Location loc) {
         super(p, loc, HOUSE_COST, new HashMap<>() {{
             put(MAX_HEALTH, HOUSE_HEALTH);
-            put(STATUS, GameConstants.FOUNDATION_KEY);
             put(SPACE, HOUSE_SPACE);
             put(SIGHT, HOUSE_SIGHT);
             put(SIZE, HOUSE_SIZE);
             put(HEAL, HOUSE_HEAL);
+            put(CONSTRUCT, 1);
             put(DEGRADATION_AMOUNT, HOUSE_DEGRADATION_AMOUNT);
             put(DEGRADATION_CYCLE, HOUSE_DEGRADATION_CYCLE);
         }});
@@ -79,12 +79,12 @@ public class House extends Building {
     }
 
     @Override
-    public List<GameObject> getProducts() {
-        return null;
+    public BufferedImage getSprite() {
+        return sprite;
     }
 
     @Override
-    public BufferedImage getSprite() {
-        return sprite;
+    public Award getAward(Option option) {
+        return option == CONSTRUCT ? BUILT_AWARD : null;
     }
 }

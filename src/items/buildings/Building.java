@@ -18,7 +18,11 @@ public abstract class Building extends GameObject {
         super(p, loc, params);
         this.cost = cost;
 
+        if(!params.containsKey(CONSTRUCT))
+            throw new IllegalArgumentException("No construction parameter specified.");
+
         updateTypes(Type.BUILDING);
+        setValue(CONTRACT, 0);
     }
 
     @Override
@@ -30,7 +34,7 @@ public abstract class Building extends GameObject {
     }
 
     @Override
-    public OperationsList getOperations() {
+    public OperationsList getOperations(Option... options) {
         return null;
     }
 
@@ -38,8 +42,14 @@ public abstract class Building extends GameObject {
     public void perform(Option option) {
         switch(option) {
             case CONSTRUCT:
-                getPlayer().changeResources(cost);
-                getPlayer().addObject(this);
+                if(getValue(CONSTRUCT) - getValue(CONTRACT) == 1) {
+                    if(getPlayer().hasResources(getResources(CONSTRUCT))) {
+                        getPlayer().changeResources(cost);
+                        getPlayer().addObject(this);
+                        changeValue(CONTRACT, 1);
+                    }
+                } else
+                    changeValue(CONTRACT, 1);
                 break;
             default:
                 super.perform(option);
@@ -50,7 +60,7 @@ public abstract class Building extends GameObject {
     @Override
     public boolean checkStatus(Option option) {
         return switch(option) {
-            case CONSTRUCT: yield player.hasResources(cost);
+            case CONSTRUCT: yield getValue(CONTRACT) == 0 ? player.hasResources(cost) : getValue(CONTRACT) == getValue(CONSTRUCT);
             default: yield super.checkStatus(option);
         };
     }

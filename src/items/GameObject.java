@@ -29,15 +29,19 @@ public abstract class GameObject {
         descriptions = new HashSet<>();
 
         if(!params.containsKey(SIGHT) || !params.containsKey(SIZE)
-                || !params.containsKey(STATUS) || !params.containsKey(MAX_HEALTH)
+                || !params.containsKey(MAX_HEALTH)
                 || !params.containsKey(DEGRADATION_AMOUNT) || !params.containsKey(DEGRADATION_CYCLE))
-            throw new IllegalArgumentException("Missing default parameter");
+            throw new IllegalArgumentException("Missing default parameter(s)");
+        else
+            parameters = params;
 
-        parameters = params;
+        if(!params.containsKey(STATUS))
+            setValue(STATUS, GameConstants.IDLE_STATUS);
+
         parameters.put(LEVEL, 0);
         parameters.put(CYCLE, 0);
         parameters.put(TOTAL_CYCLE, 0);
-        parameters.put(OLD_STATUS, parameters.get(OLD_STATUS));
+        parameters.put(OLD_STATUS, parameters.get(STATUS));
         parameters.put(HEALTH, parameters.get(MAX_HEALTH));
 
         if(params.containsKey(SPACE))
@@ -58,19 +62,18 @@ public abstract class GameObject {
 
     public abstract String getClassIdentifier();
     public abstract String getToken();
+    public abstract BufferedImage getSprite();
 
+    public abstract Award getAward(Option option);
     public abstract List<Upgrade> getUpgrades();
-    public abstract List<GameObject> getProducts();
     public abstract List<EvolveUpgrade> getEvolutions();
-    public abstract OperationsList getOperations();
-
-    public BufferedImage getSprite() { return null; }
+    public abstract OperationsList getOperations(Option... options);
 
     // Typed methods
 
     public void typedDo(Type type, TypedConsumer toRun) throws TypeException {
         if(getTypes().contains(type))
-            toRun.accept(this.castAs(type));
+            toRun.run(this.castAs(type));
     }
     public void perform(Option option) {
         switch(option) {
@@ -94,7 +97,9 @@ public abstract class GameObject {
     public boolean checkStatus(Option option) { return (option == DESTROY && getValue(HEALTH) <= 0); }
     public int getValue(Option option) {
         Integer param = parameters.get(option);
-        return param == null ? -1 : param;
+        if(param == null)
+            throw new IllegalArgumentException("Option " + option + " not recognized for this object.");
+        return param;
     }
     public void changeValue(Option option, int amount) {
         switch(option) {
@@ -135,9 +140,8 @@ public abstract class GameObject {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof GameObject) {
+        if(obj instanceof GameObject)
             return id == ((GameObject) obj).getObjectIdentifier();
-        }
         return false;
     }
 }
