@@ -1,5 +1,8 @@
 package core;
 
+import general.CustomMethods;
+
+import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public interface GameConstants {

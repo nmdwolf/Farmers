@@ -18,8 +18,8 @@ public class LookoutUpgrade extends Upgrade<MainBuilding> {
         put(Resource.WOOD, -100);
     }};
 
-    public LookoutUpgrade(Player p) {
-        super(p, LOOKOUT_COST, CYCLE_THRESHOLD);
+    public LookoutUpgrade(Player player) {
+        super(player, LOOKOUT_COST, CYCLE_THRESHOLD);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class LookoutUpgrade extends Upgrade<MainBuilding> {
         for(int x = -2; x < 3; x++)
             for (int y = -2; y < 3; y++)
                 if(Math.abs(x) + Math.abs(y) == 2)
-                    object.getPlayer().spot(object.getLocation().add(x, y, 0));
+                    object.getPlayer().spot(object.getCell().fetch(x, y, 0));
     }
 
     @Override
@@ -46,7 +46,7 @@ public class LookoutUpgrade extends Upgrade<MainBuilding> {
     @Override
     public void notifyObserver(GameObject... objects) {
         for(GameObject object : objects)
-            if(object instanceof MainBuilding)
+            if(object.getToken().equals(MainBuilding.TOKEN))
                 applyTo((MainBuilding) object);
     }
 

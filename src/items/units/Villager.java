@@ -3,18 +3,14 @@ package items.units;
 import static core.Option.*;
 
 import core.*;
-import core.contracts.BuildContract;
+import core.contracts.ConstructContract;
 import general.CustomMethods;
 import general.OperationsList;
 import general.ResourceContainer;
-import items.GameObject;
 import items.buildings.House;
 import items.buildings.Lumberjack;
-import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,6 +18,7 @@ public class Villager extends Worker {
 
     public final static BufferedImage sprite = CustomMethods.getSprite("src/img/villager.png", GameConstants.UNIT_SPRITE_SIZE, GameConstants.UNIT_SPRITE_SIZE);
     public final static BufferedImage workingSprite = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.UNIT_SPRITE_SIZE, GameConstants.UNIT_SPRITE_SIZE);
+    public final static List<Resource> resources = List.of(Resource.FOOD, Resource.WOOD, Resource.STONE, Resource.COAL, Resource.IRON);
 
     public final static int VILLAGER_HEALTH = 100;
     public final static int VILLAGER_ENERGY = 5;
@@ -29,13 +26,17 @@ public class Villager extends Worker {
     public final static int VILLAGER_SIGHT = 1;
     public final static int VILLAGER_ANIMATION = 1000;
 
-    public final static ResourceContainer VILLAGER_COST = new ResourceContainer(-100, -100, 0, 0, 0, 0);
+    public final static ResourceContainer VILLAGER_COST = new ResourceContainer() {{
+        put(Resource.FOOD, -100);
+        put(Resource.WATER, -100);
+        put(Resource.TIME, 1);
+    }};
 
     public final static int VILLAGER_DEGRADATION_CYCLE = 50;
     public final static int VILLAGER_DEGRADATION_AMOUNT = 2;
 
-    public Villager(Player p, Location loc) {
-        super(p, loc, VILLAGER_COST, new HashMap<>() {{
+    public Villager(Player p, Cell cell) {
+        super(p, cell, VILLAGER_SIZE, VILLAGER_COST, new HashMap<>() {{
             put(MAX_HEALTH, VILLAGER_HEALTH);
             put(STATUS, GameConstants.IDLE_STATUS);
             put(MAX_ENERGY, VILLAGER_ENERGY);
@@ -54,13 +55,18 @@ public class Villager extends Worker {
     }
 
     @Override
-    public String getClassIdentifier() {
+    public String getClassLabel() {
         return "Villager";
     }
 
     @Override
     public String getToken() {
         return "v";
+    }
+
+    @Override
+    public List<Resource> getResources() {
+        return resources;
     }
 
     @Override
@@ -72,25 +78,15 @@ public class Villager extends Worker {
     }
 
     @Override
-    public List<Upgrade> getUpgrades() {
-        return null;
-    }
-
-    @Override
-    public List<EvolveUpgrade> getEvolutions() {
-        return null;
-    }
-
-    @Override
     public OperationsList getOperations(Option... options) {
         OperationsList operations =  super.getOperations(options);
         for(Option option : options) {
             if (option == CONSTRUCT) {
-                operations.put("House", (v, params) -> {
-                    addContract(new BuildContract(Villager.this, new House(getPlayer(), getLocation())));
+                operations.put("House", () -> {
+                    addContract(new ConstructContract(Villager.this, new House(getPlayer(), getCell())));
                 });
-                operations.put("Lumberjack", (v, params) -> {
-                    addContract(new BuildContract(Villager.this, new Lumberjack(getPlayer(), getLocation())));
+                operations.put("Lumberjack", () -> {
+                    addContract(new ConstructContract(Villager.this, new Lumberjack(getPlayer(), getCell())));
                 });
             }
         }

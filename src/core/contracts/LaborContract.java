@@ -8,16 +8,13 @@ public class LaborContract extends Contract {
 
     private final Resource resource;
     private final int energyCost;
-    private Cell cell;
+    private final Cell cell;
 
-    public LaborContract(Worker employee, Resource r, int cost) {
-        super(employee);
+    public LaborContract(Worker employee, Resource r, Cell cell, int cost) {
+        super(employee, -1);
+        this.cell = cell;
         energyCost = cost;
         resource = r;
-    }
-
-    public void setCell(Cell cell) {
-        this.cell = cell;
     }
 
     public Resource getResource() { return resource; }
@@ -28,11 +25,21 @@ public class LaborContract extends Contract {
     }
 
     @Override
+    public void initialize() {
+
+    }
+
+    @Override
+    public void terminate() {
+
+    }
+
+    @Override
     public boolean work() {
         if(cell == null)
             throw new IllegalStateException("No cell has been assigned.");
 
-        int gain = -cell.changeResource(resource, -Math.min(cell.getResource(resource), getEmployee().getValue(resource.operation)));
+        int gain = -cell.changeResource(resource, -Math.min(cell.getResource(resource), getEmployee().getYield(resource)));
         getEmployee().getPlayer().changeResource(resource, gain);
         return gain == 0;
     }

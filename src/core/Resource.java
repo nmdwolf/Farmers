@@ -4,15 +4,14 @@ import static core.Option.*;
 
 public enum Resource {
 
-    FOOD("Food", HUNT), WATER("Water", DRINK), WOOD("Wood", LOG),
-    STONE("Stone", MASON), IRON("Iron", WELD), COAL("Coal", MINE);
+    FOOD("Food"), WATER("Water"), WOOD("Wood"),
+    STONE("Stone"), IRON("Iron"), COAL("Coal"),
+    TIME("Time");
 
     public final String name;
-    public final Option operation;
 
-    Resource(String n, Option op) {
+    Resource(String n) {
         name = n;
-        operation = op;
     }
 
 }

@@ -1,5 +1,6 @@
 package core;
 
+import general.Location;
 import general.ResourceContainer;
 
 import static core.GameConstants.*;
@@ -9,8 +10,16 @@ public class Cell {
 
     private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel;
     private final ResourceContainer resources;
+    private int x, y, z;
 
-    public Cell(int s, int b) {
+    private Cell east, west, north, south, up, down;
+    private boolean linking;
+
+    public Cell(int x, int y, int z, int s, int b) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.linking = false;
         unitSpace = s;
         buildingSpace = b;
         travelCost = INITIAL_TRAVEL_COST;
@@ -142,11 +151,123 @@ public class Cell {
         resources.put(STONE, rand.nextInt(100));
         resources.put(IRON, rand.nextInt(50));
         resources.put(COAL, rand.nextInt(50));
+        resources.put(TIME, 0);
 
         resources.put(WATER, rand.nextInt(200));
         if(resources.get(WATER) > GameConstants.WATER_THRESHOLD)
             resources.put(WATER, 300 + rand.nextInt(100));
 
         return resources;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getZ() {
+        return z;
+    }
+
+    public void link(Cell cell, int x, int y, int z) {
+        if(Math.abs(x) + Math.abs(y) + Math.abs(z) != 1)
+            throw new IllegalArgumentException("Distance should be exactly 1!");
+
+        if(!linking) {
+            linking = true;
+            if (x == 1) {
+                if (east == null)
+                    cell.link(this, -1, 0, 0);
+                east = cell;
+            }
+            if (x == -1) {
+                if (west == null)
+                    cell.link(this, 1, 0, 0);
+                west = cell;
+            }
+            if (y == 1) {
+                if (north == null)
+                    cell.link(this, 0, -1, 0);
+                north = cell;
+            }
+            if (y == -1) {
+                if (south == null)
+                    cell.link(this, 0, 1, 0);
+                south = cell;
+            }
+            if (z == 1) {
+                if (up == null)
+                    cell.link(this, 0, 0, -1);
+                up = cell;
+            }
+            if (z == -1) {
+                if (down == null)
+                    cell.link(this, 0, 0, 1);
+                down = cell;
+            }
+        }
+        linking = false;
+    }
+
+    public Cell fetch(int x, int y, int z) {
+
+        if(x == 0 && y == 0 && z == 0)
+            return this;
+
+        if(Math.abs(x) + Math.abs(y) + Math.abs(z) == 1) {
+            if(x == 1)
+                return east;
+            else if(x == -1)
+                return west;
+            else if(y == 1)
+                return north;
+            else if(y == -1)
+                return south;
+            else if(z == 1)
+                return up;
+            else
+                return down;
+        } else {
+            if(Math.abs(y) >= Math.abs(x)) {
+                if(Math.abs(y) >= Math.abs(z))
+                    return (Integer.signum(y) == 1 ? north : south).fetch(x, y - Integer.signum(y), z);
+                else
+                    return (Integer.signum(z) == 1 ? up : down).fetch(x, y, z - Integer.signum(z));
+            }
+            else
+                return (Integer.signum(x) == 1 ? east : west).fetch(x - Integer.signum(x), y, z);
+        }
+    }
+
+    public Cell fetch(Cell cell) {
+        return fetch(cell.getX(), cell.getY(), cell.getZ());
+    }
+
+    public int distanceTo(Cell cell) {
+        return Math.abs(x - cell.getX()) + Math.abs(y - cell.getY()) + Math.abs(z - cell.getZ());
+    }
+
+    public Location getLocation() {
+        return new Location(x, y, z);
+    }
+
+    /*public Location add(Location loc) {
+        return new Location(x + loc.x, y + loc.y, z + loc.z);
+    }
+
+    public Location subtract(Location loc) {
+        return new Location(x - loc.x, y - loc.y, z - loc.z);
+    }
+
+    public Location add(int xIncr, int yIncr, int zIncr) {
+        return new Location(x + xIncr, y + yIncr, z + zIncr);
+    }*/
+
+    @Override
+    public String toString() {
+        return "Location(" + x + "," + y + "," + z + ")";
     }
 }

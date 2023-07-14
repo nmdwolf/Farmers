@@ -3,25 +3,24 @@ package items;
 import core.*;
 import general.OperationsList;
 import general.ResourceContainer;
-import general.TypeException;
-import general.TypedConsumer;
-import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
 
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static core.Option.*;
 
+/**
+ * Decorators are meant to equip GameObjects with extra disposable structure or properties
+ * without changing the core data.
+ * @param <T> type of underlying GameObject
+ */
 public abstract class Decorator<T extends GameObject> extends GameObject{
 
     private final T object;
 
     public Decorator(T obj) {
-        super(obj.getPlayer(), obj.getLocation(), new HashMap<>() {{
+        super(obj.getPlayer(), obj.getCell(), obj.getSize(), new HashMap<>() {{
             put(SIZE, obj.getValue(SIZE));
             put(SIGHT, obj.getValue(SIGHT));
             put(STATUS, obj.getValue(STATUS));
@@ -35,11 +34,6 @@ public abstract class Decorator<T extends GameObject> extends GameObject{
     @Override
     public BufferedImage getSprite() {
         return object.getSprite();
-    }
-
-    @Override
-    public Player getPlayer() {
-        return object.getPlayer();
     }
 
     @Override
@@ -73,11 +67,8 @@ public abstract class Decorator<T extends GameObject> extends GameObject{
     }
 
     @Override
-    public GameObject castAs(Type description) { return object.castAs(description); }
-
-    @Override
-    public String getClassIdentifier() {
-        return object.getClassIdentifier();
+    public String getClassLabel() {
+        return object.getClassLabel();
     }
 
     @Override
@@ -86,40 +77,21 @@ public abstract class Decorator<T extends GameObject> extends GameObject{
     }
 
     @Override
-    public Location getLocation() {
-        return object.getLocation();
+    public void setCell(Cell cell) {
+        super.setCell(cell);
+        object.setCell(cell);
     }
 
-    @Override
-    public void setLocation(Location loc) {
-        object.setLocation(loc);
-    }
-
-    @Override
-    public List<Upgrade> getUpgrades() {
-        return object.getUpgrades();
-    }
-
-    @Override
-    public List<EvolveUpgrade> getEvolutions() {
-        return object.getEvolutions();
-    }
-
-    @Override
-    public Set<Type> getTypes() {
-        Set<Type> types = new HashSet<>(object.getTypes());
-        types.addAll(super.getTypes());
-        return types;
+    public GameObject getObject() {
+        if(object instanceof Decorator)
+            return ((Decorator)object).getObject();
+        else
+            return object;
     }
 
     @Override
     public int getObjectIdentifier() {
         return object.getObjectIdentifier();
-    }
-
-    @Override
-    public void typedDo(Type type, TypedConsumer toRun) throws TypeException {
-        object.typedDo(type, toRun);
     }
 
     @Override

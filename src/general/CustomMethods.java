@@ -1,11 +1,15 @@
 package general;
 
+import core.Player;
+import items.upgrade.Upgrade;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 public class CustomMethods {
 
@@ -20,6 +24,16 @@ public class CustomMethods {
     }
 
     public static int getNewAwardIdentifier() { return AWARD_COUNT++; }
+
+    /**
+     * Removes all upgrades that are already enabled.
+     * @param list list of potential upgrades
+     * @return filtered upgrades
+     */
+    public static <T extends Upgrade> java.util.List<T> extractUpgrades(Player player, List<T> list) {
+        list.removeIf(upgrade -> !upgrade.isVisible());
+        return list;
+    }
 
     public static void printTranspose(int[][] grid, String toReplace, String replacement) {
         int[][] temp = new int[grid.length][grid[0].length];

@@ -2,6 +2,7 @@ package core;
 
 import general.ResourceContainer;
 import items.GameObject;
+import items.upgrade.Nomads;
 import items.upgrade.Upgrade;
 
 import java.awt.*;
@@ -9,32 +10,35 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static core.GameConstants.*;
+import static core.Option.CONSTRUCT;
 import static core.Resource.*;
 
 public class Player {
 
     private final String name;
     private final Color color, altColor;
-    private Location viewpoint;
+    private Cell viewpoint;
     private final AwardSystem awards;
 
     private final Set<GameObject> objects;
     private Set<GameObject> newObjects;
     private final HashSet<Upgrade> enabledUpgrades;
-    private final HashSet<Location> discovered, spotted;
+    private final HashSet<Cell> discovered, spotted;
     private final ResourceContainer resources, totalResources;
 
     private int pop, popCap, cycle;
     private boolean viewLocked;
+    private Civilization civ;
 
-    public Player(String name, Color color, Color alternativeColor) {
+    public Player(String name, Color color, Color alternativeColor, Cell start) {
         this.name = name;
         this.color = color;
         awards = new AwardSystem();
+        civ = new Nomads();
         altColor = alternativeColor;
         popCap = START_POP_CAP;
         viewLocked = true;
-        viewpoint = new Location(rand.nextInt(NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) + Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f), rand.nextInt(NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) + Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f), 0);
+        viewpoint = start;
         objects = ConcurrentHashMap.newKeySet();
         newObjects = ConcurrentHashMap.newKeySet();
         enabledUpgrades = new HashSet<>();
@@ -48,6 +52,7 @@ public class Player {
         resources.put(STONE, GameConstants.START_STONE);
         resources.put(COAL, GameConstants.START_COAL);
         resources.put(IRON, GameConstants.START_IRON);
+        resources.put(TIME, 0);
 
         totalResources = new ResourceContainer(resources);
     }
@@ -63,16 +68,23 @@ public class Player {
         return temp;
     }
 
+    /**
+     * Make new object ready to be added to the game field.
+     * @param object GameObject to be added
+     */
     public void addObject(GameObject object) {
+        object = civ.initObject(object);
         newObjects.add(object);
         awards.enable(object.getAward(Option.CONSTRUCT));
 
-        Location loc = object.getLocation();
+        Cell loc = object.getCell();
         discover(loc);
-        spot(new Location(loc.x + 1, loc.y, loc.z));
-        spot(new Location(loc.x - 1, loc.y, loc.z));
-        spot(new Location(loc.x, loc.y + 1, loc.z));
-        spot(new Location(loc.x, loc.y - 1, loc.z));
+        spot(loc.fetch(1, 0, 0));
+        spot(loc.fetch(-1, 0, 0));
+        spot(loc.fetch(0, 1, 0));
+        spot(loc.fetch(0, -1, 0));
+        spot(loc.fetch(0, 0, 1));
+        spot(loc.fetch(0, 0, -1));
 
         for(Upgrade upgrade : enabledUpgrades)
             upgrade.notifyObserver(object);
@@ -94,9 +106,9 @@ public class Player {
         return altColor;
     }
 
-    public Location getViewPoint() { return viewpoint; }
+    public Cell getViewPoint() { return viewpoint; }
 
-    public void changeViewpoint(Location loc) { viewpoint = loc; }
+    public void changeViewpoint(Cell loc) { viewpoint = loc; }
 
     public int getResource(Resource type) {
         return resources.get(type);
@@ -107,13 +119,13 @@ public class Player {
     }
 
     /**
-     *
-     * @param res Map with Resource-value pairs. Every value is assumed to be negative (it represents a cost).
+     * Checks if the Player has the required amount of resources.
+     * @param res Map with Resource-value pairs.
      * @return true if Player has the requested resources
      */
     public boolean hasResources(ResourceContainer res) {
         for(Resource resource : res.keySet())
-            if(resources.get(resource) < -res.get(resource))
+            if(resources.get(resource) < res.get(resource))
                 return false;
         return true;
     }
@@ -158,18 +170,18 @@ public class Player {
 
     public void changePopCap(int amount) { popCap += amount; }
 
-    public boolean hasSpotted(Location loc) { return spotted.contains(loc); }
+    public boolean hasSpotted(Cell loc) { return spotted.contains(loc); }
 
-    public boolean hasDiscovered(Location loc) { return discovered.contains(loc) || spotted.contains(loc); }
+    public boolean hasDiscovered(Cell loc) { return discovered.contains(loc) || spotted.contains(loc); }
 
-    public void spot(Location loc) {
-        if(!discovered.contains(loc))
-            spotted.add(loc);
+    public void spot(Cell cell) {
+        if(!discovered.contains(cell))
+            spotted.add(cell);
     }
 
-    public void discover(Location loc) {
-        spotted.remove(loc);
-        discovered.add(loc);
+    public void discover(Cell cell) {
+        spotted.remove(cell);
+        discovered.add(cell);
     }
 
     public boolean hasEnabled(Award award) { return awards.hasEnabled(award); }
@@ -180,4 +192,6 @@ public class Player {
         Set<String> messages = awards.getNewAwards();
         return messages;
     }
+
+    public Civilization getCivilization() { return civ; }
 }

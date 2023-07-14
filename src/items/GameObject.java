@@ -3,8 +3,6 @@ package items;
 import core.*;
 
 import general.*;
-import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -14,19 +12,18 @@ import static core.Option.*;
 public abstract class GameObject {
 
     private final int id;
-    private final HashSet<Type> descriptions;
     private final Map<Option, Integer> parameters;
 
-    protected Location location;
-    protected Player player;
+    private Cell cell;
+    private Player player;
+    private int size;
 
-    public GameObject(Player player, Location location, Map<Option, Integer> params) {
+    public GameObject(Player player, Cell cell, int size, Map<Option, Integer> params) {
         id = CustomMethods.getNewIdentifier();
 
-        this.location = location;
+        this.cell = cell;
         this.player = player;
-
-        descriptions = new HashSet<>();
+        this.size = size;
 
         if(!params.containsKey(SIGHT) || !params.containsKey(SIZE)
                 || !params.containsKey(MAX_HEALTH)
@@ -43,38 +40,21 @@ public abstract class GameObject {
         parameters.put(TOTAL_CYCLE, 0);
         parameters.put(OLD_STATUS, parameters.get(STATUS));
         parameters.put(HEALTH, parameters.get(MAX_HEALTH));
-
-        if(params.containsKey(SPACE))
-            updateTypes(Type.SPACER);
     }
 
     public int getObjectIdentifier() { return id; }
 
-    public Location getLocation() { return location; }
-    public void setLocation(Location loc) { location = loc; }
     public Player getPlayer() { return player; }
+    public Cell getCell() { return cell; }
+    public void setCell(Cell cell) { this.cell = cell; }
 
-    public Set<Type> getTypes() { return descriptions; }
-    public void updateTypes(Type... types) {
-        descriptions.addAll(Arrays.asList(types));
-    }
-    public GameObject castAs(Type description) { return this; }
-
-    public abstract String getClassIdentifier();
+    public abstract String getClassLabel();
     public abstract String getToken();
     public abstract BufferedImage getSprite();
 
     public abstract Award getAward(Option option);
-    public abstract List<Upgrade> getUpgrades();
-    public abstract List<EvolveUpgrade> getEvolutions();
     public abstract OperationsList getOperations(Option... options);
 
-    // Typed methods
-
-    public void typedDo(Type type, TypedConsumer toRun) throws TypeException {
-        if(getTypes().contains(type))
-            toRun.run(this.castAs(type));
-    }
     public void perform(Option option) {
         switch(option) {
             case DESTROY:
@@ -103,7 +83,7 @@ public abstract class GameObject {
     }
     public void changeValue(Option option, int amount) {
         switch(option) {
-            case STATUS: case OLD_STATUS: case MAX_HEALTH:
+            case STATUS: case OLD_STATUS:
                 setValue(option, amount);
                 break;
             default:
@@ -129,10 +109,11 @@ public abstract class GameObject {
                 break;
         }
     }
+    public int getSize() { return size; }
+    public void changeSize(int amount) { size += amount; }
     public ResourceContainer getResources(Option option) { return ResourceContainer.EMPTY_CONTAINER; }
 
-    // BASE METHODS
-
+    // BASE METHODS INHERITED FROM OBJECT
     @Override
     public int hashCode() {
         return id;
@@ -140,8 +121,6 @@ public abstract class GameObject {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof GameObject)
-            return id == ((GameObject) obj).getObjectIdentifier();
-        return false;
+        return (obj instanceof GameObject) && (id == ((GameObject)obj).getObjectIdentifier());
     }
 }

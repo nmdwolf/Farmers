@@ -1,11 +1,15 @@
 package items;
 
 import core.Option;
-import core.Type;
 import general.ResourceContainer;
+import items.buildings.Building;
 
 import static core.Option.CONSTRUCT;
 
+/**
+ * Turns any GameObject into a free GameObject, requiring no resources to obtain.
+ * @param <T> type of underlying GameObject
+ */
 public class FreeDecorator<T extends GameObject> extends Decorator<T>{
 
     public FreeDecorator(T constructable) {
@@ -31,8 +35,8 @@ public class FreeDecorator<T extends GameObject> extends Decorator<T>{
     @Override
     public void perform(Option option) {
         if(option == CONSTRUCT) {
-            getPlayer().changeResources(super.getResources(CONSTRUCT).negate());
-            if(getTypes().contains(Type.BUILDING)) {
+            getPlayer().changeResources(super.getResources(CONSTRUCT).negative());
+            if(getObject() instanceof Building) {
                 for(int i = 0; i < super.getValue(CONSTRUCT); i++)
                     super.perform(CONSTRUCT);
             } else

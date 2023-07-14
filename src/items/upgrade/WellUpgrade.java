@@ -1,6 +1,5 @@
 package items.upgrade;
 
-import core.Player;
 import core.Resource;
 import general.ResourceContainer;
 import general.CustomMethods;
@@ -19,16 +18,16 @@ public class WellUpgrade extends InstanceUpgrade<MainBuilding> {
         put(Resource.WATER, -100);
     }};
 
-    public WellUpgrade(Player p, MainBuilding obj) {
+    public WellUpgrade(MainBuilding obj) {
         super(obj, WELL_COST, CYCLE_THRESHOLD);
     }
 
     @Override
     public void applyTo(MainBuilding object) {
-        getPlayer().removeObject(object);
+        object.getPlayer().removeObject(object);
         ResourceContainer resources = new ResourceContainer();
         resources.put(Resource.WATER, WATER_SOURCE);
-        getPlayer().addObject(new SourceDecorator(object, resources));
+        object.getPlayer().addObject(new SourceDecorator(object, resources));
     }
 
     @Override

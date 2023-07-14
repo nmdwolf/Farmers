@@ -8,12 +8,14 @@ import java.util.HashMap;
 
 public class ResourceContainer extends HashMap<Resource, Integer> {
 
-    public final static ResourceContainer EMPTY_CONTAINER = new ResourceContainer();
+    public final static ResourceContainer EMPTY_CONTAINER = new ResourceContainer() {{
+        put(TIME, 0);
+    }};
 
     public ResourceContainer() {}
 
     public ResourceContainer(ResourceContainer old) {
-        putAll(old);
+        this.putAll(old);
     }
 
     public ResourceContainer(int food, int water, int wood, int stone, int iron, int coal) {
@@ -47,7 +49,7 @@ public class ResourceContainer extends HashMap<Resource, Integer> {
         return resources;
     }
 
-    public ResourceContainer negate() {
+    public ResourceContainer negative() {
         ResourceContainer resources = new ResourceContainer();
         for(Resource res : keySet())
             resources.put(res, -get(res));

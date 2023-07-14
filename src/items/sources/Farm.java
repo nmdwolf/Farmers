@@ -6,6 +6,10 @@ import general.ResourceContainer;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
+/**
+ *
+ */
+// NEEDS TO BE A BUILDING
 public class Farm extends Source {
 
     public final static int FARM_SIZE = 1;
@@ -15,8 +19,8 @@ public class Farm extends Source {
     public final static int FARM_DEGRADATION_CYCLE = 0;
     public final static int FARM_DEGRADATION_AMOUNT = 0;
 
-    public Farm(Player p, Location loc) {
-        super(p, loc, new HashMap<>() {{
+    public Farm(Player p, Cell cell) {
+        super(p, cell, FARM_SIZE, new HashMap<>() {{
             put(Option.SIZE, FARM_SIZE);
             put(Option.SIGHT, FARM_SIGHT);
             put(Option.MAX_HEALTH, FARM_HEALTH);
@@ -26,7 +30,7 @@ public class Farm extends Source {
     }
 
     @Override
-    public String getClassIdentifier() {
+    public String getClassLabel() {
         return "Farm";
     }
 

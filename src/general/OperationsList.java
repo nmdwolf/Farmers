@@ -1,8 +1,12 @@
 package general;
 
+import core.Operation;
+import core.Player;
+import items.upgrade.Upgrade;
+
 import java.util.ArrayList;
 
-public class OperationsList extends ArrayList<TypedConsumer> {
+public class OperationsList extends ArrayList<Operation> {
 
     private final ArrayList<String> descriptions;
 
@@ -21,12 +25,26 @@ public class OperationsList extends ArrayList<TypedConsumer> {
             descriptions = new ArrayList<>();
     }
 
-    public void put(String s, TypedConsumer c) {
+    public void put(String s, Operation c) {
         descriptions.add(s);
         add(c);
     }
 
-    public TypedConsumer remove(int i) {
+    /**
+     * Adds an Upgrade as an Operation if the Upgrade is visible
+     * @param s
+     * @param u
+     * @param p
+     */
+    public void putUpgrade(String s, Upgrade u, Player p) {
+        if(u.isVisible())
+            put(s, () -> {
+                if(u.isPossible())
+                    u.upgrade();
+            });
+    }
+
+    public Operation remove(int i) {
         descriptions.remove(i);
         return super.remove(i);
     }

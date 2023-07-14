@@ -20,8 +20,8 @@ public class LeatherUpgrade extends Upgrade<Unit> {
         put(Resource.WATER, -100);
     }};
 
-    public LeatherUpgrade(Player p) {
-        super(p, LEATHER_COST, CYCLE_THRESHOLD);
+    public LeatherUpgrade(Player player) {
+        super(player, LEATHER_COST, CYCLE_THRESHOLD);
     }
 
     @Override

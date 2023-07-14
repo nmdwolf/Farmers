@@ -5,17 +5,19 @@ import static core.Option.*;
 import core.*;
 import general.OperationsList;
 import general.ResourceContainer;
+import items.Constructable;
 import items.GameObject;
+import items.Healer;
 
 import java.util.Iterator;
 import java.util.Map;
 
-public abstract class Unit extends GameObject {
+public abstract class Unit extends Constructable {
 
     private final ResourceContainer cost;
 
-    public Unit(Player p, Location loc, ResourceContainer cost, Map<Option, Integer> params) {
-        super(p, loc, params);
+    public Unit(Player p, Cell cell, int size, ResourceContainer cost, Map<Option, Integer> params) {
+        super(p, cell, size, cost, 0, false, params);
 
         this.cost = cost;
 
@@ -25,8 +27,6 @@ public abstract class Unit extends GameObject {
             throw new IllegalArgumentException("Missing animation parameter");
 
         changeValue(ENERGY, params.get(MAX_ENERGY));
-
-        updateTypes(Type.UNIT);
     }
 
     @Override
@@ -59,7 +59,7 @@ public abstract class Unit extends GameObject {
     @Override
     public boolean checkStatus(Option option) {
         return switch(option) {
-            case CONSTRUCT: yield player.hasResources(cost);
+            case CONSTRUCT: yield getPlayer().hasResources(cost);
             default: yield super.checkStatus(option);
         };
     }
@@ -75,12 +75,12 @@ public abstract class Unit extends GameObject {
     @Override
     public OperationsList getOperations(Option... options) {
         OperationsList operations = new OperationsList();
-        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation())
-                && obj.getTypes().contains(Type.HEALER)).iterator(); options.length == 0 && it.hasNext(); ) {
-            GameObject object = it.next().castAs(Type.HEALER);
-            operations.put("Heal at " + object.getToken(), (obj, params) -> {
+        for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getCell().equals(getCell())
+                && obj instanceof Healer).iterator(); options.length == 0 && it.hasNext(); ) {
+            GameObject object = it.next();
+            operations.put("Heal at " + object.getToken(), () -> {
                 changeValue(STATUS, GameConstants.HEALING_STATUS);
-                changeValue(HEAL, object.getValue(HEAL));
+                changeValue(HEAL, ((Healer)object).getHealAmount(this));
             });
         }
         return operations;
@@ -88,7 +88,7 @@ public abstract class Unit extends GameObject {
 
     @Override
     public String toString() {
-        return "Type: " + getClassIdentifier() + "\nPlayer: " + player.getName() +
+        return "Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
                 "\nHealth: " + getValue(HEALTH) + "/" + getValue(MAX_HEALTH) +
                 "\nEnergy: " + getValue(ENERGY) + "/" + getValue(MAX_ENERGY);
     }

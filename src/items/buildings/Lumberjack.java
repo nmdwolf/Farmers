@@ -2,21 +2,20 @@ package items.buildings;
 
 import core.*;
 import general.ResourceContainer;
+import items.Booster;
 import items.GameObject;
-import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
 
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
-import java.util.List;
 
 import static core.Option.*;
 
-public class Lumberjack extends Booster{
+public class Lumberjack extends Building implements Booster {
 
     public final static ResourceContainer LUMBERJACK_COST = new ResourceContainer() {{
         put(Resource.WOOD, -100);
         put(Resource.WATER, -50);
+        put(Resource.TIME, 5);
     }};
 
     public final static int LUMBERJACK_HEALTH = 250;
@@ -26,8 +25,8 @@ public class Lumberjack extends Booster{
     public final static int LUMBERJACK_DEGRADATION_CYCLE = 30;
     public final static int LUMBERJACK_DEGRADATION_AMOUNT = 2;
 
-    public Lumberjack(Player p, Location loc) {
-        super(p, loc, LUMBERJACK_COST, new HashMap<>() {{
+    public Lumberjack(Player p, Cell cell) {
+        super(p, cell, 1, LUMBERJACK_COST, 1, new HashMap<>() {{
             put(MAX_HEALTH, LUMBERJACK_HEALTH);
             put(SIGHT, LUMBERJACK_SIGHT);
             put(SIZE, LUMBERJACK_SIZE);
@@ -39,7 +38,7 @@ public class Lumberjack extends Booster{
     }
 
     @Override
-    public String getClassIdentifier() {
+    public String getClassLabel() {
         return "Lumberjack";
     }
 
@@ -54,17 +53,18 @@ public class Lumberjack extends Booster{
     }
 
     @Override
-    public List<Upgrade> getUpgrades() {
-        return null;
-    }
-
-    @Override
-    public List<EvolveUpgrade> getEvolutions() {
-        return null;
-    }
-
-    @Override
     public Award getAward(Option option) {
         return null;
+    }
+
+    @Override
+    public int getBoostRadius() { return 2; }
+
+    @Override
+    public int getBoostAmount(GameObject obj, Resource res) {
+        if(res == Resource.WOOD)
+            return 2;
+        else
+            return 0;
     }
 }

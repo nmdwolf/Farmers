@@ -1,21 +1,18 @@
 package items.units;
 
 import core.*;
+import general.OperationsList;
 import general.ResourceContainer;
-import items.GameObject;
+import items.Evolvable;
 import items.buildings.House;
-import items.buildings.Stable;
 import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import static core.Option.*;
 
-public class Scout extends Unit {
+public class Scout extends Unit implements Evolvable {
 
     public final static int SCOUT_HEALTH = 100;
     public final static int SCOUT_ENERGY = 10;
@@ -26,17 +23,19 @@ public class Scout extends Unit {
     public final static ResourceContainer SCOUT_COST = new ResourceContainer(){{
         put(Resource.FOOD, -100);
         put(Resource.WATER, -200);
+        put(Resource.TIME, 0);
     }};
     public final static ResourceContainer LEVEL1_COST = new ResourceContainer(){{
         put(Resource.FOOD, -200);
         put(Resource.WATER, -200);
+        put(Resource.TIME, 10);
     }};
 
     public final static int SCOUT_DEGRADATION_CYCLE = 50;
     public final static int SCOUT_DEGRADATION_AMOUNT = 2;
 
-    public Scout(Player p, Location loc) {
-        super(p, loc, SCOUT_COST, new HashMap<>() {{
+    public Scout(Player p, Cell cell) {
+        super(p, cell, SCOUT_SIZE, SCOUT_COST, new HashMap<>() {{
             put(MAX_HEALTH, SCOUT_HEALTH);
             put(STATUS, GameConstants.IDLE_STATUS);
             put(MAX_ENERGY, SCOUT_ENERGY);
@@ -49,7 +48,7 @@ public class Scout extends Unit {
     }
 
     @Override
-    public String getClassIdentifier() {
+    public String getClassLabel() {
         return "Scout";
     }
 
@@ -67,24 +66,22 @@ public class Scout extends Unit {
     }
 
     @Override
-    public List<Upgrade> getUpgrades() {
-        return null;
-    }
+    public OperationsList getEvolutions() {
+        OperationsList operations =  new OperationsList();
 
-    @Override
-    public List<EvolveUpgrade> getEvolutions() {
-        if(player.hasEnabled(Stable.BUILT_AWARD)) {
-            ArrayList<EvolveUpgrade> evolutions = new ArrayList<>();
-            evolutions.add(new EvolveUpgrade<>(this, LEVEL1_COST, 0, (s, params) -> {
-                s.changeValue(SIGHT, 1);
-                s.changeValue(MAX_ENERGY, 5);
-                s.changeValue(MAX_HEALTH, 20);
-                s.changeValue(DEGRADATION_AMOUNT, 1);
-                s.changeValue(CYCLE, 0);
-            }));
-            return evolutions;
-        }
-        return null;
+        operations.put("Evolve", () -> {
+            EvolveUpgrade<Scout> ev =  new EvolveUpgrade<>(this, LEVEL1_COST, 0, () -> {
+                this.changeValue(SIGHT, 1);
+                this.changeValue(MAX_ENERGY, 5);
+                this.changeValue(MAX_HEALTH, 20);
+                this.changeValue(DEGRADATION_AMOUNT, 1);
+                this.changeValue(CYCLE, 0);
+            });
+            if(ev.isPossible())
+                ev.upgrade();
+        });
+
+        return operations;
     }
 
     @Override

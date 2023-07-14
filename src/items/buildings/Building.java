@@ -6,36 +6,24 @@ import core.*;
 
 import general.OperationsList;
 import general.ResourceContainer;
-import items.GameObject;
+import items.Constructable;
 
 import java.util.Map;
 
-public abstract class Building extends GameObject {
+public abstract class Building extends Constructable {
 
-    private final ResourceContainer cost;
-
-    public Building(Player p, Location loc, ResourceContainer cost, Map<Option, Integer> params) {
-        super(p, loc, params);
-        this.cost = cost;
+    public Building(Player p, Cell cell, int size, ResourceContainer cost, int difficulty, Map<Option, Integer> params) {
+        super(p, cell, size, cost, difficulty, true, params);
 
         if(!params.containsKey(CONSTRUCT))
             throw new IllegalArgumentException("No construction parameter specified.");
 
-        updateTypes(Type.BUILDING);
         setValue(CONTRACT, 0);
     }
 
     @Override
-    public ResourceContainer getResources(Option option) {
-        return switch(option) {
-            case CONSTRUCT: yield cost;
-            default: yield ResourceContainer.EMPTY_CONTAINER;
-        };
-    }
-
-    @Override
     public OperationsList getOperations(Option... options) {
-        return null;
+        return new OperationsList();
     }
 
     @Override
@@ -44,7 +32,7 @@ public abstract class Building extends GameObject {
             case CONSTRUCT:
                 if(getValue(CONSTRUCT) - getValue(CONTRACT) == 1) {
                     if(getPlayer().hasResources(getResources(CONSTRUCT))) {
-                        getPlayer().changeResources(cost);
+                        getPlayer().changeResources(getCost());
                         getPlayer().addObject(this);
                         changeValue(CONTRACT, 1);
                     }
@@ -60,14 +48,14 @@ public abstract class Building extends GameObject {
     @Override
     public boolean checkStatus(Option option) {
         return switch(option) {
-            case CONSTRUCT: yield getValue(CONTRACT) == 0 ? player.hasResources(cost) : getValue(CONTRACT) == getValue(CONSTRUCT);
+            case CONSTRUCT: yield getValue(CONTRACT) == 0 ? getPlayer().hasResources(getCost()) : getValue(CONTRACT) == getValue(CONSTRUCT);
             default: yield super.checkStatus(option);
         };
     }
 
     @Override
     public String toString() {
-        return "Type: " + getClassIdentifier() + "\nPlayer: " + player.getName() +
+        return "Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
                 "\nHealth: " + getValue(HEALTH) + "/" + getValue(MAX_HEALTH);
     }
 }

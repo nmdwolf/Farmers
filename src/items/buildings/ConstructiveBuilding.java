@@ -7,9 +7,8 @@ import java.util.Map;
 
 public abstract class ConstructiveBuilding extends Building {
 
-    public ConstructiveBuilding(Player p, Location loc, ResourceContainer cost, Map<Option, Integer> params) {
-        super(p, loc, cost, params);
-        updateTypes(Type.CONSTRUCTOR);
+    public ConstructiveBuilding(Player p, Cell cell, int size, ResourceContainer cost, int difficulty, Map<Option, Integer> params) {
+        super(p, cell, size, cost, difficulty, params);
 
         setValue(Option.CONSTRUCT_X, 1);
         setValue(Option.CONSTRUCT_Y, 0);

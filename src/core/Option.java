@@ -1,5 +1,8 @@
 package core;
 
+/**
+ * Represents the possible actions a GameObject can take.
+ */
 public enum Option {
 
     STATUS, OLD_STATUS, SPACE, SIZE, SIGHT, LEVEL, CONTRACT, HEAT, ANIMATION,
@@ -8,7 +11,7 @@ public enum Option {
 
     WORK, SOURCE, RESOURCE, HUNT, DRINK, LOG, MASON, WELD, MINE,
 
-    ENABLED, TOTAL_CYCLE, CYCLE, ATTACK, DEFENCE,
+    ENABLED, EVOLUTION, UPGRADE, TOTAL_CYCLE, CYCLE, ATTACK, DEFENCE,
 
     DEGRADATION_CYCLE, DEGRADATION_AMOUNT, DEGRADE,
 

@@ -5,8 +5,8 @@ import java.util.Map;
 
 public class Gaia extends Player {
 
-    public Gaia() {
-        super("Gaia", Color.green, new Color(130, 70, 20));
+    public Gaia(Cell origin) {
+        super("Gaia", Color.green, new Color(130, 70, 20), origin);
     }
 
     public int getResource(Resource type) {

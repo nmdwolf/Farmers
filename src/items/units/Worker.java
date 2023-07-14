@@ -3,10 +3,9 @@ package items.units;
 import core.*;
 import core.contracts.Contract;
 import core.contracts.LaborContract;
-import core.contracts.PrimeContract;
 import general.OperationsList;
 import general.ResourceContainer;
-import items.GameObject;
+import items.Booster;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,44 +13,39 @@ import java.util.stream.Collectors;
 public abstract class Worker extends Unit {
 
     private final ArrayList<Contract> contracts;
+    private HashSet<Booster> boosters;
 
-    private HashSet<GameObject> boosters;
-
-    public Worker(Player p, Location loc, ResourceContainer cost, Map<Option, Integer> params) {
-        super(p, loc, cost, params);
-        updateTypes(Type.CONSTRUCTOR, Type.WORKER);
+    public Worker(Player p, Cell cell, int size, ResourceContainer cost, Map<Option, Integer> params) {
+        super(p, cell, size, cost, params);
 
         setValue(Option.CONSTRUCT_X, 0);
         setValue(Option.CONSTRUCT_Y, 0);
 
         contracts = new ArrayList<>();
         boosters = new HashSet<>();
-
-        for(Resource resource : Resource.values()) {
-            if(!params.containsKey(resource.operation))
-                throw new IllegalArgumentException("Resource of type " + resource + " not found.");
-        }
     }
 
     /**
      * Handles contract removal on move, fight, ...
      */
     private void seizeActions() {
-        contracts.removeIf(c -> c instanceof LaborContract);
+        List<Contract> removals = contracts.stream().filter(obj -> obj instanceof LaborContract).toList();
+        removals.forEach(Contract::terminate);
+        contracts.removeAll(removals);
         changeValue(Option.STATUS, GameConstants.IDLE_STATUS);
     }
 
     @Override
-    public void setLocation(Location loc) {
-        super.setLocation(loc);
+    public void setCell(Cell cell) {
+        super.setCell(cell);
 
         if(getValue(Option.STATUS) != GameConstants.WALKING_STATUS)
             seizeActions();
 
         boosters = getPlayer().getObjects().stream().filter(
-                obj -> obj.getTypes().contains(Type.BOOSTER) &&
-                        getLocation().distanceTo(obj.getLocation()) <= GameConstants.BOOSTER_DISTANCE
-        ).collect(Collectors.toCollection(HashSet::new));
+                obj -> obj instanceof Booster &&
+                        getCell().distanceTo(obj.getCell()) <= ((Booster)obj).getBoostRadius()
+        ).map(Booster.class::cast).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
@@ -75,17 +69,17 @@ public abstract class Worker extends Unit {
             super.perform(option);
     }
 
-    @Override
-    public int getValue(Option option) {
-        for(Resource resource : Resource.values()) {
-            if(option == resource.operation && super.getValue(option) != 0) {
-                int gain = super.getValue(option);
-                for(GameObject booster : boosters)
-                    gain += booster.getValue(option);
-                return gain;
-            }
+    public abstract List<Resource> getResources();
+
+    public int getYield(Resource resource) {
+        int gain = 0;
+        if(getResources().contains(resource)) {
+            gain = 1;
+            for(Booster booster : boosters)
+                gain += booster.getBoostAmount(this, resource);
+
         }
-        return super.getValue(option);
+        return gain;
     }
 
     @Override
@@ -102,26 +96,17 @@ public abstract class Worker extends Unit {
 
     @Override
     public OperationsList getOperations(Option... options) {
-        OperationsList operations = new OperationsList(super.getOperations(options));
+        OperationsList operations = super.getOperations(options);
         for(Option option : options) {
 
             // Add resource labor contracts
             if(option == Option.RESOURCE) {
                 for (Resource res : Resource.values()) {
-                    operations.put(res.name, (obj, params) -> {
-                        LaborContract contract = new LaborContract(Worker.this, res, 1);
-                        contract.setCell((Cell)params[0]);
+                    operations.put(res.name, () -> {
+                        LaborContract contract = new LaborContract(Worker.this, res, getCell(), 1);
                         addContract(contract);
                         changeValue(Option.OLD_STATUS, GameConstants.WORKING_STATUS);
                     });
-                }
-            } else {
-
-                // Add source prime contracts
-                for (Iterator<GameObject> it = getPlayer().getObjects().stream().filter(obj -> obj.getLocation().equals(getLocation())
-                        && obj.getTypes().contains(Type.SOURCE)).iterator(); option == Option.SOURCE && it.hasNext(); ) {
-                    GameObject object = it.next().castAs(Type.SOURCE);
-                    operations.put("Prime " + object.getToken(), (obj, params) -> addContract(new PrimeContract(Worker.this, object)));
                 }
             }
         }

@@ -1,16 +1,12 @@
 package items.sources;
 
-import core.Location;
+import core.Cell;
 import core.Option;
 import core.Player;
-import core.Type;
 import general.OperationsList;
 import general.ResourceContainer;
 import items.GameObject;
-import items.upgrade.EvolveUpgrade;
-import items.upgrade.Upgrade;
 
-import java.util.List;
 import java.util.Map;
 
 public abstract class Source extends GameObject {
@@ -19,11 +15,9 @@ public abstract class Source extends GameObject {
 
     private final ResourceContainer gain;
 
-    public Source(Player player, Location location, Map<Option, Integer> params, ResourceContainer gains) {
-        super(player, location, params);
+    public Source(Player player, Cell cell, int size, Map<Option, Integer> params, ResourceContainer gains) {
+        super(player, cell, size, params);
         gain = gains;
-
-        updateTypes(Type.SOURCE);
     }
 
     @Override
@@ -52,17 +46,7 @@ public abstract class Source extends GameObject {
     }
 
     @Override
-    public List<Upgrade> getUpgrades() {
-        return null;
-    }
-
-    @Override
-    public List<EvolveUpgrade> getEvolutions() {
-        return null;
-    }
-
-    @Override
     public OperationsList getOperations(Option... options) {
-        return null;
+        return new OperationsList();
     }
 }

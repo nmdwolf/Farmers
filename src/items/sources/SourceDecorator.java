@@ -2,7 +2,6 @@ package items.sources;
 
 import core.Option;
 import general.ResourceContainer;
-import core.Type;
 import items.Decorator;
 import items.GameObject;
 
@@ -14,12 +13,6 @@ public class SourceDecorator extends Decorator<GameObject> {
     public SourceDecorator(GameObject obj, ResourceContainer res) {
         super(obj);
         gain = res.add(obj.getResources(Option.SOURCE));
-        updateTypes(Type.SOURCE);
-    }
-
-    @Override
-    public GameObject castAs(Type description) {
-        return (description == Type.SOURCE) ? this : super.castAs(description);
     }
 
     @Override

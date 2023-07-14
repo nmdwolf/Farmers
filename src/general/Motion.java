@@ -1,6 +1,5 @@
 package general;
 
-import core.Location;
 import items.GameObject;
 
 import java.util.ArrayList;
@@ -34,7 +33,7 @@ public class Motion {
     public Location[] getPath() {
         Location[] path = locations.toArray(new Location[0]);
         Location[] totalPath = new Location[path.length + 1];
-        totalPath[0] = object.getLocation();
+        totalPath[0] = object.getCell().getLocation();
         System.arraycopy(path, 0, totalPath, 1, path.length);
         return totalPath;
     }
