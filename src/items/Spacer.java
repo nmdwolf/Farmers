@@ -2,6 +2,8 @@ package items;
 
 public interface Spacer {
 
-    public int getSpace();
+    public int getSpaceBoost();
+
+    public void changeSpaceBoost(int amount);
 
 }

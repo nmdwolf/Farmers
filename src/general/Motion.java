@@ -1,6 +1,6 @@
 package general;
 
-import items.GameObject;
+import units.Unit;
 
 import java.util.ArrayList;
 
@@ -9,10 +9,10 @@ public class Motion {
     private int step;
 
     private final int length;
-    private final GameObject object;
+    private final Unit object;
     private final ArrayList<Location> locations;
 
-    public Motion(GameObject obj, ArrayList<Location> path, int effectiveLength) {
+    public Motion(Unit obj, ArrayList<Location> path, int effectiveLength) {
         length = effectiveLength;
         locations = path;
         object = obj;
@@ -28,7 +28,7 @@ public class Motion {
 
     public int getSize() { return length; }
 
-    public GameObject getObject() { return object; }
+    public Unit getObject() { return object; }
 
     public Location[] getPath() {
         Location[] path = locations.toArray(new Location[0]);

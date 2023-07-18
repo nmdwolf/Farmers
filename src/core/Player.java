@@ -1,17 +1,17 @@
 package core;
 
-import general.ResourceContainer;
+import resources.Resource;
+import resources.ResourceContainer;
 import items.GameObject;
-import items.upgrade.Nomads;
-import items.upgrade.Upgrade;
+import upgrade.Nomads;
+import upgrade.Upgrade;
 
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static core.GameConstants.*;
-import static core.Option.CONSTRUCT;
-import static core.Resource.*;
+import static resources.Resource.*;
 
 public class Player {
 
@@ -28,7 +28,7 @@ public class Player {
 
     private int pop, popCap, cycle;
     private boolean viewLocked;
-    private Civilization civ;
+    private final Civilization civ;
 
     public Player(String name, Color color, Color alternativeColor, Cell start) {
         this.name = name;
@@ -68,6 +68,8 @@ public class Player {
         return temp;
     }
 
+    public void clearNewObjects() { newObjects.clear(); }
+
     /**
      * Make new object ready to be added to the game field.
      * @param object GameObject to be added
@@ -75,7 +77,8 @@ public class Player {
     public void addObject(GameObject object) {
         object = civ.initObject(object);
         newObjects.add(object);
-        awards.enable(object.getAward(Option.CONSTRUCT));
+
+        //awards.enable(object.getAward(Option.CONSTRUCT));
 
         Cell loc = object.getCell();
         discover(loc);
@@ -87,7 +90,7 @@ public class Player {
         spot(loc.fetch(0, 0, -1));
 
         for(Upgrade upgrade : enabledUpgrades)
-            upgrade.notifyObserver(object);
+            upgrade.apply(object);
     }
 
     public void removeObject(GameObject object) {
@@ -184,9 +187,9 @@ public class Player {
         discovered.add(cell);
     }
 
-    public boolean hasEnabled(Award award) { return awards.hasEnabled(award); }
+    public boolean hasAward(Award award) { return awards.hasEnabled(award); }
 
-    public void enable(Award award) { awards.enable(award); }
+    public void enableAward(Award award) { awards.enable(award); }
 
     public Set<String> getMessages() {
         Set<String> messages = awards.getNewAwards();

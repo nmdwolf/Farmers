@@ -2,6 +2,6 @@ package items;
 
 public interface Healer {
 
-    public int getHealAmount(GameObject obj);
+    public void heal(GameObject obj);
 
 }

@@ -1,8 +1,7 @@
 package general;
 
 import core.Operation;
-import core.Player;
-import items.upgrade.Upgrade;
+import upgrade.Upgrade;
 
 import java.util.ArrayList;
 
@@ -32,12 +31,11 @@ public class OperationsList extends ArrayList<Operation> {
 
     /**
      * Adds an Upgrade as an Operation if the Upgrade is visible
-     * @param s
-     * @param u
-     * @param p
+     * @param s textual information about the upgrade
+     * @param u upgrade
      */
-    public void putUpgrade(String s, Upgrade u, Player p) {
-        if(u.isVisible())
+    public void putUpgrade(String s, Upgrade u) {
+        if(u != null && u.isVisible())
             put(s, () -> {
                 if(u.isPossible())
                     u.upgrade();

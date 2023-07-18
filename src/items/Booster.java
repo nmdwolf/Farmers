@@ -1,6 +1,6 @@
 package items;
 
-import core.Resource;
+import resources.Resource;
 
 public interface Booster {
 

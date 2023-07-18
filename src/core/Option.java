@@ -3,9 +3,10 @@ package core;
 /**
  * Represents the possible actions a GameObject can take.
  */
+@Deprecated
 public enum Option {
 
-    STATUS, OLD_STATUS, SPACE, SIZE, SIGHT, LEVEL, CONTRACT, HEAT, ANIMATION,
+    /*STATUS, OLD_STATUS, SPACE, SIZE, SIGHT, LEVEL, CONTRACT, HEAT, ANIMATION,
 
     HEALTH, MAX_HEALTH, ENERGY, MAX_ENERGY, HEAL,
 
@@ -15,5 +16,5 @@ public enum Option {
 
     DEGRADATION_CYCLE, DEGRADATION_AMOUNT, DEGRADE,
 
-    DESTROY, CONSTRUCT, CONSTRUCT_X, CONSTRUCT_Y
+    DESTROY, CONSTRUCT, CONSTRUCT_X, CONSTRUCT_Y*/
 }

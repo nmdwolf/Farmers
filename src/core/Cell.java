@@ -1,10 +1,14 @@
 package core;
 
 import general.Location;
-import general.ResourceContainer;
+import resources.Resource;
+import resources.ResourceContainer;
+import items.GameObject;
+
+import java.util.HashSet;
 
 import static core.GameConstants.*;
-import static core.Resource.*;
+import static resources.Resource.*;
 
 public class Cell {
 
@@ -14,12 +18,14 @@ public class Cell {
 
     private Cell east, west, north, south, up, down;
     private boolean linking;
+    private final HashSet<GameObject> content;
 
     public Cell(int x, int y, int z, int s, int b) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.linking = false;
+        this.content = new HashSet<>();
         unitSpace = s;
         buildingSpace = b;
         travelCost = INITIAL_TRAVEL_COST;
@@ -96,8 +102,10 @@ public class Cell {
 
         if(amount < 0)
             amount = -Math.min(resources.get(type), -amount);
-        if(type == WATER && heatLevel <= COLD_LEVEL)
-            amount = 0;
+
+        if(type == WATER)
+            if(heatLevel >= 50 || heatLevel <= COLD_LEVEL)
+                amount = 0;
 
         resources.put(type, resources.get(type) + amount);
         return amount;
@@ -117,6 +125,12 @@ public class Cell {
     public boolean isForest() { return resources.get(WOOD) >= WOOD_THRESHOLD; }
 
     public boolean isField() { return resources.get(FOOD) >= FOOD_THRESHOLD; }
+
+    public void addContent(GameObject obj) { content.add(obj); }
+
+    public void removeContent(GameObject obj) { content.remove(obj); }
+
+    public HashSet<GameObject> getContent() { return content; }
 
     /**
      * Changes parameters of the cell when the season switches
@@ -172,40 +186,44 @@ public class Cell {
         return z;
     }
 
-    public void link(Cell cell, int x, int y, int z) {
-        if(Math.abs(x) + Math.abs(y) + Math.abs(z) != 1)
+    public void link(Cell cell) {
+        int dx = cell.x - x;
+        int dy = cell.y - y;
+        int dz = cell.z - z;
+
+        if(Math.abs(dx) + Math.abs(dy) + Math.abs(dz) != 1)
             throw new IllegalArgumentException("Distance should be exactly 1!");
 
         if(!linking) {
             linking = true;
-            if (x == 1) {
+            if (dx == 1) {
                 if (east == null)
-                    cell.link(this, -1, 0, 0);
+                    cell.link(this);
                 east = cell;
             }
-            if (x == -1) {
+            if (dx == -1) {
                 if (west == null)
-                    cell.link(this, 1, 0, 0);
+                    cell.link(this);
                 west = cell;
             }
-            if (y == 1) {
+            if (dy == 1) {
                 if (north == null)
-                    cell.link(this, 0, -1, 0);
+                    cell.link(this);
                 north = cell;
             }
-            if (y == -1) {
+            if (dy == -1) {
                 if (south == null)
-                    cell.link(this, 0, 1, 0);
+                    cell.link(this);
                 south = cell;
             }
-            if (z == 1) {
+            if (dz == 1) {
                 if (up == null)
-                    cell.link(this, 0, 0, -1);
+                    cell.link(this);
                 up = cell;
             }
-            if (z == -1) {
+            if (dz == -1) {
                 if (down == null)
-                    cell.link(this, 0, 0, 1);
+                    cell.link(this);
                 down = cell;
             }
         }
@@ -269,5 +287,14 @@ public class Cell {
     @Override
     public String toString() {
         return "Location(" + x + "," + y + "," + z + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Cell) {
+            Cell cell = (Cell)obj;
+            return (x == cell.x) && (y == cell.y) && (z == cell.z);
+        }
+        return false;
     }
 }

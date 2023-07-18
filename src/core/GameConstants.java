@@ -1,8 +1,5 @@
 package core;
 
-import general.CustomMethods;
-
-import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public interface GameConstants {
@@ -33,10 +30,6 @@ public interface GameConstants {
     int START_IRON = 0;
     int START_COAL = 10;
 
-    int WALKING_STATUS = 100;
-    int WORKING_STATUS = 101;
-    int IDLE_STATUS = 102;
-    int HEALING_STATUS = 103;
-
-    Random rand = new Random(19970605);
+    //Random rand = new Random(19970605);
+    Random rand = new Random(19960808);
 }

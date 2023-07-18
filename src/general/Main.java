@@ -3,13 +3,16 @@ package general;
 import core.*;
 
 import items.*;
-import items.buildings.Building;
-import items.buildings.Lumberjack;
-import items.buildings.MainBuilding;
-import items.units.Hero;
-import items.units.Unit;
-import items.units.Villager;
-import items.units.Worker;
+import buildings.Building;
+import buildings.Lumberjack;
+import buildings.MainBuilding;
+import resources.NaturalResource;
+import resources.Source;
+import units.Hero;
+import units.Unit;
+import units.Villager;
+import units.Worker;
+import resources.Resource;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -23,13 +26,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static javax.swing.MenuSelectionManager.defaultManager;
 
 import static core.GameConstants.*;
-import static core.Option.*;
 
 public class Main extends JFrame{
 
     private int mouseX, mouseY, travelDistance;
     private Location clickPos;
     private Location[] hoverPath;
+    private Location destination;
     private int cellWidth, cellHeight, poolSize, screenWidth, screenHeight;
     private int current, cycle, actionPage, workPage;
     private boolean clicked;
@@ -42,7 +45,9 @@ public class Main extends JFrame{
     /**
      * List of players.
      */
-    private final ArrayList<Player> players;
+    private final ArrayList<Player> players, allPlayers;
+    private final ArrayList<AI> ais;
+    private AI ai;
 
     private OperationsList operations, actions;
     private GameObject selected;
@@ -59,22 +64,40 @@ public class Main extends JFrame{
     }
 
     public Main() {
-        cells = new HashMap<>();
+        cells = new HashMap<>() {
+            public Cell get(Object key) {
+                if(key instanceof Location) {
+                    if(containsKey(key))
+                        return super.get(key);
+                    else
+                        throw new IllegalArgumentException("Key not found: " + key);
+                }
+                return null;
+            }
+        };
         players = new ArrayList<>();
+        ais = new ArrayList<>();
         cycle = 1;
         clickPos = new Location(0, 0, 0);
 
         for (int i = 0; i < NUMBER_OF_CELLS; i++) {
             for (int j = 0; j < NUMBER_OF_CELLS; j++) {
                 Cell cell = new Cell(i, j, 0, INITIAL_CELL_UNIT_SPACE, INITIAL_CELL_BUILDING_SPACE);
-                cells.put(new Location(i, j, 0), cell);
+                cells.put(cell.getLocation(), cell);
             }
         }
 
-        for (int i = 1; i < NUMBER_OF_CELLS; i++) {
-            for (int j = 1; j < NUMBER_OF_CELLS; j++) {
-                cells.get(new Location(i, j, 0)).link(cells.get(new Location(i - 1, j, 0)), -1, 0, 0);
-                cells.get(new Location(i, j, 0)).link(cells.get(new Location(i, j - 1, 0)), 0, -1, 0);
+        for (int x = 0; x < NUMBER_OF_CELLS; x++) {
+            for (int y = 0; y < NUMBER_OF_CELLS; y++) {
+                Cell current = cells.get(new Location(x, y, 0));
+                if(x > 0)
+                    current.link(cells.get(new Location(x - 1, y, 0)));
+                if(y > 0)
+                    current.link(cells.get(new Location(x, y - 1, 0)));
+                if(x < NUMBER_OF_CELLS - 1)
+                    current.link(cells.get(new Location(x + 1, y, 0)));
+                if(y < NUMBER_OF_CELLS - 1)
+                    current.link(cells.get(new Location(x, y + 1, 0)));
             }
         }
 
@@ -98,14 +121,19 @@ public class Main extends JFrame{
         int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 9);
         addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this));
 
+        allPlayers = new ArrayList<>(players.size() + ais.size());
+        allPlayers.addAll(players);
+        allPlayers.addAll(ais);
+
         gc = new Timer(500, e -> {
-            for(Player p : players) {
+            for(Player p : allPlayers) {
                 for(GameObject obj : p.getNewObjects())
                     addObject(obj);
+                p.clearNewObjects();
 
                 for (GameObject obj : p.getObjects())
-                    if (obj.checkStatus(DESTROY)) {
-                        obj.perform(DESTROY);
+                    if ((obj.getStatus() == Status.DEAD) && !(obj instanceof Revivable)) {
+                        p.removeObject(obj);
                         removeObject(obj);
                     }
             }
@@ -118,19 +146,23 @@ public class Main extends JFrame{
      * @param p new Player
      */
     public void addPlayer(Player p) {
-        players.add(p);
 
-        GameObject base = new FreeDecorator<>(new MainBuilding(p, p.getViewPoint().fetch(2, 2, 0)));
-        GameObject lumber = new FreeDecorator<>(new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0)));
-        GameObject v1 = new FreeDecorator<>(new Villager(p, p.getViewPoint().fetch(2, 1, 0)));
-        GameObject v2 = new FreeDecorator<>(new Villager(p, p.getViewPoint().fetch(2, 1, 0)));
-        GameObject hero = new Hero(p, p.getViewPoint(), p.getName());
+        if(p instanceof AI)
+            ais.add((AI)p);
+        else
+            players.add(p);
 
-        base.perform(CONSTRUCT);
-        lumber.perform(CONSTRUCT);
-        v1.perform(CONSTRUCT);
-        v2.perform(CONSTRUCT);
-        hero.perform(CONSTRUCT);
+        GameObject base = new MainBuilding(p, p.getViewPoint().fetch(2, 2, 0), cycle);
+        GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle);
+        GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle);
+        GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle);
+        GameObject hero = new Hero(p, p.getViewPoint(), cycle, p.getName());
+
+        p.addObject(base);
+        p.addObject(lumber);
+        p.addObject(v1);
+        p.addObject(v2);
+        p.addObject(hero);
     }
 
     /**
@@ -138,68 +170,81 @@ public class Main extends JFrame{
      */
     public void cyclePlayers(){
 
-        for(GameObject object : players.get(current).getObjects())
-            while (object.checkStatus(CONTRACT)
-                    && object.getValue(Option.STATUS) != GameConstants.WALKING_STATUS
-                    && object.getValue(ENERGY) > 0)
-                object.perform(WORK);
+        Player player = players.get(current);
+
+        for(GameObject object : player.getObjects())
+            if(object instanceof Worker) {
+                Worker w = (Worker)object;
+                if(w.getStatus() == Status.WORKING)
+                    w.work();
+            }
 
         if(current == (players.size() - 1)) {
+
+            // Let the AIs play a round
+            for(AI ai : ais)
+                ai.makeMove(cycle);
+
             cycle++;
             current = 0;
+
             for(Cell cell : cells.values())
                 cell.cycle(cycle);
         } else
             current++;
 
-        for(String text : players.get(current).getMessages())
+        for(String text : player.getMessages())
             showMessagePanel(text);
 
-        for(GameObject object : players.get(current).getObjects()) {
-            object.perform(TOTAL_CYCLE);
-            object.perform(DEGRADE);
+        for(GameObject object : player.getObjects()) {
+            object.cycle(cycle);
+            object.degrade(cycle);
             if(object instanceof Unit) {
-                Unit u = (Unit)object;
-                u.changeValue(HEALTH, Math.min(0, cells.get(u.getCell().getLocation()).getHeatLevel() - COLD_LEVEL));
-                if(u.getValue(STATUS) == HEALING_STATUS)
-                    u.changeValue(HEALTH, u.getValue(HEAL));
+                for(GameObject obj2 : object.getCell().getContent())
+                    if(obj2 instanceof Healer)
+                        ((Healer)obj2).heal(object);
+                object.changeHealth(Math.min(0, object.getCell().getHeatLevel() - COLD_LEVEL));
             }
-            object.getCell().changeResources(object.getResources(Option.SOURCE));
+
+            if(object instanceof NaturalResource) {
+                Source s = (Source)object;
+                object.getCell().changeResources(s.getYield());
+            }
         }
 
         selected = null;
         hoverPath = null;
+        destination = null;
         actions = null;
         operations = null;
         actionPage = 0;
 
         hidePanels();
         refreshWindow();
-
-        if(players.get(current) instanceof AI)
-            ((AI) players.get(current)).makeMove(cycle);
     }
 
     /**
      * Adds a new GameObject to the game.
      * @param obj new object
+     * @return whether the object has been added or not
      */
     public boolean addObject(GameObject obj) {
 
         boolean added = false;
 
-        if((obj instanceof Unit) && (obj.getCell().getUnitAvailable() >= obj.getSize())) {
-            obj.getCell().changeUnitOccupied(obj.getSize());
+        if((obj instanceof Unit) && (obj.getCell().getUnitAvailable() >= obj.getSpace())) {
+            obj.getCell().changeUnitOccupied(obj.getSpace());
             added = true;
         }
-        if((obj instanceof Building) && (obj.getCell().getBuildingAvailable() >= obj.getSize())) {
-            obj.getCell().changeBuildingOccupied(obj.getSize());
+        if((obj instanceof Building) && (obj.getCell().getBuildingAvailable() >= obj.getSpace())) {
+            obj.getCell().changeBuildingOccupied(obj.getSpace());
             added = true;
         }
 
         if(added) {
+            obj.getPlayer().addObject(obj);
             if(obj instanceof Spacer)
-                obj.getCell().changeUnitSpace(((Spacer)obj).getSpace());
+                obj.getCell().changeUnitSpace(((Spacer)obj).getSpaceBoost());
             if(obj instanceof Obstruction)
                 obj.getCell().changeTravelCost(100);
         }
@@ -213,11 +258,11 @@ public class Main extends JFrame{
      */
     public void removeObject(GameObject obj) {
         if(obj instanceof Unit)
-            obj.getCell().changeUnitOccupied(-obj.getSize());
+            obj.getCell().changeUnitOccupied(-obj.getSpace());
         if(obj instanceof Building)
-            obj.getCell().changeBuildingOccupied(-obj.getSize());
+            obj.getCell().changeBuildingOccupied(-obj.getSpace());
         if(obj instanceof Spacer)
-            obj.getCell().changeUnitSpace(-((Spacer)obj).getSpace());
+            obj.getCell().changeUnitSpace(-((Spacer)obj).getSpaceBoost());
         if(obj instanceof Obstruction)
             obj.getCell().changeTravelCost(-100);
     }
@@ -231,24 +276,24 @@ public class Main extends JFrame{
         Cell target = cells.get(loc);
         if (!obj.getCell().equals(target)) {
             if(obj instanceof Unit) {
-                obj.getCell().changeUnitOccupied(-obj.getSize());
-                target.changeUnitOccupied(obj.getSize());
+                obj.getCell().changeUnitOccupied(-obj.getSpace());
+                target.changeUnitOccupied(obj.getSpace());
             }
             if(obj instanceof Building) {
-                obj.getCell().changeBuildingOccupied(-obj.getSize());
-                target.changeBuildingOccupied(obj.getSize());
+                obj.getCell().changeBuildingOccupied(-obj.getSpace());
+                target.changeBuildingOccupied(obj.getSpace());
             }
             if(obj instanceof Spacer) {
-                obj.getCell().changeUnitSpace(-obj.getSize());
-                target.changeUnitSpace(obj.getSize());
+                obj.getCell().changeUnitSpace(-obj.getSpace());
+                target.changeUnitSpace(obj.getSpace());
                 // NEED TO CHECK IF SPACE REDUCTION PROHIBITS MOVE
             }
 
             obj.getPlayer().discover(target);
-            int sight = obj.getValue(SIGHT);
+            int sight = obj.getSight();
             for(int x = -sight; x < sight + 1; x++)
                 for(int y = -sight; y < sight + 1; y++)
-                    for(int z = -sight; y < sight + 1; z++)
+                    for(int z = -sight; z < sight + 1; z++)
                         if(Math.abs(x) + Math.abs(y) + Math.abs(z) <= sight)
                             obj.getPlayer().spot(target.fetch(x, y, z));
             obj.setCell(target);
@@ -256,7 +301,7 @@ public class Main extends JFrame{
     }
 
     /**
-     * Constructs a game frame
+     * Constructs the game frame.
      */
     private void initialize() {
         super.setTitle("Game of Ages");
@@ -309,7 +354,7 @@ public class Main extends JFrame{
                             gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
                     }
                     current = current.fetch(hoverPath[hoverPath.length - 1].x(), hoverPath[hoverPath.length - 1].y(), hoverPath[hoverPath.length - 1].z());
-                    gr.drawString(travelDistance + "", Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+                    gr.drawString(String.valueOf(travelDistance), Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
                 }
             }
         };
@@ -378,21 +423,23 @@ public class Main extends JFrame{
                 super.mouseMoved(e);
                 mouseX = e.getX();
                 mouseY = e.getY();
+                Cell mousePos = posToCell(mouseX, mouseY, 0);
 
-                if(infoPanel != null && selected != null) {
-                    Cell mousePos = posToCell(mouseX, mouseY, 0);
+                // Moves info panel to make sure that the selected object is visible.
+                if(infoPanel != null && selected != null)
                     layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f)) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
-                }
 
-                Cell loc = posToCell(e.getX(), e.getY(), 0);
-                if(selected != null && (selected instanceof Unit) && (hoverPath == null || !loc.equals(hoverPath[hoverPath.length - 1]))) {
-                    Motion motion = getShortestAdmissiblePath(selected, loc.fetch(players.get(current).getViewPoint()));
-                    if (motion != null && motion.getSize() > 0) {
-                        hoverPath = motion.getPath();
-                        travelDistance = motion.getSize();
+                if(selected != null && (selected instanceof Unit) && (hoverPath == null || !mousePos.getLocation().equals(destination))) {
+                    Pair<Motion, Location> motion = getShortestAdmissiblePath(selected, mousePos.fetch(players.get(current).getViewPoint()));
+                    if (motion != null && motion.key().getSize() > 0) {
+                        hoverPath = motion.key().getPath();
+                        destination = motion.value();
+                        travelDistance = motion.key().getSize();
                     }
-                    else
+                    else {
                         hoverPath = null;
+                        destination = null;
+                    }
                 }
 
                 refreshWindow();
@@ -416,6 +463,7 @@ public class Main extends JFrame{
                 super.mouseClicked(e);
                 clickPos = players.get(current).getViewPoint().fetch(posToCell(e.getX(), e.getY(), players.get(current).getViewPoint().getZ())).getLocation();
                 hoverPath = null;
+                destination = null;
                 hidePanels();
 
                 /*
@@ -427,7 +475,7 @@ public class Main extends JFrame{
                         selected = null;
 
                     // If clicked on cell with objects, show info panel
-                    if (players.get(current).getObjects().stream().anyMatch(obj -> obj.getCell().equals(clickPos))) {
+                    if (players.get(current).getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
                         infoPanel = createInfoPanel();
                         contentPanel.add(infoPanel);
                         layout.putConstraint(SpringLayout.WEST, infoPanel, (clickPos.x() - players.get(current).getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
@@ -439,19 +487,20 @@ public class Main extends JFrame{
 
                     // right-click events
                 } else if (SwingUtilities.isRightMouseButton(e) && (selected instanceof Unit)) {
-                    Motion motion = getShortestAdmissiblePath(selected, cells.get(clickPos));
+                    Motion motion = getShortestAdmissiblePath(selected, cells.get(clickPos)).key();
                     if(motion != null) {
                         hoverPath = null;
-                        if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= selected.getValue(SIZE)) {
+                        destination = null;
+                        if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= selected.getSpace()) {
                             if(motion.getSize() != 0) {
-                                selected.changeValue(ENERGY, -motion.getSize());
+                                ((Unit) selected).changeEnergy(-motion.getSize());
                                 motionToThread(motion);
                             }
-                            if(selected instanceof Worker) {
+                            /*if(selected instanceof Worker) {
                                 createResourcePanel(cells.get(clickPos));
                                 operations = selected.getOperations(CONSTRUCT);
                                 workPanel.setVisible(true);
-                            }
+                            }*/
                         }
                     }
                 }
@@ -774,22 +823,22 @@ public class Main extends JFrame{
 
         Dimension buttonSize = new Dimension(Math.floorDiv(cellWidth, 2), Math.floorDiv(cellHeight, 2));
         int counter = 0;
-        for (Iterator<GameObject> it = players.get(current).getObjects().stream().filter(obj -> obj.getCell().equals(clickPos)).iterator(); it.hasNext() && selected == null; ) {
+        for (Iterator<GameObject> it = players.get(current).getObjects().stream().filter(obj -> obj.getCell().getLocation().equals(clickPos)).iterator(); it.hasNext() && selected == null; ) {
             GameObject object = it.next();
             RoundedButton objectButton = new RoundedButton(object.getToken(), object.getSprite(), buttonSize, players.get(current).getAlternativeColor());
 
             objectButton.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
+                    selected = object;
                     if (SwingUtilities.isLeftMouseButton(e)) {
                         if(object instanceof Worker) {
-                            actions = selected.getOperations(CONSTRUCT);
+                            actions = object.getOperations(cycle);
                             actionPanel.setVisible(true);
                         }
                     } else if (SwingUtilities.isRightMouseButton(e)) {
                         if(object instanceof Evolvable) {
-                            Evolvable selected = (Evolvable)object;
-                            actions = selected.getEvolutions();
+                            actions = ((Evolvable)object).getEvolutions();
                             actionPanel.setVisible(true);
                         }
                     }
@@ -848,7 +897,8 @@ public class Main extends JFrame{
         GridBagConstraints c = new GridBagConstraints();
 
         Dimension buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-        OperationsList resourceContracts = selected.getOperations(RESOURCE);
+        // @@ SHOULD ONLY SELECT RESOURCES
+        OperationsList resourceContracts = selected.getOperations(cycle);
         for(int i = 0; i < resourceContracts.size(); i++) {
 
             final int step = i;
@@ -948,8 +998,8 @@ public class Main extends JFrame{
          * Draw all (visible) cells
          */
 
-        for(int x = -1; x < NUMBER_OF_CELLS_IN_VIEW + 1; x++) {
-            for(int y = -1; y < NUMBER_OF_CELLS_IN_VIEW + 1; y++) {
+        for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW + 1; x++) {
+            for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW + 1; y++) {
                 Cell vp = players.get(current).getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
                 if (players.get(current).hasDiscovered(cell) || players.get(current).hasSpotted(cell)) {
@@ -973,44 +1023,39 @@ public class Main extends JFrame{
                 final AtomicInteger unitCounter = new AtomicInteger();
                 final AtomicInteger buildingCounter = new AtomicInteger();
 
-                for(Player player : players) {
-                    for (Iterator<GameObject> it = player.getObjects().stream().filter(obj -> obj.getCell().equals(cell)).iterator(); it.hasNext(); ) {;
-                        GameObject object = it.next();
-                        gr.setColor(object == selected ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
-                        BufferedImage sprite = object.getSprite();
-                        if(object instanceof Unit) {
-                            Unit u = (Unit)object;
-                            if(sprite != null) {
-                                if(object == selected)
-                                    gr.drawImage(CustomMethods.selectedSprite(sprite, gr.getColor()), 5 + x * cellWidth + UNIT_SPRITE_SIZE * unitCounter.get(), y * cellHeight + 10, null);
-                                else
-                                    gr.drawImage(sprite, 5 + x * cellWidth + UNIT_SPRITE_SIZE * unitCounter.get(), y * cellHeight + 10, null);
-                            }
-                            else {
-                                gr.drawString(u.getToken(), 5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15);
-                                if(u instanceof Worker)
-                                    if (u.checkStatus(CONTRACT))
-                                        gr.drawLine(5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15 + 2, x * cellWidth + 10 * unitCounter.get() + gr.getFontMetrics().stringWidth(u.getToken()), y * cellHeight + 15 + 2);
-                            }
-                            unitCounter.incrementAndGet();
+                for(GameObject object : cell.getContent()) {
+                    gr.setColor(object == selected ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
+                    BufferedImage sprite = object.getSprite();
+                    if(object instanceof Unit) {
+                        if(sprite != null) {
+                            if(object == selected)
+                                gr.drawImage(CustomMethods.selectedSprite(sprite, gr.getColor()), 5 + x * cellWidth + UNIT_SPRITE_SIZE * unitCounter.get(), y * cellHeight + 10, null);
+                            else
+                                gr.drawImage(sprite, 5 + x * cellWidth + UNIT_SPRITE_SIZE * unitCounter.get(), y * cellHeight + 10, null);
                         }
+                        else {
+                            gr.drawString(object.getToken(), 5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15);
+                            if(object instanceof Worker)
+                                if (object.getStatus() == Status.WORKING)
+                                    gr.drawLine(5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15 + 2, x * cellWidth + 10 * unitCounter.get() + gr.getFontMetrics().stringWidth(object.getToken()), y * cellHeight + 15 + 2);
+                        }
+                        unitCounter.incrementAndGet();
+                    }
 
-                        if(object instanceof Building) {
-                            Building b = (Building)object;
-                            if(sprite != null) {
-                                if(object == selected)
-                                    gr.drawImage(CustomMethods.selectedSprite(sprite, gr.getColor()), 5 + x * cellWidth + BUILDING_SPRITE_SIZE * buildingCounter.get(), (y + 1) * cellHeight - BUILDING_SPRITE_SIZE - 10, null);
-                                else
-                                    gr.drawImage(sprite, 5 + x * cellWidth + BUILDING_SPRITE_SIZE * buildingCounter.get(), (y + 1) * cellHeight - BUILDING_SPRITE_SIZE - 10, null);
-                            }
-                            else {
-                                gr.drawString(object.getToken(), 5 + x * cellWidth + 10 * buildingCounter.get(), (y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2);
+                    if(object instanceof Building) {
+                        if(sprite != null) {
+                            if(object == selected)
+                                gr.drawImage(CustomMethods.selectedSprite(sprite, gr.getColor()), 5 + x * cellWidth + BUILDING_SPRITE_SIZE * buildingCounter.get(), (y + 1) * cellHeight - BUILDING_SPRITE_SIZE - 10, null);
+                            else
+                                gr.drawImage(sprite, 5 + x * cellWidth + BUILDING_SPRITE_SIZE * buildingCounter.get(), (y + 1) * cellHeight - BUILDING_SPRITE_SIZE - 10, null);
+                        }
+                        else {
+                            gr.drawString(object.getToken(), 5 + x * cellWidth + 10 * buildingCounter.get(), (y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2);
 //                                if(b instanceof Worker)
 //                                    if (b.checkStatus(CONTRACT))
 //                                        gr.drawLine(5 + x * cellWidth + 10 * buildingCounter.get(), (y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2, x * cellWidth + 10 * buildingCounter.get() + gr.getFontMetrics().stringWidth(b.getToken()), (y + 1) * cellHeight - gr.getFontMetrics().getHeight() + 5 + 2);
-                            }
-                            buildingCounter.incrementAndGet();
                         }
+                        buildingCounter.incrementAndGet();
                     }
                 }
             }
@@ -1112,93 +1157,98 @@ public class Main extends JFrame{
         return cells.get(new Location(Math.floorDiv(x, cellWidth), Math.floorDiv(y, cellHeight), l));
     }
 
-    public Motion getShortestAdmissiblePath(GameObject object, Cell target) {
-        if(target == null || target.distanceTo(object.getCell()) > object.getValue(MAX_ENERGY)
-                || !object.getPlayer().hasDiscovered(target))
+    public Pair<Motion, Location> getShortestAdmissiblePath(GameObject obj, Cell target) {
+        if(target == null || !(obj instanceof Unit))
             return null;
-
-        int locX = object.getValue(MAX_ENERGY);
-        int locY = object.getValue(MAX_ENERGY);
-        int locLevel = object.getValue(MAX_ENERGY);
-
-        ArrayList<Location> toDo = new ArrayList<>();
-        ArrayList<Location> done = new ArrayList<>();
-        done.add(new Location(target.getX(), target.getY(), target.getZ()));
-
-        if(object.getCell().getZ() == target.getZ()) {
-            int[][] grid = new int[2 * object.getValue(MAX_ENERGY) + 1][2 * object.getValue(MAX_ENERGY) + 1];
-            for (int x = -locX; x < locX + 1; x++) {
-                for (int y = -locY; y < locY + 1; y++) {
-                    grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? cells.get(target).getTravelCost() : object.getValue(MAX_ENERGY) * 2;
-                    if (Math.abs(x + y) == 1 && x * y == 0)
-                        toDo.add(new Location(target.getX() + x, target.getY() + y, target.getZ()));
-                }
-            }
-
-            while(toDo.size() != 0) {
-                done.addAll(toDo);
-                ArrayList<Location> tempList = new ArrayList<>();
-                for(Iterator<Location> it = toDo.iterator(); it.hasNext();) {
-                    Location loc = it.next();
-
-                    if(!cells.containsKey(loc))
-                        continue;
-
-                    int min = object.getValue(MAX_ENERGY) * 2;
-                    for(int x = (target.getX() - loc.x() == locX ? 0 : -1); x < (loc.x() - target.getX() == locX ? 1 : 2); x++)
-                        for(int y = (target.getY() - loc.y() == locY ? 0 : -1); y < (loc.y() - target.getY() == locY ? 1 : 2); y++)
-                            if(x + y != 0 && x * y == 0)
-                                min = Math.min(grid[locX + (loc.x() - target.getX()) + x][locY + (loc.y() - target.getY()) + y], min);
-
-                    grid[locX + (loc.x() - target.getX())][locY + (loc.y() - target.getY())] = min + cells.get(loc).getTravelCost();
-
-                    done.add(loc);
-                    for (int x = -1; x < 2; x++) {
-                        for (int y = -1; y < 2; y++) {
-                            if(x * y == 0) {
-                                Location next = new Location(loc.x() + x, loc.y() + y, loc.z());
-                                if (target.getLocation().distanceTo(next) <= object.getValue(MAX_ENERGY) && !done.contains(next) && !tempList.contains(next))
-                                    tempList.add(next);
-                            }
-                        }
-                    }
-
-                    it.remove();
-                }
-                toDo = tempList;
-            }
-
-            int deltaX = object.getCell().getX() - target.getX();
-            int deltaY = object.getCell().getY() - target.getY();
-            int cost = grid[locX + deltaX][locY + deltaY] - object.getCell().getTravelCost();
-
-            if(cost > object.getValue(ENERGY))
+        else {
+            Unit object = (Unit)obj;
+            if(target.distanceTo(object.getCell()) > object.getMaxEnergy()
+                    || !object.getPlayer().hasDiscovered(target))
                 return null;
 
-            ArrayList<Location> path = new ArrayList<>();
-            Location current = object.getCell().getLocation();
+            int locX = object.getMaxEnergy();
+            int locY = object.getMaxEnergy();
+            int locLevel = object.getMaxEnergy();
 
-            while(!current.equals(target)) {
-                int min = object.getValue(MAX_ENERGY) * 2;
-                Location temp = null;
-                for(int x = (target.getX() - current.x() == locX ? 0 : -1); x < (current.x() - target.getX() == locX ? 1 : 2); x++) {
-                    for (int y = (target.getY() - current.y() == locY ? 0 : -1); y < (current.y() - target.getY() == locY ? 1 : 2); y++) {
-                        if (x + y != 0 && x * y == 0) {
-                            if (grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y] < min
-                                    && grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y] < grid[locX + (current.x() - target.getX())][locY + (current.y() - target.getY())]) {
-                                min = Math.min(grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y], min);
-                                temp = new Location(x, y, 0);
+            ArrayList<Location> toDo = new ArrayList<>();
+            ArrayList<Location> done = new ArrayList<>();
+            done.add(new Location(target.getX(), target.getY(), target.getZ()));
+
+            if (object.getCell().getZ() == target.getZ()) {
+                int[][] grid = new int[2 * object.getMaxEnergy() + 1][2 * object.getMaxEnergy() + 1];
+                for (int x = -locX; x < locX + 1; x++) {
+                    for (int y = -locY; y < locY + 1; y++) {
+                        grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : object.getMaxEnergy() * 2;
+                        if (Math.abs(x + y) == 1 && x * y == 0)
+                            toDo.add(new Location(target.getX() + x, target.getY() + y, target.getZ()));
+                    }
+                }
+
+                while (toDo.size() != 0) {
+                    done.addAll(toDo);
+                    ArrayList<Location> tempList = new ArrayList<>();
+                    for (Iterator<Location> it = toDo.iterator(); it.hasNext(); ) {
+                        Location loc = it.next();
+
+                        if (!cells.containsKey(loc))
+                            continue;
+
+                        int min = object.getMaxEnergy() * 2;
+                        for (int x = (target.getX() - loc.x() == locX ? 0 : -1); x < (loc.x() - target.getX() == locX ? 1 : 2); x++)
+                            for (int y = (target.getY() - loc.y() == locY ? 0 : -1); y < (loc.y() - target.getY() == locY ? 1 : 2); y++)
+                                if (x + y != 0 && x * y == 0)
+                                    min = Math.min(grid[locX + (loc.x() - target.getX()) + x][locY + (loc.y() - target.getY()) + y], min);
+
+                        grid[locX + (loc.x() - target.getX())][locY + (loc.y() - target.getY())] = min + cells.get(loc).getTravelCost();
+
+                        done.add(loc);
+                        for (int x = -1; x < 2; x++) {
+                            for (int y = -1; y < 2; y++) {
+                                if (x * y == 0) {
+                                    Location next = new Location(loc.x() + x, loc.y() + y, loc.z());
+                                    if (target.getLocation().distanceTo(next) <= object.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
+                                        tempList.add(next);
+                                }
+                            }
+                        }
+
+                        it.remove();
+                    }
+                    toDo = tempList;
+                }
+
+                int deltaX = object.getCell().getX() - target.getX();
+                int deltaY = object.getCell().getY() - target.getY();
+                int cost = grid[locX + deltaX][locY + deltaY] - object.getCell().getTravelCost();
+
+                if (cost > object.getEnergy())
+                    return null;
+
+                ArrayList<Location> path = new ArrayList<>();
+                Location current = object.getCell().getLocation();
+
+                while (!current.equals(target.getLocation())) {
+                    int min = object.getMaxEnergy() * 2;
+                    Location temp = null;
+                    for (int x = (target.getX() - current.x() == locX ? 0 : -1); x < (current.x() - target.getX() == locX ? 1 : 2); x++) {
+                        for (int y = (target.getY() - current.y() == locY ? 0 : -1); y < (current.y() - target.getY() == locY ? 1 : 2); y++) {
+                            if (x + y != 0 && x * y == 0) {
+                                if (grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y] < min
+                                        && grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y] < grid[locX + (current.x() - target.getX())][locY + (current.y() - target.getY())]) {
+                                    min = Math.min(grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y], min);
+                                    temp = new Location(x, y, 0);
+                                }
                             }
                         }
                     }
+                    current = current.add(temp.x(), temp.y(), 0);
+                    path.add(temp);
                 }
-                current = new Location(current.x() + temp.x(), current.y() + temp.y(), current.z());
-                path.add(temp);
-            }
 
-            return new Motion(object, path, cost);
-        } else
-            return null;
+                return new Pair<>(new Motion(object, path, cost), target.getLocation());
+            } else
+                return null;
+        }
     }
 
     /**
@@ -1208,93 +1258,95 @@ public class Main extends JFrame{
      */
     public void motionToThread(Motion motion) {
 
-        int delay = motion.getObject().getValue(ANIMATION);
-
-        motion.getObject().setValue(STATUS, WALKING_STATUS);
+        motion.getObject().setStatus(Status.WALKING);
         ActionListener taskPerformer = evt -> {
             if(!motion.isDone()) {
-                moveObject(motion.getObject(), motion.next());
+                Location next = motion.next();
+                moveObject(motion.getObject(), motion.getObject().getCell().getLocation().add(next.x(), next.y(), next.z()));
                 refreshWindow();
             }
 
             if(motion.isDone()) {
-                motion.getObject().setValue(STATUS, IDLE_STATUS);
+                motion.getObject().setStatus(Status.IDLE);
                 ((Timer)evt.getSource()).stop();
             }
         };
-        new Timer(delay, taskPerformer).start();
+        new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
     }
 
     /**
      * Calculates the required energy to travel from the current Location to the target Location
      * based on Dijkstra's algorithm
-     * @param object travelling object
+     * @param obj travelling object
      * @param target target Location
      * @return required energy cost
      */
     @Deprecated
-    private int calculateTravelCost(GameObject object, Cell target) {
-        int locX = object.getValue(MAX_ENERGY);
-        int locY = object.getValue(MAX_ENERGY);
-        int locLevel = object.getValue(MAX_ENERGY);
+    private int calculateTravelCost(GameObject obj, Cell target) {
+        if(obj instanceof Unit) {
+            Unit object = (Unit)obj;
+            int locX = object.getMaxEnergy();
+            int locY = object.getMaxEnergy();
+            int locLevel = object.getMaxEnergy();
 
-        ArrayList<Cell> toDo = new ArrayList<>();
-        ArrayList<Cell> done = new ArrayList<>();
-        done.add(target);
+            ArrayList<Cell> toDo = new ArrayList<>();
+            ArrayList<Cell> done = new ArrayList<>();
+            done.add(target);
 
-        if(target.distanceTo(object.getCell()) > object.getValue(MAX_ENERGY))
-            return NUMBER_OF_CELLS;
+            if (target.distanceTo(object.getCell()) > object.getMaxEnergy())
+                return NUMBER_OF_CELLS;
 
-        if(object.getCell().getZ() == target.getZ()) {
-            int[][] grid = new int[2 * object.getValue(MAX_ENERGY) + 1][2 * object.getValue(MAX_ENERGY) + 1];
-            for (int x = -locX; x < locX + 1; x++) {
-                for (int y = -locY; y < locY + 1; y++) {
-                    grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : 9;
-                    if (Math.abs(x + y) == 1 && x * y == 0)
-                        toDo.add(cells.get(new Location(target.getX() + x, target.getY() + y, target.getZ())));
+            if (object.getCell().getZ() == target.getZ()) {
+                int[][] grid = new int[2 * object.getMaxEnergy() + 1][2 * object.getMaxEnergy() + 1];
+                for (int x = -locX; x < locX + 1; x++) {
+                    for (int y = -locY; y < locY + 1; y++) {
+                        grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : 9;
+                        if (Math.abs(x + y) == 1 && x * y == 0)
+                            toDo.add(cells.get(target.getLocation().add(x, y, 0)));
+                    }
                 }
-            }
 
-            while(toDo.size() != 0) {
-                done.addAll(toDo);
-                ArrayList<Cell> tempList = new ArrayList<>();
-                for(Iterator<Cell> it = toDo.iterator(); it.hasNext();) {
-                    Cell loc = it.next();
+                while (toDo.size() != 0) {
+                    done.addAll(toDo);
+                    ArrayList<Cell> tempList = new ArrayList<>();
+                    for (Iterator<Cell> it = toDo.iterator(); it.hasNext(); ) {
+                        Cell loc = it.next();
 
-                    if(!cells.containsKey(loc))
-                        continue;
+                        if (!cells.containsKey(loc.getLocation()))
+                            continue;
 
-                    int min = NUMBER_OF_CELLS;
-                    for(int x = (target.getX() - loc.getX() == locX ? 0 : -1); x < (loc.getX() - target.getX() == locX ? 1 : 2); x++)
-                        for(int y = (target.getY() - loc.getY() == locY ? 0 : -1); y < (loc.getY() - target.getY() == locY ? 1 : 2); y++)
-                            if(x + y != 0 && x * y == 0)
-                                min = Math.min(grid[locX + (loc.getX() - target.getX()) + x][locY + (loc.getY() - target.getY()) + y], min);
+                        int min = NUMBER_OF_CELLS;
+                        for (int x = (target.getX() - loc.getX() == locX ? 0 : -1); x < (loc.getX() - target.getX() == locX ? 1 : 2); x++)
+                            for (int y = (target.getY() - loc.getY() == locY ? 0 : -1); y < (loc.getY() - target.getY() == locY ? 1 : 2); y++)
+                                if (x + y != 0 && x * y == 0)
+                                    min = Math.min(grid[locX + (loc.getX() - target.getX()) + x][locY + (loc.getY() - target.getY()) + y], min);
 
-                    grid[locX + (loc.getX() - target.getX())][locY + (loc.getY() - target.getY())] = min + cells.get(loc).getTravelCost();
+                        grid[locX + (loc.getX() - target.getX())][locY + (loc.getY() - target.getY())] = min + loc.getTravelCost();
 
-                    done.add(loc);
-                    for (int x = -1; x < 2; x++) {
-                        for (int y = -1; y < 2; y++) {
-                            if(x * y == 0) {
-                                Cell next = cells.get(new Location(loc.getX() + x, loc.getY() + y, loc.getZ()));
-                                if (target.distanceTo(next) <= object.getValue(MAX_ENERGY) && !done.contains(next) && !tempList.contains(next))
-                                    tempList.add(next);
+                        done.add(loc);
+                        for (int x = -1; x < 2; x++) {
+                            for (int y = -1; y < 2; y++) {
+                                if (x * y == 0) {
+                                    Cell next = cells.get(loc.getLocation().add(x, y, 0));
+                                    if (target.distanceTo(next) <= object.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
+                                        tempList.add(next);
+                                }
                             }
                         }
+
+                        it.remove();
                     }
-
-                    it.remove();
+                    toDo = tempList;
                 }
-                toDo = tempList;
-            }
 
-            int deltaX = object.getCell().getX() - target.getX();
-            int deltaY = object.getCell().getY() - target.getY();
+                int deltaX = object.getCell().getX() - target.getX();
+                int deltaY = object.getCell().getY() - target.getY();
 
 //            printTranspose(grid);
 
-            return grid[locX + deltaX][locY + deltaY] - cells.get(object.getCell()).getTravelCost();
-        } else
-            return NUMBER_OF_CELLS;
+                return grid[locX + deltaX][locY + deltaY] - object.getCell().getTravelCost();
+            }
+        }
+        return NUMBER_OF_CELLS;
     }
 }

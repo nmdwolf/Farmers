@@ -1,7 +1,7 @@
 package general;
 
 import core.Player;
-import items.upgrade.Upgrade;
+import upgrade.Upgrade;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -13,10 +13,10 @@ import java.util.List;
 
 public class CustomMethods {
 
-    private static int CONSTRUCT_COUNT, UPGRADE_COUNT, AWARD_COUNT;
+    private static int ID_COUNT, UPGRADE_COUNT, AWARD_COUNT;
 
     public static int getNewIdentifier() {
-        return CONSTRUCT_COUNT++;
+        return ID_COUNT++;
     }
 
     public static int getNewUpgradeIdentifier() {

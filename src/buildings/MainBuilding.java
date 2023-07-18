@@ -1,0 +1,160 @@
+package buildings;
+
+import core.*;
+import general.CustomMethods;
+import general.OperationsList;
+import resources.Resource;
+import resources.ResourceContainer;
+import items.Evolvable;
+import items.Spacer;
+import units.Scout;
+import units.Villager;
+import upgrade.EvolveUpgrade;
+import upgrade.LookoutUpgrade;
+import upgrade.WellUpgrade;
+
+import java.awt.image.BufferedImage;
+
+public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolvable {
+
+    public final static BufferedImage bonfireSprite = CustomMethods.getSprite("src/img/bonfire.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
+    public final static BufferedImage townSprite = CustomMethods.getSprite("src/img/town.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
+    public final static BufferedImage castleSprite = CustomMethods.getSprite("src/img/castle.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
+    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "A new city has been founded.");
+
+    public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer() {{
+        put(Resource.WOOD, -200);
+        put(Resource.TIME, 20);
+    }};
+    public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer() {{
+        put(Resource.WOOD, -300);
+        put(Resource.STONE, -100);
+        put(Resource.WATER, -100);
+        put(Resource.TIME, 10);
+    }};
+    public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer() {{
+        put(Resource.WOOD, -300);
+        put(Resource.STONE, -300);
+        put(Resource.WATER, -200);
+        put(Resource.IRON, -50);
+        put(Resource.TIME, 20);
+    }};
+
+    public final static int BASE_HEALTH = 1000;
+    public final static int BASE_SPACE = 5;
+    public final static int BASE_SIZE = 5;
+    public final static int BASE_SIGHT = 1;
+    public final static int BASE_HEAL = 5;
+    public final static int BASE_DIFFICULTY = 1;
+
+    public final static int BASE_DEGRADATION_TIME = 50;
+    public final static int BASE_DEGRADATION_AMOUNT = 1;
+
+    public final static int BASE_X = 0;
+    public final static int BASE_Y = 0;
+
+    public final static String TOKEN = "Base";
+
+    private int space;
+
+    public MainBuilding(Player p, Cell cell, int cycle) {
+        super(p, cell, cycle, BASE_SIZE, BASE_SIGHT, BASE_HEALTH,
+                BASE_DEGRADATION_TIME, BASE_DEGRADATION_AMOUNT, BUILD_RESOURCES, BASE_DIFFICULTY,
+                BASE_X, BASE_Y);
+        this.space = BASE_SPACE;
+    }
+
+    @Override
+    public String getClassLabel() {
+        return switch(getLevel()) {
+            case 0: yield "Bonfire";
+            case 1: yield "Town Center";
+            case 2: default: yield "Castle";
+        };
+    }
+
+    @Override
+    public String getToken() {
+        return TOKEN;
+    }
+
+    @Override
+    public BufferedImage getSprite() {
+        return switch(getLevel()) {
+            case 0: yield bonfireSprite;
+            case 1: yield townSprite;
+            default: yield castleSprite;
+        };
+    }
+
+    @Override
+    public OperationsList getOperations(int cycle) {
+        OperationsList operations = new OperationsList();
+
+        operations.put("Villager", () -> {
+            Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+            if (getPlayer().hasResources(v.getCost())) {
+                getPlayer().addObject(v);
+                v.construct();
+            }
+        }); // Construct villager
+        operations.put("Scout", () -> {
+            Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+            if (getPlayer().hasResources(sc.getCost())) {
+                getPlayer().addObject(sc);
+                sc.construct();
+            }
+        }); // Construct scout
+
+        LookoutUpgrade lookout = new LookoutUpgrade(getPlayer());
+        operations.putUpgrade(lookout.toString(), lookout);
+
+        WellUpgrade well = new WellUpgrade(this);
+        operations.putUpgrade(well.toString(), well);
+
+        return operations;
+    }
+
+    @Override
+    public OperationsList getEvolutions() {
+        OperationsList operations = new OperationsList();
+        operations.putUpgrade("Evolve",
+            switch(getLevel()) {
+                case 1: yield new EvolveUpgrade<>(MainBuilding.this, LEVEL1_RESOURCES, 0, () -> {
+                    changeMaxHealth(200);
+                    changeSpaceBoost(2);
+                });
+                case 2: yield new EvolveUpgrade<>(MainBuilding.this, LEVEL2_RESOURCES, 0, () -> {
+                    changeMaxHealth(300);
+                    changeSpaceBoost(3);
+                });
+                default: yield null;
+            });
+        return operations;
+    }
+
+    @Override
+    public Award getConstructionAward() {
+        return BUILT_AWARD;
+    }
+
+    @Override
+    public Award getEvolveAward() {
+        return null;
+    }
+
+    @Override
+    public void cycle(int cycle) {
+
+    }
+
+    @Override
+    public void changeSpaceBoost(int amount) {
+        space += amount;
+    }
+
+    @Override
+    public int getSpaceBoost() {
+        return space;
+    }
+}
