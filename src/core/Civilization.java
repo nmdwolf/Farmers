@@ -1,7 +1,7 @@
 package core;
 
-import items.GameObject;
-import upgrade.Upgrade;
+import objects.GameObject;
+import core.upgrade.Upgrade;
 
 import java.util.List;
 

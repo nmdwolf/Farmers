@@ -1,6 +1,6 @@
 package core;
 
-import resources.Resource;
+import objects.resources.Resource;
 
 import java.awt.*;
 import java.util.Map;

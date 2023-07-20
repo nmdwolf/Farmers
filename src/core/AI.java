@@ -1,20 +1,22 @@
 package core;
 
-import contracts.LaborContract;
+import core.contracts.LaborContract;
+import general.Location;
 import general.Main;
 import general.Motion;
-import items.GameObject;
-import buildings.MainBuilding;
-import units.Villager;
-import units.Worker;
-import resources.Resource;
+import general.Pair;
+import objects.GameObject;
+import objects.buildings.MainBuilding;
+import objects.units.Villager;
+import objects.units.Worker;
+import objects.resources.Resource;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 
 import static core.GameConstants.rand;
-import static resources.Resource.*;
+import static objects.resources.Resource.*;
 
 public class AI extends Player{
 
@@ -69,25 +71,27 @@ public class AI extends Player{
                     int x = rand.nextInt(obj.getEnergy());
                     int y = rand.nextInt(obj.getEnergy() - x);
                     newLoc = obj.getCell().fetch(x, y, 0);
-                    Motion motion = main.getShortestAdmissiblePath(obj, newLoc).key();
+                    Pair<Motion, Location> motion = main.getShortestAdmissiblePath(obj, newLoc);
 
                     int counter = 0;
-                    while (newLoc.getUnitSpace() - newLoc.getUnitOccupied() < obj.getSpace()
-                            || (motion == null || (harvested.containsKey(newLoc) && counter++ <= SEARCH_LIMIT))) {
+                    while ((newLoc.getUnitSpace() - newLoc.getUnitOccupied() < obj.getSpace()
+                            || motion == null || harvested.containsKey(newLoc)) && counter++ <= SEARCH_LIMIT) {
                         x = rand.nextInt(obj.getEnergy());
                         y = rand.nextInt(obj.getEnergy() - x);
                         newLoc = obj.getCell().fetch(x, y, 0);
-                        motion = main.getShortestAdmissiblePath(obj, newLoc).key();
+                        motion = main.getShortestAdmissiblePath(obj, newLoc);
                     }
 
-                    obj.changeEnergy(-motion.getSize());
-                    main.motionToThread(motion);
+                    if(motion != null) {
+                        obj.changeEnergy(-motion.key().length());
+                        main.motionToThread(motion.key());
 
-                    harvested.put(newLoc, new ArrayList<>());
-                    harvested.get(newLoc).add(FOOD);
-                    LaborContract contract = new LaborContract(obj, FOOD, newLoc, 1);
-                    obj.addContract(contract);
-                    obj.setStatus(Status.WORKING);
+                        harvested.put(newLoc, new ArrayList<>());
+                        harvested.get(newLoc).add(FOOD);
+                        LaborContract contract = new LaborContract(obj, FOOD, newLoc, 1);
+                        obj.addContract(contract);
+                        obj.setStatus(Status.WORKING);
+                    }
                 }
             }
         }

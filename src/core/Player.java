@@ -1,17 +1,17 @@
 package core;
 
-import resources.Resource;
-import resources.ResourceContainer;
-import items.GameObject;
-import upgrade.Nomads;
-import upgrade.Upgrade;
+import objects.resources.Resource;
+import objects.resources.ResourceContainer;
+import objects.GameObject;
+import core.upgrade.Nomads;
+import core.upgrade.Upgrade;
 
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static core.GameConstants.*;
-import static resources.Resource.*;
+import static objects.resources.Resource.*;
 
 public class Player {
 
@@ -122,9 +122,9 @@ public class Player {
     }
 
     /**
-     * Checks if the Player has the required amount of resources.
+     * Checks if the Player has the required amount of objects.resources.
      * @param res Map with Resource-value pairs.
-     * @return true if Player has the requested resources
+     * @return true if Player has the requested objects.resources
      */
     public boolean hasResources(ResourceContainer res) {
         for(Resource resource : res.keySet())
@@ -173,9 +173,9 @@ public class Player {
 
     public void changePopCap(int amount) { popCap += amount; }
 
-    public boolean hasSpotted(Cell loc) { return spotted.contains(loc); }
+    public boolean hasSpotted(Cell loc) { return discovered.contains(loc) || spotted.contains(loc); }
 
-    public boolean hasDiscovered(Cell loc) { return discovered.contains(loc) || spotted.contains(loc); }
+    public boolean hasDiscovered(Cell loc) { return discovered.contains(loc); }
 
     public void spot(Cell cell) {
         if(!discovered.contains(cell))

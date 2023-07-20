@@ -1,6 +1,6 @@
 package general;
 
-import units.Unit;
+import objects.units.Unit;
 
 import java.util.ArrayList;
 
@@ -15,7 +15,11 @@ public class Motion {
     public Motion(Unit obj, ArrayList<Location> path, int effectiveLength) {
         length = effectiveLength;
         locations = path;
+        locations.add(0, obj.getCell().getLocation());
+        if(path.size() > 1 && path.get(0) == path.get(1))
+            throw new IllegalArgumentException("Path should not contain starting location.");
         object = obj;
+        step = 0;
     }
 
     public Location next() {
@@ -26,16 +30,20 @@ public class Motion {
         return step >= locations.size();
     }
 
-    public int getSize() { return length; }
+    public int length() { return length; }
 
     public Unit getObject() { return object; }
 
     public Location[] getPath() {
-        Location[] path = locations.toArray(new Location[0]);
-        Location[] totalPath = new Location[path.length + 1];
-        totalPath[0] = object.getCell().getLocation();
-        System.arraycopy(path, 0, totalPath, 1, path.length);
+        Location[] totalPath = new Location[locations.size()];
+        totalPath[0] = locations.get(0);
+        for(int i = 1; i <= locations.size(); i++)
+            totalPath[i] = totalPath[i - 1].add(locations.get(i));
         return totalPath;
+    }
+
+    public Location[] getRelativePath() {
+        return locations.toArray(new Location[0]);
     }
 
 }

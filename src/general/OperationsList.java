@@ -1,7 +1,7 @@
 package general;
 
 import core.Operation;
-import upgrade.Upgrade;
+import core.upgrade.Upgrade;
 
 import java.util.ArrayList;
 
@@ -31,8 +31,8 @@ public class OperationsList extends ArrayList<Operation> {
 
     /**
      * Adds an Upgrade as an Operation if the Upgrade is visible
-     * @param s textual information about the upgrade
-     * @param u upgrade
+     * @param s textual information about the core.upgrade
+     * @param u core.upgrade
      */
     public void putUpgrade(String s, Upgrade u) {
         if(u != null && u.isVisible())

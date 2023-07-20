@@ -1,14 +1,14 @@
 package core;
 
 import general.Location;
-import resources.Resource;
-import resources.ResourceContainer;
-import items.GameObject;
+import objects.resources.Resource;
+import objects.resources.ResourceContainer;
+import objects.GameObject;
 
 import java.util.HashSet;
 
 import static core.GameConstants.*;
-import static resources.Resource.*;
+import static objects.resources.Resource.*;
 
 public class Cell {
 
@@ -155,8 +155,8 @@ public class Cell {
     }
 
     /**
-     * Generates a random amount of resources to initialize a cell
-     * @return HashMap with random amount of resources
+     * Generates a random amount of objects.resources to initialize a cell
+     * @return HashMap with random amount of objects.resources
      */
     private static ResourceContainer generateResources() {
         ResourceContainer resources = new ResourceContainer();

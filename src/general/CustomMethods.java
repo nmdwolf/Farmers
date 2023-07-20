@@ -1,7 +1,7 @@
 package general;
 
 import core.Player;
-import upgrade.Upgrade;
+import core.upgrade.Upgrade;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

@@ -13,4 +13,8 @@ public record Location(int x, int y, int z) {
     public Location add(int x, int y, int z) {
         return new Location(this.x + x, this.y + y, this.z + z);
     }
+
+    public Location add(Location loc) {
+        return new Location(this.x + loc.x, this.y + loc.y, this.z + loc.z);
+    }
 }

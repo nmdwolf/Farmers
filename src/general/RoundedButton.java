@@ -34,6 +34,8 @@ public class RoundedButton extends JButton {
                 setBorder(new CustomBorder(Color.black, width, height));
             }
         });
+
+        setPreferredSize(dim);
     }
 
     public RoundedButton(String text, int width, int height, Color hover) {

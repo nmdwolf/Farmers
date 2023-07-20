@@ -2,17 +2,15 @@ package general;
 
 import core.*;
 
-import items.*;
-import buildings.Building;
-import buildings.Lumberjack;
-import buildings.MainBuilding;
-import resources.NaturalResource;
-import resources.Source;
-import units.Hero;
-import units.Unit;
-import units.Villager;
-import units.Worker;
-import resources.Resource;
+import objects.*;
+import objects.buildings.Building;
+import objects.buildings.Lumberjack;
+import objects.buildings.MainBuilding;
+import objects.units.Hero;
+import objects.units.Unit;
+import objects.units.Villager;
+import objects.units.Worker;
+import objects.resources.Resource;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -55,7 +53,7 @@ public class Main extends JFrame{
     private JMenu playerMenu, viewMenu, cellMenu;
     private JMenuItem cycleLabel, popLabel;
     private JMenuItem[] playerLabels, resourceLabels;
-    private JPanel workPanel, infoPanel, resourcePanel, actionPanel;
+    private JPanel workPanel, infoPanel, resourcePanel, actionPanel, choicePanel;
     private final Timer gc;
 
     public static void main(String[] args) {
@@ -66,13 +64,10 @@ public class Main extends JFrame{
     public Main() {
         cells = new HashMap<>() {
             public Cell get(Object key) {
-                if(key instanceof Location) {
-                    if(containsKey(key))
-                        return super.get(key);
-                    else
-                        throw new IllegalArgumentException("Key not found: " + key);
-                }
-                return null;
+                if(containsKey(key))
+                    return super.get(key);
+                else
+                    throw new IllegalArgumentException("Key not found: " + key);
             }
         };
         players = new ArrayList<>();
@@ -112,13 +107,13 @@ public class Main extends JFrame{
                 case "Yellow" -> Color.yellow;
                 default -> Color.blue;
             };
-            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 9);
-            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 9);
+            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
             addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
-        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 9);
-        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 9);
+        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
         addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this));
 
         allPlayers = new ArrayList<>(players.size() + ais.size());
@@ -132,7 +127,7 @@ public class Main extends JFrame{
                 p.clearNewObjects();
 
                 for (GameObject obj : p.getObjects())
-                    if ((obj.getStatus() == Status.DEAD) && !(obj instanceof Revivable)) {
+                    if ((obj.getHealth() <= 0) && !(obj instanceof Revivable)) {
                         p.removeObject(obj);
                         removeObject(obj);
                     }
@@ -142,14 +137,15 @@ public class Main extends JFrame{
     }
 
     /**
-     * Adds a player to the current game. Initializes resources and game objects.
+     * Adds a player to the current game.
+     * Initializes resources and objects.
      * @param p new Player
      */
     public void addPlayer(Player p) {
 
-        if(p instanceof AI)
-            ais.add((AI)p);
-        else
+//        if(p instanceof AI)
+//            ais.add((AI)p);
+//        else
             players.add(p);
 
         GameObject base = new MainBuilding(p, p.getViewPoint().fetch(2, 2, 0), cycle);
@@ -169,18 +165,23 @@ public class Main extends JFrame{
      * Changes the current player.
      */
     public void cyclePlayers(){
-
         Player player = players.get(current);
 
-        for(GameObject object : player.getObjects())
-            if(object instanceof Worker) {
-                Worker w = (Worker)object;
-                if(w.getStatus() == Status.WORKING)
-                    w.work();
-            }
+        for(String text : player.getMessages())
+            showMessagePanel(text);
 
-        if(current == (players.size() - 1)) {
+        for(GameObject object : player.getObjects()) {
+            object.cycle(cycle);
+//            if(object instanceof Unit) {
+//                for(GameObject obj2 : object.getCell().getContent())
+//                    if(obj2 instanceof Healer)
+//                        ((Healer)obj2).heal(object);
+//            }
+        }
 
+        current++;
+
+        if(current == players.size()) {
             // Let the AIs play a round
             for(AI ai : ais)
                 ai.makeMove(cycle);
@@ -190,26 +191,6 @@ public class Main extends JFrame{
 
             for(Cell cell : cells.values())
                 cell.cycle(cycle);
-        } else
-            current++;
-
-        for(String text : player.getMessages())
-            showMessagePanel(text);
-
-        for(GameObject object : player.getObjects()) {
-            object.cycle(cycle);
-            object.degrade(cycle);
-            if(object instanceof Unit) {
-                for(GameObject obj2 : object.getCell().getContent())
-                    if(obj2 instanceof Healer)
-                        ((Healer)obj2).heal(object);
-                object.changeHealth(Math.min(0, object.getCell().getHeatLevel() - COLD_LEVEL));
-            }
-
-            if(object instanceof NaturalResource) {
-                Source s = (Source)object;
-                object.getCell().changeResources(s.getYield());
-            }
         }
 
         selected = null;
@@ -358,6 +339,7 @@ public class Main extends JFrame{
                 }
             }
         };
+
         contentPanel.setOpaque(false);
         super.setContentPane(contentPanel);
         SpringLayout layout = new SpringLayout();
@@ -431,10 +413,10 @@ public class Main extends JFrame{
 
                 if(selected != null && (selected instanceof Unit) && (hoverPath == null || !mousePos.getLocation().equals(destination))) {
                     Pair<Motion, Location> motion = getShortestAdmissiblePath(selected, mousePos.fetch(players.get(current).getViewPoint()));
-                    if (motion != null && motion.key().getSize() > 0) {
-                        hoverPath = motion.key().getPath();
+                    if (motion != null && motion.key().length() > 0) {
+                        hoverPath = motion.key().getRelativePath();
                         destination = motion.value();
-                        travelDistance = motion.key().getSize();
+                        travelDistance = motion.key().length();
                     }
                     else {
                         hoverPath = null;
@@ -488,20 +470,19 @@ public class Main extends JFrame{
                     // right-click events
                 } else if (SwingUtilities.isRightMouseButton(e) && (selected instanceof Unit)) {
                     Motion motion = getShortestAdmissiblePath(selected, cells.get(clickPos)).key();
-                    if(motion != null) {
-                        hoverPath = null;
-                        destination = null;
-                        if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= selected.getSpace()) {
-                            if(motion.getSize() != 0) {
-                                ((Unit) selected).changeEnergy(-motion.getSize());
-                                motionToThread(motion);
-                            }
-                            /*if(selected instanceof Worker) {
-                                createResourcePanel(cells.get(clickPos));
-                                operations = selected.getOperations(CONSTRUCT);
-                                workPanel.setVisible(true);
-                            }*/
-                        }
+
+                    hoverPath = null;
+                    destination = null;
+                    if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= selected.getSpace()
+                            && motion.length() != 0) {
+                        ((Unit) selected).changeEnergy(-motion.length());
+                        motionToThread(motion);
+                    }
+
+                    if(selected instanceof Worker) {
+                        createResourcePanel(cells.get(clickPos));
+                        operations = selected.getOperations(cycle);
+                        workPanel.setVisible(true);
                     }
                 }
 
@@ -519,6 +500,7 @@ public class Main extends JFrame{
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
                 resetScales();
+                constructChoicePanel();
                 constructActionPanel();
                 constructWorkPanel();
                 hidePanels();
@@ -600,6 +582,7 @@ public class Main extends JFrame{
         super.setExtendedState(MAXIMIZED_BOTH);
 
         resetScales();
+        constructChoicePanel();
         constructActionPanel();
         constructWorkPanel();
 
@@ -618,9 +601,9 @@ public class Main extends JFrame{
 
         actionPanel = new JPanel() {
             @Override
-            public void setVisible(boolean aFlag) {
-                super.setVisible(aFlag);
-                if(aFlag) {
+            public void setVisible(boolean actionFlag) {
+                super.setVisible(actionFlag);
+                if(actionFlag) {
                     if (actions == null || actions.size() == 0 || actions.size() < actionPage * 7) {
                         super.setVisible(false);
                         actions = null;
@@ -677,7 +660,6 @@ public class Main extends JFrame{
                 });
             }
 
-            button.setPreferredSize(buttonSize);
             c.gridx = step % 4;
             c.gridy = Math.floorDiv(step, 4);
             c.weightx = 0.5;
@@ -697,6 +679,84 @@ public class Main extends JFrame{
         SpringLayout layout = (SpringLayout)getContentPane().getLayout();
         layout.putConstraint(SpringLayout.WEST, actionPanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
         layout.putConstraint(SpringLayout.NORTH, actionPanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+    }
+
+    private void constructChoicePanel() {
+
+        if(choicePanel != null)
+            getContentPane().remove(choicePanel);
+
+        Dimension buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
+        JButton[] buttons = new JButton[4]; // Resource, Build, Upgrades/Evolutions
+
+        buttons[0] = new RoundedButton("Resources", buttonSize, players.get(current).getAlternativeColor());
+        buttons[1] = new RoundedButton("Constructs", buttonSize, players.get(current).getAlternativeColor());
+        buttons[2] = new RoundedButton("Upgrades", buttonSize, players.get(current).getAlternativeColor());
+        buttons[3] = new RoundedButton("Evolutions", buttonSize, players.get(current).getAlternativeColor());
+
+        buttons[0].addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actions = selected.getOperations(cycle);
+            }
+        });//
+        // event -> selected.getOperations(cycle));
+        buttons[1].addActionListener(event -> ((Constructor)selected).getConstructions(cycle));
+        buttons[2].addActionListener(event -> ((Upgrader)selected).getUpgrades(cycle));
+        buttons[3].addActionListener(event -> ((Evolvable)selected).getEvolutions(cycle));
+
+        choicePanel = new JPanel() {
+            @Override
+            public void setVisible(boolean flag) {
+                super.setVisible(flag);
+                for(JButton button : buttons)
+                    button.setVisible(false);
+                if(flag && selected != null) {
+                    if(selected instanceof Worker)
+                        buttons[0].setVisible(true);
+                    if(selected instanceof Constructor)
+                        buttons[1].setVisible(true);
+                    if(selected instanceof Upgrader)
+                        buttons[2].setVisible(true);
+                    if(selected instanceof Evolvable)
+                        buttons[3].setVisible(true);
+                }
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+
+                gr.setColor(new Color(255, 255, 255, 200));
+                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+            }
+        };
+
+        // Intercepts mouse events
+        choicePanel.addMouseListener(new MouseAdapter() {});
+
+        choicePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        choicePanel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        for(int i = 0; i < 4; i++) {
+            c.gridx = i % 2;
+            c.gridy = i / 2;
+            c.weightx = 0.5;
+            c.weighty = 0.5;
+            c.anchor = c.gridx == 0 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
+            choicePanel.add(buttons[i], c);
+        }
+
+        choicePanel.setVisible(false);
+        choicePanel.setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+        choicePanel.setOpaque(false);
+
+        getContentPane().add(choicePanel);
+        SpringLayout layout = (SpringLayout)getContentPane().getLayout();
+        layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, choicePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
     }
 
     private void constructWorkPanel() {
@@ -797,7 +857,7 @@ public class Main extends JFrame{
 
     private JPanel createInfoPanel() {
 
-        JPanel panel = new JPanel() {
+        JPanel objectPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -814,12 +874,12 @@ public class Main extends JFrame{
             }
         };
 
-        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        panel.setLayout(new GridBagLayout());
+        objectPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        objectPanel.setLayout(new GridBagLayout());
         GridBagConstraints constr = new GridBagConstraints();
 
         // To intercept mouse motion
-        panel.addMouseListener(new MouseAdapter() {});
+        objectPanel.addMouseListener(new MouseAdapter() {});
 
         Dimension buttonSize = new Dimension(Math.floorDiv(cellWidth, 2), Math.floorDiv(cellHeight, 2));
         int counter = 0;
@@ -831,18 +891,9 @@ public class Main extends JFrame{
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     selected = object;
-                    if (SwingUtilities.isLeftMouseButton(e)) {
-                        if(object instanceof Worker) {
-                            actions = object.getOperations(cycle);
-                            actionPanel.setVisible(true);
-                        }
-                    } else if (SwingUtilities.isRightMouseButton(e)) {
-                        if(object instanceof Evolvable) {
-                            actions = ((Evolvable)object).getEvolutions();
-                            actionPanel.setVisible(true);
-                        }
-                    }
-                    panel.removeAll();
+                    if (SwingUtilities.isLeftMouseButton(e))
+                        choicePanel.setVisible(true);
+                    objectPanel.removeAll();
                     refreshWindow();
                 }
             });
@@ -851,12 +902,13 @@ public class Main extends JFrame{
             objectButton.setContentAreaFilled(false);
             objectButton.setFocusPainted(false);
             objectButton.setPreferredSize(buttonSize);
+
             constr.gridx = Math.floorDiv(counter, 8);
             constr.gridy = counter % 8;
             constr.weighty = 0.01;
             constr.anchor = GridBagConstraints.FIRST_LINE_START;
             counter++;
-            panel.add(objectButton, constr);
+            objectPanel.add(objectButton, constr);
         }
 
         // Filler to align buttons
@@ -866,11 +918,11 @@ public class Main extends JFrame{
         constr.gridx = 2;
         constr.weightx = 1;
         constr.weighty = 1;
-        panel.add(filler, constr);
+        objectPanel.add(filler, constr);
 
-        panel.setPreferredSize(new Dimension(2 * cellWidth, 5 * cellHeight));
-        panel.setOpaque(false);
-        return panel;
+        objectPanel.setPreferredSize(new Dimension(2 * cellWidth, 5 * cellHeight));
+        objectPanel.setOpaque(false);
+        return objectPanel;
     }
 
     private void createResourcePanel(Cell cell) {
@@ -998,11 +1050,11 @@ public class Main extends JFrame{
          * Draw all (visible) cells
          */
 
-        for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW + 1; x++) {
-            for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW + 1; y++) {
+        for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
+            for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
                 Cell vp = players.get(current).getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
-                if (players.get(current).hasDiscovered(cell) || players.get(current).hasSpotted(cell)) {
+                if (players.get(current).hasSpotted(cell)) {
 
                     if (cell.isField()) {
                         gr.setColor(new Color(200, 120, 0, 100));
@@ -1034,10 +1086,35 @@ public class Main extends JFrame{
                                 gr.drawImage(sprite, 5 + x * cellWidth + UNIT_SPRITE_SIZE * unitCounter.get(), y * cellHeight + 10, null);
                         }
                         else {
+                            Unit u = (Unit)object;
                             gr.drawString(object.getToken(), 5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15);
-                            if(object instanceof Worker)
-                                if (object.getStatus() == Status.WORKING)
-                                    gr.drawLine(5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15 + 2, x * cellWidth + 10 * unitCounter.get() + gr.getFontMetrics().stringWidth(object.getToken()), y * cellHeight + 15 + 2);
+                            if(u.getStatus() == Status.WORKING) {
+                                int pieces = u.getCycleLength() / 4;
+                                int remainder = u.getCurrentStep() % pieces;
+                                int part = u.getCurrentStep() / pieces;
+                                int segmentWidth = (int)((float)cellWidth / pieces);
+                                int segmentHeight = (int)((float)cellHeight / pieces);
+
+                                if(part > 0) {
+                                    gr.drawLine(x * cellWidth, y * cellHeight + 15 + 2, (x + 1) * cellWidth, y * cellHeight + 15 + 2);
+                                    if(part > 1) {
+                                        gr.drawLine((x + 1) * cellWidth, y * cellHeight + 15 + 2, (x + 1) * cellWidth, (y + 1) * cellHeight + 15 + 2);
+                                        if(part > 2) {
+                                            gr.drawLine(x * cellWidth, (y + 1) * cellHeight + 15 + 2, (x + 1) * cellWidth, (y + 1) * cellHeight + 15 + 2);
+                                            if(part > 3)
+                                                gr.drawLine(x * cellWidth, y * cellHeight + 15 + 2, x * cellWidth, (y + 1) * cellHeight + 15 + 2);
+                                            else
+                                                gr.drawLine(x * cellWidth, (y + 1) * cellHeight + 15 + 2, x * cellWidth, y * cellHeight + 15 + 2 - remainder * segmentHeight);
+                                        } else
+                                            gr.drawLine((x + 1) * cellWidth, (y + 1) * cellHeight + 15 + 2, (x + 1) * cellWidth - remainder * segmentWidth, (y + 1) * cellHeight + 15 + 2);
+                                    } else
+                                        gr.drawLine((x + 1) * cellWidth, y * cellHeight + 15 + 2, (x + 1) * cellWidth, y * cellHeight + 15 + 2 + remainder * segmentHeight);
+                                } else
+                                    gr.drawLine(x * cellWidth, y * cellHeight + 15 + 2, x * cellWidth + remainder * segmentWidth, y * cellHeight + 15 + 2);
+
+                                //gr.drawLine(5 + x * cellWidth + 10 * unitCounter.get(), y * cellHeight + 15 + 2, x * cellWidth + 10 * unitCounter.get() + gr.getFontMetrics().stringWidth(object.getToken()), y * cellHeight + 15 + 2);
+                                u.step();
+                            }
                         }
                         unitCounter.incrementAndGet();
                     }
@@ -1066,7 +1143,7 @@ public class Main extends JFrame{
                 Cell vp = players.get(current).getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
-                if(players.get(current).hasDiscovered(cell) || players.get(current).hasSpotted(cell)){
+                if(players.get(current).hasSpotted(cell)){
                     if (cell.isRiver()) {
                         gr.setColor(new Color(0, 100, 255));
                         if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
@@ -1102,11 +1179,11 @@ public class Main extends JFrame{
                     }
                 }
 
-                if (players.get(current).hasSpotted(cell)) {
-                    gr.setColor(new Color(192, 192, 192, 200));
+                if (!players.get(current).hasSpotted(cell)) {
+                    gr.setColor(Color.lightGray);
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
                 } else if (!players.get(current).hasDiscovered(cell)) {
-                    gr.setColor(Color.lightGray);
+                    gr.setColor(new Color(192, 192, 192, 200));
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
                 }
             }
@@ -1158,97 +1235,99 @@ public class Main extends JFrame{
     }
 
     public Pair<Motion, Location> getShortestAdmissiblePath(GameObject obj, Cell target) {
-        if(target == null || !(obj instanceof Unit))
+        if(target == null)
+            throw new IllegalArgumentException("Target should not be null.");
+        if(!(obj instanceof Unit))
+            throw new IllegalArgumentException("GameObject should be of type Unit.");
+
+        if(target == obj.getCell())
+            return new Pair<>(new Motion((Unit)obj, new ArrayList<>(), 0), target.getLocation());
+
+        Unit object = (Unit)obj;
+        if(target.distanceTo(object.getCell()) > object.getEnergy()
+                || !object.getPlayer().hasSpotted(target))
             return null;
-        else {
-            Unit object = (Unit)obj;
-            if(target.distanceTo(object.getCell()) > object.getMaxEnergy()
-                    || !object.getPlayer().hasDiscovered(target))
-                return null;
 
-            int locX = object.getMaxEnergy();
-            int locY = object.getMaxEnergy();
-            int locLevel = object.getMaxEnergy();
+        int maxDist = object.getEnergy();
 
-            ArrayList<Location> toDo = new ArrayList<>();
-            ArrayList<Location> done = new ArrayList<>();
-            done.add(new Location(target.getX(), target.getY(), target.getZ()));
+        ArrayList<Location> toDo = new ArrayList<>();
+        ArrayList<Location> done = new ArrayList<>();
+        done.add(new Location(target.getX(), target.getY(), target.getZ()));
 
-            if (object.getCell().getZ() == target.getZ()) {
-                int[][] grid = new int[2 * object.getMaxEnergy() + 1][2 * object.getMaxEnergy() + 1];
-                for (int x = -locX; x < locX + 1; x++) {
-                    for (int y = -locY; y < locY + 1; y++) {
-                        grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : object.getMaxEnergy() * 2;
-                        if (Math.abs(x + y) == 1 && x * y == 0)
-                            toDo.add(new Location(target.getX() + x, target.getY() + y, target.getZ()));
-                    }
+        if (object.getCell().getZ() == target.getZ()) {
+            int[][] grid = new int[2 * maxDist + 1][2 * maxDist + 1];
+            for (int x = -maxDist; x < maxDist + 1; x++) {
+                for (int y = -maxDist; y < maxDist + 1; y++) {
+                    grid[maxDist + x][maxDist + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : object.getEnergy() * 2;
+                    if (Math.abs(x + y) == 1 && x * y == 0)
+                        toDo.add(new Location(target.getX() + x, target.getY() + y, target.getZ()));
                 }
+            }
 
-                while (toDo.size() != 0) {
-                    done.addAll(toDo);
-                    ArrayList<Location> tempList = new ArrayList<>();
-                    for (Iterator<Location> it = toDo.iterator(); it.hasNext(); ) {
-                        Location loc = it.next();
+            while (toDo.size() != 0) {
+                done.addAll(toDo);
+                ArrayList<Location> tempList = new ArrayList<>();
+                for (Iterator<Location> it = toDo.iterator(); it.hasNext(); ) {
+                    Location loc = it.next();
 
-                        if (!cells.containsKey(loc))
-                            continue;
+                    if (!cells.containsKey(loc))
+                        continue;
 
-                        int min = object.getMaxEnergy() * 2;
-                        for (int x = (target.getX() - loc.x() == locX ? 0 : -1); x < (loc.x() - target.getX() == locX ? 1 : 2); x++)
-                            for (int y = (target.getY() - loc.y() == locY ? 0 : -1); y < (loc.y() - target.getY() == locY ? 1 : 2); y++)
-                                if (x + y != 0 && x * y == 0)
-                                    min = Math.min(grid[locX + (loc.x() - target.getX()) + x][locY + (loc.y() - target.getY()) + y], min);
+                    int min = maxDist * 2;
+                    for (int x = (target.getX() - loc.x() == maxDist ? 0 : -1); x < (loc.x() - target.getX() == maxDist ? 1 : 2); x++)
+                        for (int y = (target.getY() - loc.y() == maxDist ? 0 : -1); y < (loc.y() - target.getY() == maxDist ? 1 : 2); y++)
+                            if (x + y != 0 && x * y == 0)
+                                min = Math.min(grid[maxDist + (loc.x() - target.getX()) + x][maxDist + (loc.y() - target.getY()) + y], min);
 
-                        grid[locX + (loc.x() - target.getX())][locY + (loc.y() - target.getY())] = min + cells.get(loc).getTravelCost();
+                    grid[maxDist + (loc.x() - target.getX())][maxDist + (loc.y() - target.getY())] = min + cells.get(loc).getTravelCost() + (players.get(current).hasSpotted(cells.get(loc)) ? 0 : maxDist);
+                    done.add(loc);
 
-                        done.add(loc);
-                        for (int x = -1; x < 2; x++) {
-                            for (int y = -1; y < 2; y++) {
-                                if (x * y == 0) {
-                                    Location next = new Location(loc.x() + x, loc.y() + y, loc.z());
-                                    if (target.getLocation().distanceTo(next) <= object.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
-                                        tempList.add(next);
-                                }
-                            }
-                        }
-
-                        it.remove();
-                    }
-                    toDo = tempList;
-                }
-
-                int deltaX = object.getCell().getX() - target.getX();
-                int deltaY = object.getCell().getY() - target.getY();
-                int cost = grid[locX + deltaX][locY + deltaY] - object.getCell().getTravelCost();
-
-                if (cost > object.getEnergy())
-                    return null;
-
-                ArrayList<Location> path = new ArrayList<>();
-                Location current = object.getCell().getLocation();
-
-                while (!current.equals(target.getLocation())) {
-                    int min = object.getMaxEnergy() * 2;
-                    Location temp = null;
-                    for (int x = (target.getX() - current.x() == locX ? 0 : -1); x < (current.x() - target.getX() == locX ? 1 : 2); x++) {
-                        for (int y = (target.getY() - current.y() == locY ? 0 : -1); y < (current.y() - target.getY() == locY ? 1 : 2); y++) {
-                            if (x + y != 0 && x * y == 0) {
-                                if (grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y] < min
-                                        && grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y] < grid[locX + (current.x() - target.getX())][locY + (current.y() - target.getY())]) {
-                                    min = Math.min(grid[locX + (current.x() - target.getX()) + x][locY + (current.y() - target.getY()) + y], min);
-                                    temp = new Location(x, y, 0);
-                                }
+                    for (int x = -1; x < 2; x++) {
+                        for (int y = -1; y < 2; y++) {
+                            if (x * y == 0) {
+                                Location next = new Location(loc.x() + x, loc.y() + y, loc.z());
+                                if (target.getLocation().distanceTo(next) <= object.getEnergy() && !done.contains(next) && !tempList.contains(next))
+                                    tempList.add(next);
                             }
                         }
                     }
-                    current = current.add(temp.x(), temp.y(), 0);
-                    path.add(temp);
-                }
 
-                return new Pair<>(new Motion(object, path, cost), target.getLocation());
-            } else
+                    it.remove();
+                }
+                toDo = tempList;
+            }
+
+            int deltaX = object.getCell().getX() - target.getX();
+            int deltaY = object.getCell().getY() - target.getY();
+            int cost = grid[maxDist + deltaX][maxDist + deltaY] - object.getCell().getTravelCost();
+
+            if (cost > object.getEnergy())
                 return null;
-        }
+
+            ArrayList<Location> path = new ArrayList<>();
+            Location current = object.getCell().getLocation();
+
+            while (!current.equals(target.getLocation())) {
+                int min = object.getEnergy() * 2;
+                Location temp = null;
+                for (int x = (target.getX() - current.x() == maxDist ? 0 : -1); x < (current.x() - target.getX() == maxDist ? 1 : 2); x++) {
+                    for (int y = (target.getY() - current.y() == maxDist ? 0 : -1); y < (current.y() - target.getY() == maxDist ? 1 : 2); y++) {
+                        if (x + y != 0 && x * y == 0) {
+                            if (grid[maxDist + (current.x() - target.getX()) + x][maxDist + (current.y() - target.getY()) + y] < min
+                                    && grid[maxDist + (current.x() - target.getX()) + x][maxDist + (current.y() - target.getY()) + y] < grid[maxDist + (current.x() - target.getX())][maxDist + (current.y() - target.getY())]) {
+                                min = Math.min(grid[maxDist + (current.x() - target.getX()) + x][maxDist + (current.y() - target.getY()) + y], min);
+                                temp = new Location(x, y, 0);
+                            }
+                        }
+                    }
+                }
+                current = current.add(temp.x(), temp.y(), 0);
+                path.add(temp);
+            }
+
+            return new Pair<>(new Motion(object, path, cost), target.getLocation());
+        } else
+            return null;
     }
 
     /**
@@ -1259,6 +1338,7 @@ public class Main extends JFrame{
     public void motionToThread(Motion motion) {
 
         motion.getObject().setStatus(Status.WALKING);
+        motion.next(); // To skip the starting position.
         ActionListener taskPerformer = evt -> {
             if(!motion.isDone()) {
                 Location next = motion.next();
