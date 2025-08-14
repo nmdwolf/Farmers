@@ -33,7 +33,7 @@ public abstract class Worker extends Unit {
     @Override
     public void cycle(int cycle) {
         super.cycle(cycle);
-        if(getStatus() == Status.WORKING)
+        if(getStatus() != Status.WALKING)
             work();
     }
 
@@ -89,7 +89,7 @@ public abstract class Worker extends Unit {
 
     public void addContract(Contract c) {
         if(c instanceof LaborContract)
-            contracts.removeIf(obj -> obj instanceof LaborContract);
+            contracts.removeIf(obj -> obj instanceof LaborContract); // Removes current LabourContract  è s2j.0/
         contracts.add(c);
     }
 

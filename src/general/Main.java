@@ -475,12 +475,7 @@ public class Main extends JFrame{
         contentPanel.addMouseWheelListener(mouseAdapter);
 
         getContentPane().add(choicePanel);
-        ((SpringLayout)getContentPane().getLayout()).putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
-        ((SpringLayout)getContentPane().getLayout()).putConstraint(SpringLayout.NORTH, choicePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
-
         getContentPane().add(resourcePanel);
-        layout.putConstraint(SpringLayout.WEST, resourcePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
-        layout.putConstraint(SpringLayout.NORTH, resourcePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
 
         // Rescale game elements on screen resize
         addComponentListener(new ComponentAdapter() {
@@ -488,9 +483,14 @@ public class Main extends JFrame{
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
                 resetScales();
-//                constructChoicePanel();
+
                 choicePanel.resize(cellWidth, cellHeight);
-                constructActionPanel();
+                layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
+                layout.putConstraint(SpringLayout.NORTH, choicePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+                resourcePanel.resize(cellWidth, cellHeight);
+                layout.putConstraint(SpringLayout.WEST, resourcePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
+                layout.putConstraint(SpringLayout.NORTH, resourcePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+
                 constructWorkPanel();
                 hidePanels();
                 refreshWindow();
@@ -567,7 +567,6 @@ public class Main extends JFrame{
         popLabel = new JMenuItem("Population: " + players.get(current).getPop() + "/" + players.get(current).getPopCap());
         playerMenu.add(popLabel);
 
-        constructActionPanel();
         constructWorkPanel();
 
         super.setVisible(true);
@@ -577,95 +576,6 @@ public class Main extends JFrame{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         contentPanel.requestFocus();
         gc.start();
-    }
-
-    private void constructActionPanel() {
-
-        if(actionPanel != null)
-            getContentPane().remove(actionPanel);
-
-        JButton[] buttons = new JButton[8];
-
-        actionPanel = new JPanel() {
-            @Override
-            public void setVisible(boolean actionFlag) {
-                super.setVisible(actionFlag);
-                if(actionFlag) {
-                    if (actions == null || actions.isEmpty() || actions.size() < actionPage * 7) {
-                        super.setVisible(false);
-                        actions = null;
-                    } else if (buttons[0] != null) {
-                        for (int i = 0; i < 7; i++) {
-                            if(actionPage * 7 + i < actions.size()) {
-                                buttons[i].setVisible(true);
-                                buttons[i].setText(actions.getDescription(actionPage * 7 + i));
-                            } else
-                                buttons[i].setVisible(false);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-
-                gr.setColor(new Color(255, 255, 255, 200));
-                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-            }
-        };
-
-        // Intercepts mouse events
-        actionPanel.addMouseListener(new MouseAdapter() {});
-
-        actionPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        actionPanel.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-
-        Dimension buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-        for(int i = 0; i < 8; i++) {
-            final int step = i;
-
-            RoundedButton button = new RoundedButton(step == 7 ? "Switch" : "N/A", buttonSize, players.get(current).getAlternativeColor());
-            buttons[step] = button;
-
-            if(step < 7) {
-                button.addActionListener(actionEvent -> actions.get(actionPage * 7 + step).perform());
-            } else {
-                button.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if(SwingUtilities.isLeftMouseButton(e)) {
-                            actionPage++;
-                            actionPanel.setVisible(true);
-                        } else if(SwingUtilities.isRightMouseButton(e)) {
-                            actionPage = Math.max(actionPage - 1, 0);
-                            actionPanel.setVisible(true);
-                        }
-                    }
-                });
-            }
-
-            c.gridx = step % 4;
-            c.gridy = Math.floorDiv(step, 4);
-            c.weightx = 0.5;
-            c.weighty = 0.5;
-            if(c.gridx < 2)
-                c.anchor = GridBagConstraints.WEST;
-            else
-                c.anchor = GridBagConstraints.EAST;
-            actionPanel.add(button, c);
-        }
-
-        actionPanel.setVisible(false);
-        actionPanel.setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
-        actionPanel.setOpaque(false);
-
-        getContentPane().add(actionPanel);
-        SpringLayout layout = (SpringLayout)getContentPane().getLayout();
-        layout.putConstraint(SpringLayout.WEST, actionPanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
-        layout.putConstraint(SpringLayout.NORTH, actionPanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
     }
 
 //    private void constructChoicePanel() {
@@ -1145,14 +1055,11 @@ public class Main extends JFrame{
     }
 
     private void hidePanels() {
-        actionPanel.setVisible(false);
         workPanel.setVisible(false);
         resourcePanel.setVisible(false);
         choicePanel.setVisible(false);
         if(infoPanel != null)
             getContentPane().remove(infoPanel);
-
-
     }
 
     /**

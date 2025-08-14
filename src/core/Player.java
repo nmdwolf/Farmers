@@ -52,7 +52,7 @@ public class Player {
         resources.put(STONE, GameConstants.START_STONE);
         resources.put(COAL, GameConstants.START_COAL);
         resources.put(IRON, GameConstants.START_IRON);
-        resources.put(TIME, 0);
+//        resources.put(TIME, 0);
 
         totalResources = new ResourceContainer(resources);
     }
@@ -128,7 +128,7 @@ public class Player {
      */
     public boolean hasResources(ResourceContainer res) {
         for(Resource resource : res.keySet())
-            if(resources.get(resource) < res.get(resource))
+            if(resource != TIME && resources.get(resource) < res.get(resource))
                 return false;
         return true;
     }
@@ -143,7 +143,7 @@ public class Player {
 
     public void changeResources(ResourceContainer res) {
         for(Resource resource : res.keySet())
-            if(res.get(resource) != 0)
+            if(resource != TIME && res.get(resource) != 0)
                 changeResource(resource, res.get(resource));
     }
 

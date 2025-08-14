@@ -19,8 +19,11 @@ public class ConstructContract<T extends Constructable> extends Contract{
 
     @Override
     public void initialize() {
-        getEmployee().getPlayer().changeResources(constructable.getCost().negative());
-        getEmployee().getPlayer().addObject(foundation);
+        if(getEmployee().getPlayer().hasResources(constructable.getCost())) {
+            getEmployee().getPlayer().changeResources(constructable.getCost().negative());
+            getEmployee().getPlayer().addObject(foundation);
+            super.initialize();
+        }
     }
 
     @Override
@@ -41,12 +44,19 @@ public class ConstructContract<T extends Constructable> extends Contract{
 
     @Override
     public boolean work() {
+
+        super.work();
+
         if(getEmployee().getEnergy() >= constructable.getDifficulty()) {
             constructable.construct();
             getEmployee().changeEnergy(constructable.getDifficulty());
         }
 
-        return constructable.isCompleted();
+        if(constructable.isCompleted()) {
+            terminate();
+            return true;
+        } else
+            return false;
     }
 
     @Override

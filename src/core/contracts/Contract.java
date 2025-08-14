@@ -7,10 +7,12 @@ public abstract class Contract {
 
     private final Worker employee;
     private final int cost;
+    private boolean isStarted;
 
     public Contract(Worker party, int energy) {
         employee = party;
         cost = energy;
+        isStarted = false;
     }
 
     public Worker getEmployee() {
@@ -18,9 +20,11 @@ public abstract class Contract {
     }
 
     /**
-     * Sets up the contract and deals with thins such as costs.
+     * Sets up the contract and deals with things such as costs.
      */
-    public abstract void initialize();
+    public void initialize() { isStarted = true; }
+
+    public boolean isStarted() { return isStarted; }
 
     /**
      * Terminates the contract and handles.
@@ -36,7 +40,11 @@ public abstract class Contract {
      * Work on the contract.
      * @return true if contract is completed
      */
-    public abstract boolean work();
+    public boolean work() {
+        if(!isStarted)
+            initialize();
+        return true;
+    }
 
     /**
      * Returns the energy cost for one call of work()

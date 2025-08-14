@@ -2,10 +2,10 @@ package general;
 
 import core.OperationCode;
 import objects.GameObject;
-import objects.resources.Resource;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 
@@ -14,11 +14,15 @@ public class OperationPanel extends JPanel {
     private final OperationCode code;
     private final RoundedButton[] buttons;
     private Dimension buttonSize;
-    private final ActionListener hide;
+    private final ActionListener hide, next, previous;
+    private int actionPage;
 
     public OperationPanel(int cellWidth, int cellHeight, OperationCode code) {
-        buttons = new RoundedButton[16];
+        buttons = new RoundedButton[14];
+        actionPage = 0;
         hide = e -> setVisible(false);
+        next = e -> actionPage++;
+        previous = e -> actionPage--;
         this.code = code;
 
         addMouseListener(new MouseAdapter() {});
@@ -32,11 +36,19 @@ public class OperationPanel extends JPanel {
         for(int i = 0; i < buttons.length; i++) {
             buttons[i] = new RoundedButton("", buttonSize, Color.gray);
             buttons[i].addActionListener(hide);
+            if(i == 7)
+                buttons[i].addActionListener(next);
+            else if (i == 15)
+                buttons[i].addActionListener(previous);
 
             c.gridx = i % 4;
             c.gridy = Math.floorDiv(i, 4);
             c.weightx = 0.5;
             c.weighty = 0.5;
+            if(c.gridx < 2)
+                c.anchor = GridBagConstraints.WEST;
+            else
+                c.anchor = GridBagConstraints.EAST;
             add(buttons[i], c);
         }
 
@@ -49,27 +61,29 @@ public class OperationPanel extends JPanel {
             button.setColor(selected.getPlayer().getAlternativeColor());
             button.setVisible(false);
             for(ActionListener listener : button.getActionListeners())
-                if(listener != hide)
+                if(listener != hide && listener != next && listener != previous)
                     button.removeActionListener(listener);
+
         }
 
         OperationsList contracts = selected.getOperations(cycle, code);
         for(int i = 0; i < contracts.size(); i++) {
-            final int step = i;
-            buttons[i].setText(contracts.getDescription(i));
-            buttons[i].setVisible(true);
-            buttons[i].addActionListener(actionEvent -> {
+            final int step = (i >= 7) ? i + 1 : i;
+            buttons[step].setText(contracts.getDescription(i));
+            buttons[step].setVisible(true);
+            buttons[step].addActionListener(actionEvent -> {
                 contracts.get(step).perform();
             });
         }
+
+        setVisible(true);
     }
 
     public void resize(int cellWidth, int cellHeight) {
         setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         for(RoundedButton button : buttons)
-            button.setPreferredSize(buttonSize);
-        revalidate();
+            button.resize(buttonSize);
     }
 
     @Override
