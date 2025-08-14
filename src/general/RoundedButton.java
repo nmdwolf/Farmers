@@ -10,9 +10,11 @@ public class RoundedButton extends JButton {
 
     private int width, height;
     private BufferedImage img;
+    private Color hover;
 
-    public RoundedButton(String text, Dimension dim, Color hover) {
+    public RoundedButton(String text, Dimension dim, Color color) {
         super(text);
+        hover = color;
 
         this.width = dim.width;
         this.height = dim.height;
@@ -38,8 +40,9 @@ public class RoundedButton extends JButton {
         setPreferredSize(dim);
     }
 
-    public RoundedButton(String text, int width, int height, Color hover) {
+    public RoundedButton(String text, int width, int height, Color color) {
         super(text);
+        hover = color;
 
         this.width = width;
         this.height = height;
@@ -63,8 +66,9 @@ public class RoundedButton extends JButton {
         });
     }
 
-    public RoundedButton(String text, BufferedImage img, Dimension dim, Color hover) {
+    public RoundedButton(String text, BufferedImage img, Dimension dim, Color color) {
         super(text);
+        hover = color;
 
         this.img = img;
         this.width = dim.width;
@@ -87,6 +91,17 @@ public class RoundedButton extends JButton {
                 setBorder(new CustomBorder(Color.black, width, height));
             }
         });
+    }
+
+    public void setColor(Color color) {
+        hover = color;
+    }
+
+    public void resize(Dimension dim) {
+        this.width = dim.width;
+        this.height = dim.height;
+        setPreferredSize(dim);
+        setBorder(new CustomBorder(Color.black, width, height));
     }
 
     @Override

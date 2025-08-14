@@ -230,9 +230,12 @@ public class Cell {
         linking = false;
     }
 
-    public Cell fetch(int x, int y, int z) {
+    public Cell fetch(int x, int y, int z) throws NullPointerException {
 
         if(x == 0 && y == 0 && z == 0)
+            return this;
+
+        if(!GAME_3D && z != 0)
             return this;
 
         if(Math.abs(x) + Math.abs(y) + Math.abs(z) == 1) {
@@ -244,20 +247,22 @@ public class Cell {
                 return north;
             else if(y == -1)
                 return south;
-            else if(z == 1)
+            else if(GAME_3D && z == 1)
                 return up;
-            else
+            else if (GAME_3D)
                 return down;
         } else {
             if(Math.abs(y) >= Math.abs(x)) {
                 if(Math.abs(y) >= Math.abs(z))
                     return (Integer.signum(y) == 1 ? north : south).fetch(x, y - Integer.signum(y), z);
-                else
+                else if(GAME_3D)
                     return (Integer.signum(z) == 1 ? up : down).fetch(x, y, z - Integer.signum(z));
             }
             else
                 return (Integer.signum(x) == 1 ? east : west).fetch(x - Integer.signum(x), y, z);
         }
+
+        throw new NullPointerException("Cell does not exist.");
     }
 
     public Cell fetch(Cell cell) {

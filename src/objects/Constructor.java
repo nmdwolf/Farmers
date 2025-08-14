@@ -1,6 +1,7 @@
 package objects;
 
 import core.Cell;
+import core.OperationCode;
 import core.Player;
 import general.OperationsList;
 import objects.resources.ResourceContainer;
@@ -13,7 +14,5 @@ public abstract class Constructor extends Operational {
         super(player, cell, cycle, space, sight, health, degradeTime, degradeAmount, cycleLength,
                 cost, difficulty, hasVisibileFoundation);
     }
-
-    public abstract OperationsList getConstructions(int cycle);
 
 }

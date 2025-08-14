@@ -53,19 +53,6 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public OperationsList getEvolutions(int cycle) {
-        OperationsList operations =  new OperationsList();
-
-        operations.putUpgrade("Evolve", new EvolveUpgrade<>(this, LEVEL1_COST, 0, () -> {
-            changeSight(1);
-            changeMaxEnergy(5);
-            changeMaxHealth(20);
-        }));
-
-        return operations;
-    }
-
-    @Override
     public Award getEvolveAward() {
         if(getLevel() == 2)
             return EVOLVE_AWARD;
@@ -73,8 +60,16 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
-        return new OperationsList();
+    public OperationsList getOperations(int cycle, OperationCode code) {
+        OperationsList list = new OperationsList();
+        if(code == OperationCode.EVOLVE) {
+            list.putUpgrade("Evolve", new EvolveUpgrade<>(this, LEVEL1_COST, 0, () -> {
+                changeSight(1);
+                changeMaxEnergy(5);
+                changeMaxHealth(20);
+            }));
+        }
+        return list;
     }
 
     @Override

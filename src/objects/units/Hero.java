@@ -32,7 +32,7 @@ public class Hero extends Unit{
 
     @Override
     public String getToken() {
-        return "H";
+        return name;
     }
 
     @Override
@@ -40,21 +40,18 @@ public class Hero extends Unit{
         return null;
     }
     @Override
-    public OperationsList getOperations(int cycle) {
+    public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
-        for(Upgrade u : getPlayer().getCivilization().getUpgrades())
-            operations.putUpgrade(u.toString(), u);
+        if(code == OperationCode.UPGRADE) {
+            for (Upgrade u : getPlayer().getCivilization().getUpgrades())
+                operations.putUpgrade(u.toString(), u);
+        }
         return operations;
     }
 
     @Override
     public Award getConstructionAward() {
         return null;
-    }
-
-    @Override
-    public OperationsList getEvolutions(int cycle) {
-        return new OperationsList();
     }
 
     @Override

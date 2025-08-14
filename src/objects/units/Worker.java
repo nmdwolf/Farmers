@@ -61,7 +61,7 @@ public abstract class Worker extends Unit {
     }
 
     public void work() {
-        if(contracts.size() > 0) {
+        if(!contracts.isEmpty()) {
             setStatus(Status.WORKING);
 
             for (Iterator<Contract> iterator = contracts.iterator(); iterator.hasNext(); ) {
@@ -94,16 +94,18 @@ public abstract class Worker extends Unit {
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
+    public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
-        for (Resource res : Resource.values()) {
-            for(GameObject obj : getCell().getContent()) {
-                if(obj instanceof Source && ((Source)obj).getResourceType() == res && production.get(res) > 0) {
-                    operations.put(res.name, () -> {
-                        LaborContract contract = new LaborContract(Worker.this, res, getCell(), 1);
-                        addContract(contract);
-                        //changeValue(Option.OLD_STATUS, GameConstants.WORKING_STATUS);
-                    });
+        if(code == OperationCode.RESOURCE) {
+            for (Resource res : Resource.values()) {
+                for (GameObject obj : getCell().getContent()) {
+                    if (obj instanceof Source && ((Source) obj).getResourceType() == res && production.get(res) > 0) {
+                        operations.put(res.name, () -> {
+                            LaborContract contract = new LaborContract(Worker.this, res, getCell(), 1);
+                            addContract(contract);
+                            //changeValue(Option.OLD_STATUS, GameConstants.WORKING_STATUS);
+                        });
+                    }
                 }
             }
         }

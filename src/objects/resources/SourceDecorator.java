@@ -1,6 +1,7 @@
 package objects.resources;
 
 import core.Award;
+import core.OperationCode;
 import general.OperationsList;
 import objects.Constructable;
 
@@ -35,11 +36,6 @@ public class SourceDecorator extends Constructable implements Source{
     }
 
     @Override
-    public OperationsList getEvolutions(int cycle) {
-        return obj.getEvolutions(cycle);
-    }
-
-    @Override
     public Award getEvolveAward() {
         return obj.getEvolveAward();
     }
@@ -70,7 +66,7 @@ public class SourceDecorator extends Constructable implements Source{
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
-        return obj.getOperations(cycle);
+    public OperationsList getOperations(int cycle, OperationCode code) {
+        return obj.getOperations(cycle, code);
     }
 }

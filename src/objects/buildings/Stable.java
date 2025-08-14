@@ -57,17 +57,12 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
-    public OperationsList getEvolutions(int cycle) {
-        return new OperationsList();
-    }
-
-    @Override
     public Award getEvolveAward() {
         return null;
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
+    public OperationsList getOperations(int cycle, OperationCode code) {
         return new OperationsList();
     }
 

@@ -53,7 +53,7 @@ public abstract class GameObject {
     public abstract String getToken();
     public abstract BufferedImage getSprite();
 
-    public abstract OperationsList getOperations(int cycle);
+    public abstract OperationsList getOperations(int cycle, OperationCode code);
 
     public int getSpace() { return space; }
     public void changeSpace(int amount) { space += amount; }

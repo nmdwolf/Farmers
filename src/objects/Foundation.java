@@ -41,7 +41,7 @@ public class Foundation<T extends Constructable> extends GameObject {
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
+    public OperationsList getOperations(int cycle, OperationCode code) {
         return operations;
     }
 

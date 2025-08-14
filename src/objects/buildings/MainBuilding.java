@@ -88,48 +88,44 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
+    public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
 
-        operations.put("Villager", () -> {
-            Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-            if (getPlayer().hasResources(v.getCost())) {
-                getPlayer().addObject(v);
-                v.construct();
-            }
-        }); // Construct villager
-        operations.put("Scout", () -> {
-            Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-            if (getPlayer().hasResources(sc.getCost())) {
-                getPlayer().addObject(sc);
-                sc.construct();
-            }
-        }); // Construct scout
-
-        LookoutUpgrade lookout = new LookoutUpgrade(getPlayer());
-        operations.putUpgrade(lookout.toString(), lookout);
-
-        WellUpgrade well = new WellUpgrade(this);
-        operations.putUpgrade(well.toString(), well);
-
-        return operations;
-    }
-
-    @Override
-    public OperationsList getEvolutions(int cycle) {
-        OperationsList operations = new OperationsList();
-        operations.putUpgrade("Evolve",
-            switch(getLevel()) {
-                case 1: yield new EvolveUpgrade<>(MainBuilding.this, LEVEL1_RESOURCES, 0, () -> {
-                    changeMaxHealth(200);
-                    changeSpaceBoost(2);
-                });
-                case 2: yield new EvolveUpgrade<>(MainBuilding.this, LEVEL2_RESOURCES, 0, () -> {
-                    changeMaxHealth(300);
-                    changeSpaceBoost(3);
-                });
-                default: yield null;
+        if(code == OperationCode.CONSTRUCTION) { // Construct villager
+            operations.put("Villager", () -> {
+                Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+                if (getPlayer().hasResources(v.getCost())) {
+                    getPlayer().addObject(v);
+                    v.construct();
+                }
             });
+            operations.put("Scout", () -> { // Construct scout
+                Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+                if (getPlayer().hasResources(sc.getCost())) {
+                    getPlayer().addObject(sc);
+                    sc.construct();
+                }
+            });
+        } else if(code == OperationCode.UPGRADE) {
+            LookoutUpgrade lookout = new LookoutUpgrade(getPlayer());
+            operations.putUpgrade(lookout.toString(), lookout);
+
+            WellUpgrade well = new WellUpgrade(this);
+            operations.putUpgrade(well.toString(), well);
+        } else if(code == OperationCode.EVOLVE) {
+            operations.putUpgrade("Evolve",
+                    switch (getLevel()) {
+                        case 1 -> new EvolveUpgrade<>(MainBuilding.this, LEVEL1_RESOURCES, 0, () -> {
+                            changeMaxHealth(200);
+                            changeSpaceBoost(2);
+                        });
+                        case 2 -> new EvolveUpgrade<>(MainBuilding.this, LEVEL2_RESOURCES, 0, () -> {
+                            changeMaxHealth(300);
+                            changeSpaceBoost(3);
+                        });
+                        default -> null;
+                    });
+        }
         return operations;
     }
 

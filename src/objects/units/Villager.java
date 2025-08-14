@@ -55,16 +55,11 @@ public class Villager extends Worker {
     }
 
     @Override
-    public OperationsList getOperations(int cycle) {
-        OperationsList operations =  super.getOperations(cycle);
+    public OperationsList getOperations(int cycle, OperationCode code) {
+        OperationsList operations =  super.getOperations(cycle, code);
         operations.put("House", () -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(), getCell(), cycle))));
         operations.put("Lumberjack", () -> addContract(new ConstructContract<>(Villager.this, new Lumberjack(getPlayer(), getCell(), cycle))));
         return operations;
-    }
-
-    @Override
-    public OperationsList getEvolutions(int cycle) {
-        return new OperationsList();
     }
 
     @Override

@@ -178,7 +178,7 @@ public class Player {
     public boolean hasDiscovered(Cell loc) { return discovered.contains(loc); }
 
     public void spot(Cell cell) {
-        if(!discovered.contains(cell))
+        if(!(cell instanceof EndOfMap) && !discovered.contains(cell))
             spotted.add(cell);
     }
 

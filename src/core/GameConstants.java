@@ -32,4 +32,6 @@ public interface GameConstants {
 
     //Random rand = new Random(19970605);
     Random rand = new Random(19960808);
+
+    boolean GAME_3D = false;
 }
