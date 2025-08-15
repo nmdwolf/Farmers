@@ -1,4 +1,4 @@
-package general;
+package UI;
 
 public record Location(int x, int y, int z) {
 

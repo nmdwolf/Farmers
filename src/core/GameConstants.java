@@ -5,7 +5,7 @@ import java.util.Random;
 public interface GameConstants {
 
     int NUMBER_OF_CELLS = 100;
-    int NUMBER_OF_CELLS_IN_VIEW = 10;
+    int NUMBER_OF_CELLS_IN_VIEW = 8;
     int INITIAL_CELL_UNIT_SPACE = 2;
     int INITIAL_CELL_BUILDING_SPACE = 5;
     int INITIAL_TRAVEL_COST = 1;
@@ -17,6 +17,8 @@ public interface GameConstants {
 
     int UNIT_SPRITE_SIZE = 15;
     int BUILDING_SPRITE_SIZE = 15;
+    int UNIT_SPRITE_SIZE_MAX = 50;
+    int BUILDING_SPRITE_SIZE_MAX = 50;
 
     int WATER_THRESHOLD = 150;
     int WOOD_THRESHOLD = 150;
@@ -34,4 +36,7 @@ public interface GameConstants {
     Random rand = new Random(19960808);
 
     boolean GAME_3D = false;
+
+    int CELL_UNIT_X_MARGIN = 5;
+    int CELL_UNIT_Y_MARGIN = 10;
 }

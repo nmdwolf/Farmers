@@ -2,7 +2,7 @@ package objects.resources;
 
 import core.Award;
 import core.OperationCode;
-import general.OperationsList;
+import UI.OperationsList;
 import objects.Constructable;
 
 import java.awt.image.BufferedImage;
@@ -61,8 +61,8 @@ public class SourceDecorator extends Constructable implements Source{
     }
 
     @Override
-    public BufferedImage getSprite() {
-        return obj.getSprite();
+    public BufferedImage getSprite(boolean max) {
+        return obj.getSprite(max);
     }
 
     @Override

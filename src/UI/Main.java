@@ -1,4 +1,4 @@
-package general;
+package UI;
 
 import core.*;
 
@@ -9,7 +9,6 @@ import objects.buildings.MainBuilding;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
-import objects.units.Worker;
 import objects.resources.Resource;
 
 import javax.swing.*;
@@ -32,7 +31,7 @@ public class Main extends JFrame{
     private Location[] hoverPath;
     private Location destination;
     private int cellWidth, cellHeight, poolSize, screenWidth, screenHeight;
-    private int current, cycle, actionPage, workPage;
+    private int current, cycle;
     private boolean clicked;
 
     /**
@@ -45,19 +44,19 @@ public class Main extends JFrame{
      */
     private final ArrayList<Player> players, allPlayers;
     private final ArrayList<AI> ais;
-    private AI ai;
 
-    private OperationsList operations, actions;
+    // Currently selected GameObject
     private GameObject selected;
 
+    // UI elements
     private JMenu playerMenu, viewMenu, cellMenu;
     private JMenuItem cycleLabel, popLabel;
     private JMenuItem[] playerLabels, resourceLabels;
-    private JPanel workPanel, infoPanel, actionPanel;
+    private JPanel infoPanel;
     private final ChoicePanel choicePanel;
-    private final OperationPanel resourcePanel;
-    private final Timer gc;
-    private Timer windowMover;
+    private final OperationPanel operationsPanel;
+    private final CellPanel cellPanel;
+    private final Timer garbageCollector;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -74,7 +73,24 @@ public class Main extends JFrame{
         clickPos = new Location(0, 0, 0);
 
         String[] colors = new String[]{"Blue", "Green", "Yellow"};
-        int playerCount = Integer.parseInt(JOptionPane.showInputDialog("How many (human) players?"));
+
+        boolean inputFlag = true;
+        int playerCount = 1;
+        do {
+            String input = "";
+            try {
+                input = JOptionPane.showInputDialog("How many (human) players?");
+                if(input == null) {
+                    JOptionPane.showMessageDialog(null, "Startup was cancelled by a player.");
+                    System.exit(0);
+                }
+
+                playerCount = Integer.parseInt(input);
+                inputFlag = false;
+            } catch(NumberFormatException e) {
+                JOptionPane.showMessageDialog(null,"A nonnumerical value was entered: " + input + ". Please try again.");
+            }
+        } while(inputFlag);
 
         for (int i = 0; i < playerCount; i++) {
             String name = JOptionPane.showInputDialog("What is the name of the Hero?");
@@ -97,7 +113,7 @@ public class Main extends JFrame{
         allPlayers.addAll(players);
         allPlayers.addAll(ais);
 
-        gc = new Timer(500, e -> {
+        garbageCollector = new Timer(500, e -> {
             for(Player p : allPlayers) {
                 for(GameObject obj : p.getNewObjects())
                     addObject(obj);
@@ -112,8 +128,9 @@ public class Main extends JFrame{
             refreshWindow();
         });
 
-        resourcePanel = new OperationPanel(cellWidth, cellHeight, OperationCode.RESOURCE);
-        choicePanel = new ChoicePanel(resourcePanel, cellWidth, cellHeight);
+        operationsPanel = new OperationPanel(cellWidth, cellHeight);
+        choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight);
+        cellPanel = new CellPanel(this);
     }
 
     /**
@@ -145,12 +162,28 @@ public class Main extends JFrame{
      * Changes the current player.
      */
     public void cyclePlayers(){
+
+        selected = null;
+        hoverPath = null;
+        destination = null;
+
+        if(current == players.size() - 1) { // Let AIs play at end of cycle
+            for(AI ai : ais)
+                ai.makeMove(cycle);
+
+            cycle++;
+
+            for(Cell cell : cells.values())
+                cell.cycle(cycle);
+        }
+
+        current = (++current) % players.size();
         Player player = players.get(current);
 
-        for(String text : player.getMessages())
+        for (String text : player.getMessages())
             showMessagePanel(text);
 
-        for(GameObject object : player.getObjects()) {
+        for (GameObject object : player.getObjects()) {
             object.cycle(cycle);
 //            if(object instanceof Unit) {
 //                for(GameObject obj2 : object.getCell().getContent())
@@ -158,27 +191,6 @@ public class Main extends JFrame{
 //                        ((Healer)obj2).heal(object);
 //            }
         }
-
-        current++;
-
-        if(current == players.size()) {
-            // Let the AIs play a round
-            for(AI ai : ais)
-                ai.makeMove(cycle);
-
-            cycle++;
-            current = 0;
-
-            for(Cell cell : cells.values())
-                cell.cycle(cycle);
-        }
-
-        selected = null;
-        hoverPath = null;
-        destination = null;
-        actions = null;
-        operations = null;
-        actionPage = 0;
 
         hidePanels();
         refreshWindow();
@@ -326,11 +338,21 @@ public class Main extends JFrame{
         contentPanel.setLayout(layout);
 
         // Cycle players on "n" stroke
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('n'), "cycle");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "right");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
+        contentPanel.getActionMap().put("escape", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(selected == null)
+                    hidePanels();
+                else
+                    cellPanel.setVisible(false);
+            }
+        });
         contentPanel.getActionMap().put("cycle", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -430,18 +452,24 @@ public class Main extends JFrame{
                 clickPos = players.get(current).getViewPoint().fetch(posToCell(e.getX(), e.getY(), players.get(current).getViewPoint().getZ())).getLocation();
                 hoverPath = null;
                 destination = null;
+
+                // Any existing panels should be hidden on click
                 hidePanels();
 
                 /*
                  * left-click events
                  */
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    // Any existing info panels should be removed on click
+
+                    // Unselect GameObject on left click
                     if (clicked)
                         selected = null;
 
                     // If clicked on cell with objects, show info panel
                     if (players.get(current).getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
+
+                        cellPanel.update(cells.get(clickPos), players.get(current), selected);
+                        cellPanel.setVisible(true);
                         if(infoPanel != null)
                             contentPanel.remove(infoPanel);
                         infoPanel = createInfoPanel();
@@ -475,7 +503,8 @@ public class Main extends JFrame{
         contentPanel.addMouseWheelListener(mouseAdapter);
 
         getContentPane().add(choicePanel);
-        getContentPane().add(resourcePanel);
+        getContentPane().add(operationsPanel);
+        getContentPane().add(cellPanel);
 
         // Rescale game elements on screen resize
         addComponentListener(new ComponentAdapter() {
@@ -487,11 +516,13 @@ public class Main extends JFrame{
                 choicePanel.resize(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
                 layout.putConstraint(SpringLayout.NORTH, choicePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
-                resourcePanel.resize(cellWidth, cellHeight);
-                layout.putConstraint(SpringLayout.WEST, resourcePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
-                layout.putConstraint(SpringLayout.NORTH, resourcePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+                operationsPanel.resize(cellWidth, cellHeight);
+                layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
+                layout.putConstraint(SpringLayout.NORTH, operationsPanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
+                cellPanel.setPreferredSize(new Dimension((NUMBER_OF_CELLS_IN_VIEW - 2) * cellWidth + 40, (NUMBER_OF_CELLS_IN_VIEW - 2) * cellHeight + 40));
+                layout.putConstraint(SpringLayout.WEST, cellPanel, cellWidth - 20, SpringLayout.WEST, getContentPane());
+                layout.putConstraint(SpringLayout.NORTH, cellPanel, cellHeight - 20, SpringLayout.NORTH, getContentPane());
 
-                constructWorkPanel();
                 hidePanels();
                 refreshWindow();
             }
@@ -567,186 +598,13 @@ public class Main extends JFrame{
         popLabel = new JMenuItem("Population: " + players.get(current).getPop() + "/" + players.get(current).getPopCap());
         playerMenu.add(popLabel);
 
-        constructWorkPanel();
-
         super.setVisible(true);
         super.setExtendedState(MAXIMIZED_BOTH);
         resetScales();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         contentPanel.requestFocus();
-        gc.start();
-    }
-
-//    private void constructChoicePanel() {
-//
-//        Dimension buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-//        JButton[] buttons = new JButton[4]; // Resource, Build, Upgrades/Evolutions
-//
-//        buttons[0] = new RoundedButton("Work", buttonSize, players.get(current).getAlternativeColor());
-//        buttons[1] = new RoundedButton("Construct", buttonSize, players.get(current).getAlternativeColor());
-//        buttons[2] = new RoundedButton("Upgrade", buttonSize, players.get(current).getAlternativeColor());
-//        buttons[3] = new RoundedButton("Evolve", buttonSize, players.get(current).getAlternativeColor());
-//
-//        buttons[0].addActionListener(event -> {
-//            actions = selected.getOperations(cycle, OperationCode.RESOURCE);
-//            resourcePanel.up(cells.get(clickPos));
-//            workPanel.setVisible(true);
-//        });
-//        buttons[1].addActionListener(event -> actions = selected.getOperations(cycle, OperationCode.CONSTRUCTION));
-//        buttons[2].addActionListener(event -> actions = selected.getOperations(cycle, OperationCode.UPGRADE));
-//        buttons[3].addActionListener(event -> actions = selected.getOperations(cycle, OperationCode.EVOLVE));
-//
-//        choicePanel = new JPanel() {
-//            @Override
-//            public void setVisible(boolean flag) {
-//                super.setVisible(flag);
-//                for(JButton button : buttons) {
-//                    button.setVisible(false);
-//                    button.addActionListener((actionEvent) -> choicePanel.setVisible(false));
-//                }
-//                if(flag && selected != null) {
-//                    if(selected instanceof Worker)
-//                        buttons[0].setVisible(true);
-//                    if(selected instanceof Constructor)
-//                        buttons[1].setVisible(true);
-//                    if(selected instanceof Upgrader)
-//                        buttons[2].setVisible(true);
-//                    if(selected instanceof Evolvable)
-//                        buttons[3].setVisible(true);
-//                }
-//            }
-//
-//            @Override
-//            protected void paintComponent(Graphics g) {
-//                super.paintComponent(g);
-//                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-//
-//                gr.setColor(new Color(255, 255, 255, 200));
-//                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-//            }
-//        };
-//
-//        // Intercepts mouse events
-//        choicePanel.addMouseListener(new MouseAdapter() {});
-//
-//        choicePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-//        choicePanel.setLayout(new GridBagLayout());
-//        GridBagConstraints c = new GridBagConstraints();
-//
-//        for(int i = 0; i < 4; i++) {
-//            c.gridx = i % 2;
-//            c.gridy = i / 2;
-//            c.weightx = 0.5;
-//            c.weighty = 0.5;
-//            c.anchor = c.gridx == 0 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
-//            choicePanel.add(buttons[i], c);
-//        }
-//
-//        choicePanel.setVisible(false);
-//        choicePanel.setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
-//        choicePanel.setOpaque(false);
-//
-//        getContentPane().add(choicePanel);
-//        SpringLayout layout = (SpringLayout)getContentPane().getLayout();
-//        layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, getContentPane());
-//        layout.putConstraint(SpringLayout.NORTH, choicePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, getContentPane());
-//    }
-
-    private void constructWorkPanel() {
-
-        if(workPanel != null)
-            getContentPane().remove(workPanel);
-
-        JButton[] buttons = new JButton[8];
-
-        workPanel = new JPanel() {
-            @Override
-            public void setVisible(boolean aFlag) {
-                super.setVisible(aFlag);
-                if(aFlag) {
-                    if (operations == null || operations.isEmpty() || operations.size() < workPage * 7) {
-                        super.setVisible(false);
-                        operations = null;
-                    }
-                    else if (buttons[0] != null) {
-                        for (int i = 0; i < 7; i++) {
-                            if(workPage * 7 + i < operations.size()) {
-                                buttons[i].setVisible(true);
-                                buttons[i].setText(operations.getDescription(workPage * 7 + i));
-                            } else
-                                buttons[i].setVisible(false);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-
-                gr.setColor(new Color(255, 255, 255, 200));
-                gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-            }
-        };
-
-        // Intercepts mouse events
-        workPanel.addMouseListener(new MouseAdapter() {});
-
-        workPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        workPanel.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-
-        Dimension buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-
-        for(int i = 0; i < 8; i++) {
-            final int step = i;
-
-            RoundedButton button = new RoundedButton(step == 7 ? "Switch" : "N/A", buttonSize, players.get(current).getAlternativeColor());
-            buttons[step] = button;
-
-            if(step < 7)
-                button.addActionListener(actionEvent -> {
-                    operations.get(workPage * 7 + step).perform();
-                    refreshWindow();
-                    hidePanels();
-                });
-            else {
-                button.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if(SwingUtilities.isLeftMouseButton(e)) {
-                            workPage++;
-                            workPanel.setVisible(true);
-                        } else if(SwingUtilities.isRightMouseButton(e)) {
-                            workPage = Math.max(workPage - 1, 0);
-                            workPanel.setVisible(true);
-                        }
-                    }
-                });
-            }
-
-            button.setPreferredSize(buttonSize);
-            c.gridx = step % 2;
-            c.gridy = Math.floorDiv(step, 2);
-            c.weightx = 0.5;
-            c.weighty = 0.5;
-            if(c.gridy < 2)
-                c.anchor = GridBagConstraints.NORTH;
-            else
-                c.anchor = GridBagConstraints.SOUTH;
-            workPanel.add(button, c);
-        }
-
-        workPanel.setVisible(false);
-        workPanel.setPreferredSize(new Dimension(2 * cellWidth, 5 * cellHeight));
-        workPanel.setOpaque(false);
-
-        getContentPane().add(workPanel);
-        SpringLayout layout = (SpringLayout)getContentPane().getLayout();
-        layout.putConstraint(SpringLayout.WEST, workPanel, 10, SpringLayout.WEST, getContentPane());
-        layout.putConstraint(SpringLayout.NORTH, workPanel, 10, SpringLayout.NORTH, getContentPane());
+        garbageCollector.start();
     }
 
     private JPanel createInfoPanel() {
@@ -770,50 +628,11 @@ public class Main extends JFrame{
 
         objectPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         objectPanel.setLayout(new GridBagLayout());
-        GridBagConstraints constr = new GridBagConstraints();
+        GridBagConstraints constraints = new GridBagConstraints();
 
         // To intercept mouse motion
         objectPanel.addMouseListener(new MouseAdapter() {});
 
-        Dimension buttonSize = new Dimension(Math.floorDiv(cellWidth, 2), Math.floorDiv(cellHeight, 2));
-        int counter = 0;
-        for (Iterator<GameObject> it = players.get(current).getObjects().stream().filter(obj -> obj.getCell().getLocation().equals(clickPos)).iterator(); it.hasNext() && selected == null; ) {
-            GameObject object = it.next();
-            RoundedButton objectButton = new RoundedButton(object.getToken(), object.getSprite(), buttonSize, players.get(current).getAlternativeColor());
-
-            objectButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    selected = object;
-                    if (SwingUtilities.isLeftMouseButton(e)) {
-                        choicePanel.update(selected, cycle);
-                    }
-                    objectPanel.removeAll();
-                    refreshWindow();
-                }
-            });
-
-            objectButton.setBorder(new CustomBorder(Color.black, buttonSize));
-            objectButton.setContentAreaFilled(false);
-            objectButton.setFocusPainted(false);
-            objectButton.setPreferredSize(buttonSize);
-
-            constr.gridx = Math.floorDiv(counter, 8);
-            constr.gridy = counter % 8;
-            constr.weighty = 0.01;
-            constr.anchor = GridBagConstraints.FIRST_LINE_START;
-            counter++;
-            objectPanel.add(objectButton, constr);
-        }
-
-        // Filler to align buttons
-        JPanel filler = new JPanel();
-        filler.setOpaque(false);
-        constr.gridy++;
-        constr.gridx = 2;
-        constr.weightx = 1;
-        constr.weighty = 1;
-        objectPanel.add(filler, constr);
 
         objectPanel.setPreferredSize(new Dimension(2 * cellWidth, 5 * cellHeight));
         objectPanel.setOpaque(false);
@@ -867,10 +686,10 @@ public class Main extends JFrame{
      * Recalculates screen size and rescales derived dimensions
      */
     private void resetScales() {
-        screenWidth = getWidth();
-        screenHeight = getHeight();
-        cellWidth = Math.round(getWidth() / (float)NUMBER_OF_CELLS_IN_VIEW);
-        cellHeight = Math.round((getHeight() - getInsets().top) / (float)NUMBER_OF_CELLS_IN_VIEW);
+        screenWidth = getContentPane().getWidth();
+        screenHeight = getContentPane().getHeight();
+        cellWidth = Math.round(screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW);
+        cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
         poolSize = Math.min(Math.round(cellWidth / 2f), Math.round(cellHeight / 2f));
     }
 
@@ -884,8 +703,8 @@ public class Main extends JFrame{
          * Redraw background image
          */
         for(int i = 0; i < NUMBER_OF_CELLS_IN_VIEW -1; i++) {
-            gr.fillRect((i+1)*cellWidth - 1, 0, 1, screenHeight - getInsets().top);
-            gr.fillRect( 0,  (i+1)*cellHeight - 1, screenWidth, 1);
+            gr.fillRect((i + 1) * cellWidth - 1, 0, 1, screenHeight - getInsets().top);
+            gr.fillRect( 0,  (i + 1) * cellHeight - 1, screenWidth, 1);
         }
 
         /*
@@ -897,7 +716,6 @@ public class Main extends JFrame{
                 Cell vp = players.get(current).getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
                 if (players.get(current).hasSpotted(cell)) {
-
                     if (cell.isField()) {
                         gr.setColor(new Color(200, 120, 0, 100));
                         gr.fillRect(x * cellWidth, y * cellHeight, cellWidth - 1, cellHeight - 1);
@@ -905,8 +723,34 @@ public class Main extends JFrame{
 
                     if (cell.isForest()) {
                         gr.setColor(new Color(20, 150, 20));
-                        gr.fillArc(x * cellWidth - Math.round(poolSize / 2f), y * cellHeight - Math.round(poolSize / 2f), poolSize, poolSize, 270, 90);
+//                        gr.fillArc(x * cellWidth - Math.round(poolSize / 2f), y * cellHeight - Math.round(poolSize / 2f), poolSize, poolSize, 270, 90);
                         gr.fillArc(x * cellWidth - poolSize, (y + 1) * cellHeight - poolSize - 1, 2 * poolSize, 2 * poolSize, 0, 90);
+                    }
+
+                    if (cell.isRiver()) {
+                        gr.setColor(new Color(0, 100, 255));
+                        if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
+                            gr.fillRoundRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), cellWidth + poolSize, cellHeight + poolSize, poolSize, poolSize);
+                        else {
+                            boolean singleFlag = true;
+                            if (cell.getX() < NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
+                                gr.fillRect(Math.round((x + 0.5f) * cellWidth), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), Math.round(cellWidth / 2f) + 1, poolSize);
+                            if (cell.getX() > 0 && cell.fetch(-1, 0, 0).isRiver())
+                                gr.fillRect(x * cellWidth - 1, Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), Math.round(cellWidth / 2f), poolSize);
+                            if (cell.getY() < NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
+                                gr.fillRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight), poolSize, Math.round(cellHeight / 2f));
+                                singleFlag = false;
+                            }
+                            if (cell.getY() > 0 && cell.fetch(0, -1, 0).isRiver()) {
+                                gr.fillRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), y * cellHeight, poolSize, Math.round(cellHeight / 2f));
+                                singleFlag = false;
+                            }
+
+                            if (singleFlag)
+                                gr.fillOval(Math.round((x + 0.5f) * cellWidth - poolSize), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), poolSize * 2, poolSize);
+                            else
+                                gr.fillOval(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), poolSize, poolSize);
+                        }
                     }
                 }
 
@@ -919,7 +763,7 @@ public class Main extends JFrame{
 
                 for(GameObject object : cell.getContent()) {
                     gr.setColor(object == selected ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
-                    BufferedImage sprite = object.getSprite();
+                    BufferedImage sprite = object.getSprite(false);
                     if(object instanceof Unit u) {
                         if(sprite != null) {
                             if(object == selected)
@@ -985,32 +829,6 @@ public class Main extends JFrame{
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
                 if(players.get(current).hasSpotted(cell)){
-                    if (cell.isRiver()) {
-                        gr.setColor(new Color(0, 100, 255));
-                        if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
-                            gr.fillRoundRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), cellWidth + poolSize, cellHeight + poolSize, poolSize, poolSize);
-                        else {
-                            boolean singleFlag = true;
-                            if (cell.getX() < NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
-                                gr.fillRect(Math.round((x + 0.5f) * cellWidth), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), Math.round(cellWidth / 2f) + 1, poolSize);
-                            if (cell.getX() > 0 && cell.fetch(-1, 0, 0).isRiver())
-                                gr.fillRect(x * cellWidth - 1, Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), Math.round(cellWidth / 2f), poolSize);
-                            if (cell.getY() < NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
-                                gr.fillRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight), poolSize, Math.round(cellHeight / 2f));
-                                singleFlag = false;
-                            }
-                            if (cell.getY() > 0 && cell.fetch(0, -1, 0).isRiver()) {
-                                gr.fillRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), y * cellHeight, poolSize, Math.round(cellHeight / 2f));
-                                singleFlag = false;
-                            }
-
-                            if (singleFlag)
-                                gr.fillOval(Math.round((x + 0.5f) * cellWidth - poolSize), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), poolSize * 2, poolSize);
-                            else
-                                gr.fillOval(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), poolSize, poolSize);
-                        }
-                    }
-
                     if (cell.getHeatLevel() <= COLD_LEVEL) {
                         gr.setColor(Color.blue);
                         gr.fillOval((x + 1) * cellWidth - 15, y * cellHeight + 10, 5, 5);
@@ -1055,11 +873,11 @@ public class Main extends JFrame{
     }
 
     private void hidePanels() {
-        workPanel.setVisible(false);
-        resourcePanel.setVisible(false);
-        choicePanel.setVisible(false);
         if(infoPanel != null)
-            getContentPane().remove(infoPanel);
+            getContentPane().remove(infoPanel); // TODO replace infoPanel by fixed panel (cf. operationsPanel and choicePanel)
+        operationsPanel.setVisible(false);
+        choicePanel.setVisible(false);
+        cellPanel.setVisible(false);
     }
 
     /**
@@ -1190,6 +1008,11 @@ public class Main extends JFrame{
             }
         };
         new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
+    }
+
+    public void alert(GameObject object) {
+        selected = object;
+        refreshWindow();
     }
 
     /**

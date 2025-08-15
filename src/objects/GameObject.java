@@ -2,12 +2,9 @@ package objects;
 
 import core.*;
 
-import general.*;
+import UI.*;
 
 import java.awt.image.BufferedImage;
-
-import static core.Status.DEAD;
-import static core.Status.IDLE;
 
 public abstract class GameObject {
 
@@ -51,7 +48,7 @@ public abstract class GameObject {
 
     public abstract String getClassLabel();
     public abstract String getToken();
-    public abstract BufferedImage getSprite();
+    public abstract BufferedImage getSprite(boolean max);
 
     public abstract OperationsList getOperations(int cycle, OperationCode code);
 
@@ -69,16 +66,13 @@ public abstract class GameObject {
     public int getSight() { return sight; }
     public void changeSight(int amount) { sight += amount; }
 
-
     public void cycle(int cycle) { degrade(cycle); }
-
     public int getStartCycle() { return startCycle; }
 
     public void degrade(int cycle) {
         if(degradeTime > 0 && (cycle - getStartCycle()) % degradeTime == 0)
             changeHealth(-degradeAmount);
     }
-
     public int getDegradeTime() { return degradeTime; }
     public int getDegradeAmount() { return degradeAmount; }
 

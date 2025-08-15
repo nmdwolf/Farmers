@@ -1,4 +1,4 @@
-package general;
+package UI;
 
 import objects.units.Unit;
 

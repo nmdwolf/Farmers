@@ -1,6 +1,6 @@
 package core.upgrade;
 
-import general.CustomMethods;
+import UI.CustomMethods;
 import objects.resources.ResourceContainer;
 import objects.GameObject;
 

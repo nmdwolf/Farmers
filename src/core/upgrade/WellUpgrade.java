@@ -2,7 +2,7 @@ package core.upgrade;
 
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
-import general.CustomMethods;
+import UI.CustomMethods;
 import objects.buildings.MainBuilding;
 import objects.resources.SourceDecorator;
 

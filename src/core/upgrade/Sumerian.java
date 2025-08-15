@@ -3,7 +3,7 @@ package core.upgrade;
 import core.Civilization;
 import core.Player;
 import objects.resources.Resource;
-import general.CustomMethods;
+import UI.CustomMethods;
 import objects.resources.ResourceContainer;
 import objects.GameObject;
 

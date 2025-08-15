@@ -1,10 +1,10 @@
 package core;
 
 import core.contracts.LaborContract;
-import general.Location;
-import general.Main;
-import general.Motion;
-import general.Pair;
+import UI.Location;
+import UI.Main;
+import UI.Motion;
+import UI.Pair;
 import objects.GameObject;
 import objects.buildings.MainBuilding;
 import objects.units.Villager;

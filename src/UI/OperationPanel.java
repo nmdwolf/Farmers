@@ -1,29 +1,26 @@
-package general;
+package UI;
 
 import core.OperationCode;
 import objects.GameObject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 
 public class OperationPanel extends JPanel {
 
-    private final OperationCode code;
     private final RoundedButton[] buttons;
     private Dimension buttonSize;
     private final ActionListener hide, next, previous;
     private int actionPage;
 
-    public OperationPanel(int cellWidth, int cellHeight, OperationCode code) {
-        buttons = new RoundedButton[14];
+    public OperationPanel(int cellWidth, int cellHeight) {
+        buttons = new RoundedButton[16];
         actionPage = 0;
         hide = e -> setVisible(false);
         next = e -> actionPage++;
         previous = e -> actionPage--;
-        this.code = code;
 
         addMouseListener(new MouseAdapter() {});
 
@@ -31,7 +28,7 @@ public class OperationPanel extends JPanel {
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
 
-        Dimension buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
+        buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
 
         for(int i = 0; i < buttons.length; i++) {
             buttons[i] = new RoundedButton("", buttonSize, Color.gray);
@@ -56,24 +53,22 @@ public class OperationPanel extends JPanel {
         setOpaque(false);
     }
 
-    public void update(GameObject selected, int cycle) {
+    public void update(GameObject selected, OperationCode code, int cycle) {
+
         for(RoundedButton button : buttons) {
             button.setColor(selected.getPlayer().getAlternativeColor());
             button.setVisible(false);
             for(ActionListener listener : button.getActionListeners())
                 if(listener != hide && listener != next && listener != previous)
                     button.removeActionListener(listener);
-
         }
 
-        OperationsList contracts = selected.getOperations(cycle, code);
-        for(int i = 0; i < contracts.size(); i++) {
+        OperationsList operations = selected.getOperations(cycle, code);
+        for(int i = 0; i < operations.size(); i++) {
             final int step = (i >= 7) ? i + 1 : i;
-            buttons[step].setText(contracts.getDescription(i));
+            buttons[step].setText(operations.getDescription(i));
             buttons[step].setVisible(true);
-            buttons[step].addActionListener(actionEvent -> {
-                contracts.get(step).perform();
-            });
+            buttons[step].addActionListener(actionEvent -> operations.get(step).perform());
         }
 
         setVisible(true);
@@ -91,7 +86,7 @@ public class OperationPanel extends JPanel {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
 
-        gr.setColor(new Color(255, 255, 255, 200));
+        gr.setColor(new Color(210, 210, 210));
         gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
     }
 }

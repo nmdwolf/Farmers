@@ -1,4 +1,4 @@
-package general;
+package UI;
 
 import core.Operation;
 import core.upgrade.Upgrade;

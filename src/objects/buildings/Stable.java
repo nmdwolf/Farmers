@@ -1,8 +1,8 @@
 package objects.buildings;
 
 import core.*;
-import general.CustomMethods;
-import general.OperationsList;
+import UI.CustomMethods;
+import UI.OperationsList;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 
@@ -52,7 +52,7 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         return null;
     }
 

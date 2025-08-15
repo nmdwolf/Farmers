@@ -1,7 +1,7 @@
 package objects.resources;
 
 import core.*;
-import general.CustomMethods;
+import UI.CustomMethods;
 
 import java.awt.image.BufferedImage;
 
@@ -40,7 +40,7 @@ public class Farm extends ResourceBuilding {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         return null;
     }
 

@@ -4,9 +4,8 @@ import core.Award;
 import core.Cell;
 import core.OperationCode;
 import core.Player;
-import general.OperationsList;
+import UI.OperationsList;
 import objects.resources.ResourceContainer;
-import objects.Constructable;
 
 public abstract class IdleBuilding extends Building {
 

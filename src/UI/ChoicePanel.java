@@ -1,4 +1,4 @@
-package general;
+package UI;
 
 import core.OperationCode;
 import objects.Constructor;
@@ -14,14 +14,14 @@ import java.awt.event.MouseAdapter;
 
 public class ChoicePanel extends JPanel {
 
-    private final OperationPanel resourcePanel;
+    private final OperationPanel operationsPanel;
     private final RoundedButton[] buttons;
     private OperationsList actions;
     private Dimension buttonSize;
     private final ActionListener hide;
 
-    public ChoicePanel(OperationPanel resourcePanel, int cellWidth, int cellHeight) {
-        this.resourcePanel = resourcePanel;
+    public ChoicePanel(OperationPanel operationsPanel, int cellWidth, int cellHeight) {
+        this.operationsPanel = operationsPanel;
         hide = e -> setVisible(false);
 
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
@@ -65,13 +65,10 @@ public class ChoicePanel extends JPanel {
                     button.removeActionListener(listener);
         }
 
-        buttons[0].addActionListener(event -> {
-            actions = selected.getOperations(cycle, OperationCode.RESOURCE);
-            resourcePanel.update(selected, cycle);
-        });
-        buttons[1].addActionListener(event -> actions = selected.getOperations(cycle, OperationCode.CONSTRUCTION));
-        buttons[2].addActionListener(event -> actions = selected.getOperations(cycle, OperationCode.UPGRADE));
-        buttons[3].addActionListener(event -> actions = selected.getOperations(cycle, OperationCode.EVOLVE));
+        buttons[0].addActionListener(event -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
+        buttons[1].addActionListener(event -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
+        buttons[2].addActionListener(event -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
+        buttons[3].addActionListener(event -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
 
         if(selected != null) {
             if(selected instanceof Worker)
@@ -83,6 +80,7 @@ public class ChoicePanel extends JPanel {
             if(selected instanceof Evolvable)
                 buttons[3].setVisible(true);
         }
+
         setVisible(true);
     }
 
@@ -98,7 +96,7 @@ public class ChoicePanel extends JPanel {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
 
-        gr.setColor(new Color(255, 255, 255, 200));
+        gr.setColor(new Color(210, 210, 210));
         gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
     }
 }

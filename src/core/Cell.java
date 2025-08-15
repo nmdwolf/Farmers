@@ -1,6 +1,6 @@
 package core;
 
-import general.Location;
+import UI.Location;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.GameObject;

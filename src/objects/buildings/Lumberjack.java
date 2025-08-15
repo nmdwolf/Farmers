@@ -1,7 +1,7 @@
 package objects.buildings;
 
 import core.*;
-import general.CustomMethods;
+import UI.CustomMethods;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Booster;
@@ -41,7 +41,7 @@ public class Lumberjack extends IdleBuilding implements Booster {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         return null;
     }
 

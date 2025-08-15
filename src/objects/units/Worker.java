@@ -3,7 +3,7 @@ package objects.units;
 import core.*;
 import core.contracts.Contract;
 import core.contracts.LaborContract;
-import general.OperationsList;
+import UI.OperationsList;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Booster;

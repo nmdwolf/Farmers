@@ -1,4 +1,4 @@
-package general;
+package UI;
 
 import core.Player;
 import core.upgrade.Upgrade;

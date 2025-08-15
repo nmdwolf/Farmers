@@ -2,8 +2,8 @@ package objects.units;
 
 import core.*;
 import core.contracts.ConstructContract;
-import general.CustomMethods;
-import general.OperationsList;
+import UI.CustomMethods;
+import UI.OperationsList;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.buildings.House;
@@ -14,8 +14,10 @@ import java.util.List;
 
 public class Villager extends Worker {
 
-    public final static BufferedImage sprite = CustomMethods.getSprite("src/img/villager.png", GameConstants.UNIT_SPRITE_SIZE, GameConstants.UNIT_SPRITE_SIZE);
-    public final static BufferedImage workingSprite = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.UNIT_SPRITE_SIZE, GameConstants.UNIT_SPRITE_SIZE);
+    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/villager.png", GameConstants.UNIT_SPRITE_SIZE, GameConstants.UNIT_SPRITE_SIZE);
+    public final static BufferedImage WORKING_SPRITE = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.UNIT_SPRITE_SIZE, GameConstants.UNIT_SPRITE_SIZE);
+    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/villager.png", GameConstants.UNIT_SPRITE_SIZE_MAX, GameConstants.UNIT_SPRITE_SIZE_MAX);
+    public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.UNIT_SPRITE_SIZE_MAX, GameConstants.UNIT_SPRITE_SIZE_MAX);
     public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "A baby was born.");
 
     public final static List<Resource> resources = List.of(Resource.FOOD, Resource.WOOD, Resource.STONE, Resource.COAL, Resource.IRON);
@@ -57,8 +59,11 @@ public class Villager extends Worker {
     @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations =  super.getOperations(cycle, code);
-        operations.put("House", () -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(), getCell(), cycle))));
-        operations.put("Lumberjack", () -> addContract(new ConstructContract<>(Villager.this, new Lumberjack(getPlayer(), getCell(), cycle))));
+
+        if(code == OperationCode.RESOURCE) {
+            operations.put("House", () -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(), getCell(), cycle))));
+            operations.put("Lumberjack", () -> addContract(new ConstructContract<>(Villager.this, new Lumberjack(getPlayer(), getCell(), cycle))));
+        }
         return operations;
     }
 
@@ -68,11 +73,11 @@ public class Villager extends Worker {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         if(getStatus() != Status.WORKING)
-            return sprite;
+            return max ? SPRITE_MAX : SPRITE;
         else
-            return workingSprite;
+            return max ? WORKING_SPRITE_MAX : WORKING_SPRITE;
     }
 
     @Override

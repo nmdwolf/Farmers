@@ -1,7 +1,7 @@
 package objects.buildings;
 
 import core.*;
-import general.CustomMethods;
+import UI.CustomMethods;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Obstruction;
@@ -42,7 +42,7 @@ public class Wall extends IdleBuilding implements Obstruction {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         return null;
     }
 

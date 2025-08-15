@@ -1,7 +1,7 @@
 package objects.buildings;
 
 import core.*;
-import general.CustomMethods;
+import UI.CustomMethods;
 import objects.Spacer;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
@@ -12,7 +12,8 @@ import java.util.ArrayList;
 
 public class House extends IdleBuilding implements Upgradable, Spacer {
 
-    public final static BufferedImage sprite = CustomMethods.getSprite("src/img/hut.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
+    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/hut.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
+    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/hut.png", GameConstants.BUILDING_SPRITE_SIZE_MAX, GameConstants.BUILDING_SPRITE_SIZE_MAX);
     public final static ResourceContainer HOUSE_COST = new ResourceContainer() {{
         put(Resource.WOOD, 50);
         put(Resource.TIME, 5);
@@ -57,8 +58,8 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
     }
 
     @Override
-    public BufferedImage getSprite() {
-        return sprite;
+    public BufferedImage getSprite(boolean max) {
+        return max ? SPRITE_MAX : SPRITE;
     }
 
     @Override

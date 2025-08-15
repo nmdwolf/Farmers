@@ -1,6 +1,6 @@
 package core;
 
-import general.Location;
+import UI.Location;
 
 import java.util.HashMap;
 

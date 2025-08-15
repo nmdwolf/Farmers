@@ -1,7 +1,6 @@
 package objects;
 
 import core.Award;
-import general.OperationsList;
 
 public interface Evolvable {
 

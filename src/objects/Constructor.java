@@ -1,9 +1,7 @@
 package objects;
 
 import core.Cell;
-import core.OperationCode;
 import core.Player;
-import general.OperationsList;
 import objects.resources.ResourceContainer;
 
 public abstract class Constructor extends Operational {

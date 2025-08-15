@@ -1,8 +1,8 @@
 package objects;
 
 import core.*;
-import general.CustomMethods;
-import general.OperationsList;
+import UI.CustomMethods;
+import UI.OperationsList;
 
 import java.awt.image.BufferedImage;
 
@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 public class Foundation<T extends Constructable> extends GameObject {
 
     public final static BufferedImage FOUNDATION_SPRITE = CustomMethods.getSprite("src/img/foundation.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
+    public final static BufferedImage FOUNDATION_SPRITE_MAX = CustomMethods.getSprite("src/img/foundation.png", GameConstants.BUILDING_SPRITE_SIZE_MAX, GameConstants.BUILDING_SPRITE_SIZE_MAX);
 
     public final static int FOUNDATION_HEALTH = 1;
 
@@ -33,9 +34,9 @@ public class Foundation<T extends Constructable> extends GameObject {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         if(visible)
-            return FOUNDATION_SPRITE;
+            return max ? FOUNDATION_SPRITE_MAX : FOUNDATION_SPRITE;
         else
             return null;
     }

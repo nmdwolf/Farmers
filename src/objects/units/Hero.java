@@ -1,7 +1,7 @@
 package objects.units;
 
 import core.*;
-import general.OperationsList;
+import UI.OperationsList;
 import objects.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 
@@ -36,9 +36,10 @@ public class Hero extends Unit{
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         return null;
     }
+
     @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();

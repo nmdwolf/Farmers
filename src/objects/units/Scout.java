@@ -1,8 +1,8 @@
 package objects.units;
 
 import core.*;
-import general.CustomMethods;
-import general.OperationsList;
+import UI.CustomMethods;
+import UI.OperationsList;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Evolvable;
@@ -78,7 +78,7 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public BufferedImage getSprite() {
+    public BufferedImage getSprite(boolean max) {
         return null;
     }
 }
