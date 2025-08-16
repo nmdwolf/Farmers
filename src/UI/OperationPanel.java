@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 
+import static core.GameConstants.GRAY;
+
 public class OperationPanel extends JPanel {
 
     private final RoundedButton[] buttons;
@@ -31,15 +33,21 @@ public class OperationPanel extends JPanel {
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
 
         for(int i = 0; i < buttons.length; i++) {
-            buttons[i] = new RoundedButton("", buttonSize, Color.gray);
-            buttons[i].addActionListener(hide);
-            if(i == 7)
+            if(i == 7) {
+                buttons[i] = new RoundedButton("Next", buttonSize, Color.gray);
                 buttons[i].addActionListener(next);
-            else if (i == 15)
+            }
+            else if (i == 15) {
+                buttons[i] = new RoundedButton("Previous", buttonSize, Color.gray);
                 buttons[i].addActionListener(previous);
+            }
+            else {
+                buttons[i] = new RoundedButton("", buttonSize, Color.gray);
+                buttons[i].addActionListener(hide);
+            }
 
             c.gridx = i % 4;
-            c.gridy = Math.floorDiv(i, 4);
+            c.gridy = Math.floorDiv(i % 8, 4);
             c.weightx = 0.5;
             c.weighty = 0.5;
             if(c.gridx < 2)
@@ -55,19 +63,22 @@ public class OperationPanel extends JPanel {
 
     public void update(GameObject selected, OperationCode code, int cycle) {
 
-        for(RoundedButton button : buttons) {
+        for(int i = 0; i < 16; i++) {
+            RoundedButton button = buttons[i];
             button.setColor(selected.getPlayer().getAlternativeColor());
-            button.setVisible(false);
-            for(ActionListener listener : button.getActionListeners())
-                if(listener != hide && listener != next && listener != previous)
-                    button.removeActionListener(listener);
+            if(i != 7 && i != 15) {
+                button.enableGhost(true);
+                for (ActionListener listener : button.getActionListeners())
+                    if (listener != hide)
+                        button.removeActionListener(listener);
+            }
         }
 
         OperationsList operations = selected.getOperations(cycle, code);
         for(int i = 0; i < operations.size(); i++) {
             final int step = (i >= 7) ? i + 1 : i;
             buttons[step].setText(operations.getDescription(i));
-            buttons[step].setVisible(true);
+            buttons[step].enableGhost(false);
             buttons[step].addActionListener(actionEvent -> operations.get(step).perform());
         }
 
@@ -85,8 +96,14 @@ public class OperationPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-        gr.setColor(new Color(210, 210, 210));
-        gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+        gr.setColor(GRAY);
+        gr.fillRoundRect(1, 1, getWidth(), getHeight(), 30, 30);
+        gr.setColor(Color.black);
+        gr.setStroke(new BasicStroke(2));
+        gr.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
     }
 }

@@ -95,8 +95,14 @@ public class ChoicePanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
         gr.setColor(new Color(210, 210, 210));
-        gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+        gr.fillRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
+        gr.setColor(Color.black);
+        gr.setStroke(new BasicStroke(2));
+        gr.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
     }
 }

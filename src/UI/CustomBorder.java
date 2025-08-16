@@ -51,8 +51,7 @@ public class CustomBorder extends AbstractBorder
     }
 
     @Override
-    public Insets getBorderInsets(Component c, Insets insets)
-    {
+    public Insets getBorderInsets(Component c, Insets insets) {
         insets.left = insets.top = insets.right = insets.bottom = 0;
         return insets;
     }

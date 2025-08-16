@@ -1,5 +1,6 @@
 package core;
 
+import java.awt.*;
 import java.util.Random;
 
 public interface GameConstants {
@@ -39,4 +40,7 @@ public interface GameConstants {
 
     int CELL_UNIT_X_MARGIN = 5;
     int CELL_UNIT_Y_MARGIN = 10;
+
+    Color GRAY = new Color(210, 210, 210);
+    String[] PLAYER_COLORS = new String[]{"Blue", "Green", "Yellow"};
 }

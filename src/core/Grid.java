@@ -46,5 +46,8 @@ public class Grid extends HashMap<Location, Cell> {
             throw new IllegalArgumentException("Key not found: " + key);
     }
 
-
+    public void cycle(int cycle) {
+        for(Cell cell : values())
+            cell.cycle(cycle);
+    }
 }

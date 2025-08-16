@@ -6,36 +6,24 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
+import static core.GameConstants.GRAY;
+
 public class RoundedButton extends JButton {
 
     private int width, height;
     private BufferedImage img;
     private Color hover;
+    private boolean ghost;
 
     public RoundedButton(String text, Dimension dim, Color color) {
         super(text);
         hover = color;
+        ghost = false;
 
         this.width = dim.width;
         this.height = dim.height;
 
-        setBorder(new CustomBorder(Color.black, width, height));
-        setContentAreaFilled(false);
-        setFocusPainted(false);
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                super.mouseMoved(e);
-                setBorder(new CustomBorder(hover, width, height));
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                super.mouseMoved(e);
-                setBorder(new CustomBorder(Color.black, width, height));
-            }
-        });
+        initialize();
 
         setPreferredSize(dim);
     }
@@ -47,23 +35,7 @@ public class RoundedButton extends JButton {
         this.width = width;
         this.height = height;
 
-        setBorder(new CustomBorder(Color.black, width, height));
-        setContentAreaFilled(false);
-        setFocusPainted(false);
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                super.mouseMoved(e);
-                setBorder(new CustomBorder(hover, width, height));
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                super.mouseMoved(e);
-                setBorder(new CustomBorder(Color.black, width, height));
-            }
-        });
+        initialize();
     }
 
     public RoundedButton(String text, BufferedImage img, Dimension dim, Color color) {
@@ -74,6 +46,10 @@ public class RoundedButton extends JButton {
         this.width = dim.width;
         this.height = dim.height;
 
+        initialize();
+    }
+
+    public void initialize() {
         setBorder(new CustomBorder(Color.black, width, height));
         setContentAreaFilled(false);
         setFocusPainted(false);
@@ -82,13 +58,13 @@ public class RoundedButton extends JButton {
             @Override
             public void mouseEntered(MouseEvent e) {
                 super.mouseMoved(e);
-                setBorder(new CustomBorder(hover, width, height));
+                setBorder(new CustomBorder(ghost ? GRAY : hover, width, height));
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 super.mouseMoved(e);
-                setBorder(new CustomBorder(Color.black, width, height));
+                setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
             }
         });
     }
@@ -108,14 +84,23 @@ public class RoundedButton extends JButton {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-        gr.setColor(Color.lightGray);
+        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+        gr.setColor(GRAY);
         gr.fillRoundRect(1, 1, width - 2, height - 2, 10, 10);
 
-        if(img != null)
+        if (img != null)
             gr.drawImage(img, Math.round((width - img.getWidth()) / 2f), Math.round((height - img.getHeight()) / 2f), null);
         else {
             gr.setColor(Color.black);
             gr.drawString(getText(), Math.floorDiv(width - g.getFontMetrics().stringWidth(getText()), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4));
         }
+    }
+
+    public void enableGhost(boolean flag) {
+        ghost = flag;
+        setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
     }
 }

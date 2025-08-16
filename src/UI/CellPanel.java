@@ -2,6 +2,7 @@ package UI;
 
 import core.Cell;
 import core.Player;
+import core.Property;
 import core.Status;
 import objects.GameObject;
 import objects.buildings.Building;
@@ -24,15 +25,16 @@ public class CellPanel extends JPanel {
     private int selectionX, selectionY;
     private int poolSize;
 
-    private GameObject selected;
+    private final Property<GameObject> selected;
     private Player player;
     private HashMap<GameObject, Integer> objectMap;
     private Cell cell;
 
-    public CellPanel(Main parent) {
+    public CellPanel(Property<GameObject> selected) {
         selectionX = -1;
         selectionY = -1;
         objectMap = new HashMap<>();
+        this.selected = selected;
 
         MouseAdapter adapter = new MouseAdapter() {
             @Override
@@ -41,12 +43,10 @@ public class CellPanel extends JPanel {
                 if(selectionY == CELL_UNIT_Y_MARGIN)
                     for(GameObject object : objectMap.keySet()) {
                         if (objectMap.get(object) == selectionX)
-                            selected = object;
+                            selected.set(object);
                     }
                 else
-                    selected = null;
-
-                parent.alert(selected);
+                    selected.set(null);
             }
 
             @Override
@@ -72,10 +72,9 @@ public class CellPanel extends JPanel {
         setOpaque(false);
     }
     
-    public void update(Cell cell, Player player, GameObject selected) {
+    public void update(Cell cell, Player player) {
         this.cell = cell;
         this.player = player;
-        this.selected = selected;
 
         int unitCounter = 0;
         int buildingCounter = 0;
@@ -98,21 +97,20 @@ public class CellPanel extends JPanel {
 
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
         gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
+        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
         gr.setColor(Color.white);
-        gr.fill(new RoundRectangle2D.Double(STROKE_WIDTH / 2f, STROKE_WIDTH / 2f, getWidth() - STROKE_WIDTH, getHeight() - STROKE_WIDTH, 30, 30));
+        gr.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
         gr.setColor(Color.black);
-        gr.setStroke(new BasicStroke(STROKE_WIDTH));
-        gr.draw(new RoundRectangle2D.Double(STROKE_WIDTH / 2f, STROKE_WIDTH / 2f, getWidth() - STROKE_WIDTH, getHeight() - STROKE_WIDTH, 30, 30));
+
+        gr.setStroke(new BasicStroke(2));
+        gr.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
 
         drawField(gr);
         drawForest(gr);
         drawRiver(gr);
         drawObjects(gr);
-        
-        gr.dispose();
     }
 
     public void drawField(Graphics2D gr) {
@@ -177,11 +175,11 @@ public class CellPanel extends JPanel {
          */
 
         for(GameObject object : objectMap.keySet()) {
-            gr.setColor(object == selected ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
+            gr.setColor(object == selected.get() ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
             BufferedImage sprite = object.getSprite(true);
             if(object instanceof Unit u) {
                 if(sprite != null)
-                    gr.drawImage(object == selected ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite, (5 + UNIT_SPRITE_SIZE_MAX) * objectMap.get(object) + 5, 10, null);
+                    gr.drawImage(object == selected.get() ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite, (5 + UNIT_SPRITE_SIZE_MAX) * objectMap.get(object) + 5, 10, null);
                 else {
                     gr.drawString(object.getToken(), 5 + 10 * objectMap.get(object), 15);
                     if(u.getStatus() == Status.WORKING) {
@@ -216,7 +214,7 @@ public class CellPanel extends JPanel {
 
             if(object instanceof Building) {
                 if(sprite != null)
-                    gr.drawImage(object == selected ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite, (5 + BUILDING_SPRITE_SIZE_MAX) * objectMap.get(object) + 5, getHeight() - BUILDING_SPRITE_SIZE_MAX - 10, null);
+                    gr.drawImage(object == selected.get() ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite, (5 + BUILDING_SPRITE_SIZE_MAX) * objectMap.get(object) + 5, getHeight() - BUILDING_SPRITE_SIZE_MAX - 10, null);
                 else {
                     gr.drawString(object.getToken(), 5 + 10 * objectMap.get(object), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
 //                                if(b instanceof Worker)
