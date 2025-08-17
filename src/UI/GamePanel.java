@@ -28,15 +28,17 @@ public class GamePanel extends JFrame {
     private final CellPanel cellPanel;
     private final SpringLayout layout;
     private final JLayeredPane contentPanel;
+    private final SettingsPanel settingsPanel;
+    private final JPanel tintedGlassPanel;
 
     private int cellWidth, cellHeight, poolSize, screenWidth, screenHeight;
-    private final Property<Boolean> clicked;
-    private final Property<GameObject> selected;
     private final Property<Player> player;
     private int mouseX, mouseY;
 
     private final Main parent;
     private final Property<Integer> cycle, current;
+    private final Property<Boolean> clicked, cursorFlag;
+    private final Property<GameObject> selected;
     private int travelDistance;
     private Location clickPos, destination;
     private Location[] hoverPath;
@@ -56,6 +58,7 @@ public class GamePanel extends JFrame {
         cellHeight = 0;
         poolSize = 0;
         clicked = new Property<>(false);
+        cursorFlag = new Property<>(false);
         selected = new Property<>();
         clickPos = new Location(0, 0, 0);
 
@@ -63,8 +66,17 @@ public class GamePanel extends JFrame {
         choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight);
         infoPanel = new InfoPanel();
         cellPanel = new CellPanel(selected);
+        settingsPanel = new SettingsPanel(cursorFlag);
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
+        tintedGlassPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(255, 255, 255, 128));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
 
         selected.bind(() -> {
             if(selected.get() != null) {
@@ -82,19 +94,24 @@ public class GamePanel extends JFrame {
     public void initialize() {
         super.setTitle("Game of Ages");
 
-        addKeyInputs();
-        addMouseInputs();
-        addResizeListener();
-        addMenu();
+        addResizeListener(); // Will initialize size parameters on first call
 
         contentPanel.add(choicePanel, Integer.valueOf(1));
         contentPanel.add(operationsPanel, Integer.valueOf(1));
         contentPanel.add(cellPanel, Integer.valueOf(0));
         contentPanel.add(infoPanel, Integer.valueOf(1));
+        contentPanel.add(tintedGlassPanel, Integer.valueOf(2));
+        contentPanel.add(settingsPanel, Integer.valueOf(3));
 
         super.setVisible(true);
         super.setExtendedState(MAXIMIZED_BOTH);
         resetScales();
+
+        initializeCursor();
+        addMouseInputs();
+        addKeyInputs();
+        addMenu();
+        addSettingsPanel();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         contentPanel.requestFocus();
@@ -105,7 +122,7 @@ public class GamePanel extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
                 drawObjects(gr);
 
                 gr.setColor(player.get().getAlternativeColor());
@@ -143,6 +160,7 @@ public class GamePanel extends JFrame {
                     current = current.fetch(hoverPath[hoverPath.length - 1].x(), hoverPath[hoverPath.length - 1].y(), hoverPath[hoverPath.length - 1].z());
                     gr.drawString(String.valueOf(travelDistance), Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
                 }
+                gr.dispose();
             }
         };
 
@@ -151,6 +169,13 @@ public class GamePanel extends JFrame {
         contentPanel.setLayout(layout);
 
         return contentPanel;
+    }
+
+    public void initializeCursor() {
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        Dimension size = tk.getBestCursorSize(10, 10);
+        Image img = new ImageIcon("src/img/Cursor.png").getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH);
+        setCursor(tk.createCustomCursor(img, new Point(size.width / 2, size.height / 2), "customCursor"));
     }
 
     public void addKeyInputs() {
@@ -165,7 +190,7 @@ public class GamePanel extends JFrame {
         contentPanel.getActionMap().put("escape", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(selected == null)
+                if(selected.get() == null)
                     hidePanels();
                 else
                     cellPanel.setVisible(false);
@@ -231,7 +256,7 @@ public class GamePanel extends JFrame {
                 Cell mousePos = posToCell(mouseX, mouseY, 0);
 
                 // Moves info panel to make sure that the underlying cells are reachable.
-                if(infoPanel != null && selected != null) {
+                if(infoPanel != null && selected.get() != null) {
                     layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() >= 7) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                     refreshWindow();
                 }
@@ -324,18 +349,29 @@ public class GamePanel extends JFrame {
                 super.componentResized(e);
                 resetScales();
 
+                tintedGlassPanel.setPreferredSize(new Dimension(screenWidth, screenHeight));
+                layout.putConstraint(SpringLayout.WEST, tintedGlassPanel, 0, SpringLayout.WEST, contentPanel);
+                layout.putConstraint(SpringLayout.NORTH, tintedGlassPanel, 0, SpringLayout.NORTH, contentPanel);
+
                 choicePanel.resize(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, choicePanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, contentPanel);
+
                 operationsPanel.resize(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, operationsPanel, screenHeight - 3 * cellHeight, SpringLayout.NORTH, contentPanel);
+
                 cellPanel.setPreferredSize(new Dimension((NUMBER_OF_CELLS_IN_VIEW - 2) * cellWidth + 40, (NUMBER_OF_CELLS_IN_VIEW - 2) * cellHeight + 40));
                 layout.putConstraint(SpringLayout.WEST, cellPanel, cellWidth - 20, SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, cellPanel, cellHeight - 20, SpringLayout.NORTH, contentPanel);
+
                 infoPanel.resize(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, infoPanel, (clickPos.x() - player.get().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
+
+                settingsPanel.resize(cellWidth, cellHeight);
+                layout.putConstraint(SpringLayout.WEST, settingsPanel, 2 * cellWidth, SpringLayout.WEST, contentPanel);
+                layout.putConstraint(SpringLayout.NORTH, settingsPanel, cellHeight, SpringLayout.NORTH, contentPanel);
 
                 hidePanels();
                 refreshWindow();
@@ -350,9 +386,11 @@ public class GamePanel extends JFrame {
         playerMenu = new JMenu("Player: " + player.get().getName());
         viewMenu = new JMenu("View: " + player.get().getViewPoint().getZ());
         cellMenu = new JMenu("Nothing to show");
+        JMenu settingsMenu = new JMenu("Settings");
         menubar.add(playerMenu);
         menubar.add(viewMenu);
         menubar.add(cellMenu);
+        menubar.add(settingsMenu);
 
         // Enables mouse hover coloring
         playerMenu.addMouseListener(new MouseAdapter() {
@@ -413,6 +451,41 @@ public class GamePanel extends JFrame {
         viewMenu.add(cycleLabel);
         popLabel = new JMenuItem("Population: " + player.get().getPop() + "/" + player.get().getPopCap());
         playerMenu.add(popLabel);
+
+        JMenuItem viewItem = new JMenuItem("View");
+        viewItem.addActionListener(e -> {
+            settingsPanel.setVisible(true);
+            contentPanel.requestFocus();
+        });
+        settingsMenu.add(viewItem);
+    }
+
+    public void addSettingsPanel() {
+
+        tintedGlassPanel.setOpaque(false);
+
+        settingsPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                super.componentShown(e);
+                tintedGlassPanel.setVisible(true);
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                super.componentHidden(e);
+                tintedGlassPanel.setVisible(false);
+            }
+        });
+
+        cursorFlag.bind(() -> {
+            if(cursorFlag.get())
+                initializeCursor();
+            else
+                setCursor(Cursor.getDefaultCursor());
+        });
+
+        settingsPanel.setVisible(false);
     }
 
     public void showMessagePanel(String text) {
@@ -644,8 +717,8 @@ public class GamePanel extends JFrame {
         cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
                 " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
 
-        getContentPane().repaint();
-        getContentPane().revalidate();
+        contentPanel.repaint();
+        contentPanel.revalidate();
     }
 
     public void hidePanels() {
@@ -653,6 +726,7 @@ public class GamePanel extends JFrame {
         operationsPanel.setVisible(false);
         choicePanel.setVisible(false);
         cellPanel.setVisible(false);
+        settingsPanel.setVisible(false);
     }
 
     /**

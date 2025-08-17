@@ -35,10 +35,7 @@ public class InfoPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
         gr.setColor(Color.lightGray);
         gr.fillRoundRect(1, 1, width - 3, height - 3, 10, 10);
@@ -48,5 +45,7 @@ public class InfoPanel extends JPanel {
 
         if(selected != null)
             CustomMethods.customDrawString(gr, selected.toString(), 20, 20);
+
+        gr.dispose();
     }
 }

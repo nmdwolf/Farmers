@@ -6,9 +6,11 @@ import java.awt.geom.Rectangle2D;
 
 public class CustomBorder extends AbstractBorder
 {
-    private Color borderColour;
-    private int rectWidth;
-    private int rectHeight;
+    private static final int RADIUS = 10;
+    private static final int STROKE_WIDTH = 4;
+
+    private final Color borderColour;
+    private final int rectWidth, rectHeight;
 
     public CustomBorder(Color colour, Dimension dim)
     {
@@ -29,30 +31,31 @@ public class CustomBorder extends AbstractBorder
     {
         super.paintBorder(c, g, x, y, width, height);
         if (g instanceof Graphics2D) {
-            Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+            Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
             gr.setColor(borderColour);
-            gr.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-            gr.drawArc(x + 1, y + 1, 10, 10, 90, 90);
-            gr.drawArc(x + rectWidth - 11, y + 1, 10, 10, 0, 90);
-            gr.drawArc(x + 1, y + rectHeight - 11, 10, 10, 180, 90);
-            gr.drawArc(x + rectWidth - 11, y + rectHeight - 11, 10, 10, 270, 90);
-            gr.fill(new Rectangle2D.Double(x, y + 5, 2, rectHeight - 10));
-            gr.fill(new Rectangle2D.Double(x + 5, y, rectWidth - 10, 2));
-            gr.fill(new Rectangle2D.Double(x + rectWidth - 2, y + 5, 2, rectHeight - 10));
-            gr.fill(new Rectangle2D.Double(x + 5, y + rectHeight - 2, rectWidth - 10, 2));
+            gr.setStroke(new BasicStroke(STROKE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+//
+//            gr.drawArc(x + 1, y + 1, 10, 10, 90, 90);
+//            gr.drawArc(x + rectWidth - 11, y + 1, 10, 10, 0, 90);
+//            gr.drawArc(x + 1, y + rectHeight - 11, 10, 10, 180, 90);
+//            gr.drawArc(x + rectWidth - 11, y + rectHeight - 11, 10, 10, 270, 90);
+//            gr.fill(new Rectangle2D.Double(x, y + 5, 2, rectHeight - 10));
+//            gr.fill(new Rectangle2D.Double(x + 5, y, rectWidth - 10, 2));
+//            gr.fill(new Rectangle2D.Double(x + rectWidth - 2, y + 5, 2, rectHeight - 10));
+//            gr.fill(new Rectangle2D.Double(x + 5, y + rectHeight - 2, rectWidth - 10, 2));
+            gr.drawRoundRect(x + 1, y + 1, width - 2, height - 2, RADIUS, RADIUS);
+            gr.dispose();
         }
     }
 
     @Override
-    public Insets getBorderInsets(Component c)
-    {
-        return (getBorderInsets(c, new Insets(0, 0, 0, 0)));
+    public Insets getBorderInsets(Component c) {
+        return (getBorderInsets(c, new Insets(STROKE_WIDTH, STROKE_WIDTH, STROKE_WIDTH, STROKE_WIDTH )));
     }
 
     @Override
     public Insets getBorderInsets(Component c, Insets insets) {
-        insets.left = insets.top = insets.right = insets.bottom = 0;
+        insets.left = insets.top = insets.right = insets.bottom = STROKE_WIDTH;
         return insets;
     }
 

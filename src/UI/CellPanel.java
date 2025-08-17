@@ -94,11 +94,7 @@ public class CellPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f));
-
-        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
         gr.setColor(Color.white);
         gr.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
@@ -111,6 +107,7 @@ public class CellPanel extends JPanel {
         drawForest(gr);
         drawRiver(gr);
         drawObjects(gr);
+        gr.dispose();
     }
 
     public void drawField(Graphics2D gr) {

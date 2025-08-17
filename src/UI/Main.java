@@ -46,6 +46,7 @@ public class Main extends JFrame{
     }
 
     public Main() {
+        allPlayers = new ArrayList<>();
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
@@ -53,48 +54,13 @@ public class Main extends JFrame{
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
 
-        boolean inputFlag = true;
-        int playerCount = 1;
-        do {
-            String input = "";
-            try {
-                input = JOptionPane.showInputDialog("How many (human) players?");
-                if(input == null) {
-                    JOptionPane.showMessageDialog(null, "Startup was cancelled by a player.");
-                    System.exit(0);
-                }
-
-                playerCount = Integer.parseInt(input);
-                inputFlag = false;
-            } catch(NumberFormatException e) {
-                JOptionPane.showMessageDialog(null,"A nonnumerical value was entered: " + input + ". Please try again.");
-            }
-        } while(inputFlag);
-
-        for (int i = 0; i < playerCount; i++) {
-            String name = JOptionPane.showInputDialog("What is the name of the Hero?");
-            String col = (String)JOptionPane.showInputDialog(null, "Choose the player color.", "Choose the player color.", JOptionPane.QUESTION_MESSAGE, null, PLAYER_COLORS, "Blue");
-            Color color = switch(col) {
-                case "Green" -> Color.green;
-                case "Yellow" -> Color.yellow;
-                default -> Color.blue;
-            };
-            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
-        }
-
-        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-        addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this));
-
-        allPlayers = new ArrayList<>(players.size() + ais.size());
-        allPlayers.addAll(players);
-        allPlayers.addAll(ais);
-
+        showPlayerInputDialog();
         currentPlayer.set(players.get(current.get()));
-        game = new GamePanel(this, cells, current, cycle, currentPlayer);
 
+        game = new GamePanel(this, cells, current, cycle, currentPlayer);
+        game.initialize();
+
+        // Add player change logic
         current.bind(() -> {
             // When last player of round has played
             if(current.get() == players.size()) {
@@ -133,9 +99,47 @@ public class Main extends JFrame{
             }
             game.refreshWindow();
         });
-
-        game.initialize();
         garbageCollector.start();
+    }
+
+    public void showPlayerInputDialog() {
+        boolean inputFlag = true;
+        int playerCount = 1;
+        do {
+            String input = "";
+            try {
+                input = JOptionPane.showInputDialog("How many (human) players?");
+                if(input == null) {
+                    JOptionPane.showMessageDialog(null, "Startup was cancelled by a player.");
+                    System.exit(0);
+                }
+
+                playerCount = Integer.parseInt(input);
+                inputFlag = false;
+            } catch(NumberFormatException e) {
+                JOptionPane.showMessageDialog(null,"A nonnumerical value was entered: " + input + ". Please try again.");
+            }
+        } while(inputFlag);
+
+        for (int i = 0; i < playerCount; i++) {
+            String name = JOptionPane.showInputDialog("What is the name of the Hero?");
+            String col = (String)JOptionPane.showInputDialog(null, "Choose the player color.", "Choose the player color.", JOptionPane.QUESTION_MESSAGE, null, PLAYER_COLORS, "Blue");
+            Color color = switch(col) {
+                case "Green" -> Color.green;
+                case "Yellow" -> Color.yellow;
+                default -> Color.blue;
+            };
+            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+            addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
+        }
+
+        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+        addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this));
+
+        allPlayers.addAll(players);
+        allPlayers.addAll(ais);
     }
 
     /**
