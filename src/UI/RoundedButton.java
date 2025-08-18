@@ -83,13 +83,10 @@ public class RoundedButton extends JButton {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
-        gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
         gr.setColor(GRAY);
-        gr.fillRoundRect(1, 1, width - 2, height - 2, 10, 10);
+        gr.fillRoundRect(1, 1, width - 2, height - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
 
         if (img != null)
             gr.drawImage(img, Math.round((width - img.getWidth()) / 2f), Math.round((height - img.getHeight()) / 2f), null);
@@ -97,6 +94,8 @@ public class RoundedButton extends JButton {
             gr.setColor(Color.black);
             gr.drawString(getText(), Math.floorDiv(width - g.getFontMetrics().stringWidth(getText()), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4));
         }
+
+        gr.dispose();
     }
 
     public void enableGhost(boolean flag) {

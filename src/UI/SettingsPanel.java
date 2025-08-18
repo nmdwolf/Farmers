@@ -9,9 +9,11 @@ import java.awt.event.MouseAdapter;
 public class SettingsPanel extends JPanel {
 
     private final Property<Boolean> cursorFlag;
+    private final Property<String> audioSource;
 
-    public SettingsPanel(Property<Boolean> cursor) {
+    public SettingsPanel(Property<Boolean> cursor, Property<String> audioSource) {
         cursorFlag = cursor;
+        this.audioSource = audioSource;
         initialize();
     }
 
@@ -19,8 +21,37 @@ public class SettingsPanel extends JPanel {
         setLayout(new GridLayout(0, 1, 5, 5));
         setOpaque(false);
 
+        JPanel audioBox = new JPanel();
+        audioBox.setOpaque(false);
+        audioBox.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        audioBox.add(new JLabel("<html><u>Audio</u></html>"), c);
+        JLabel audioLabel = new JLabel("Audio source: ");
+        audioLabel.setOpaque(false);
+        c.gridx = 0;
+        c.gridy = 1;
+        audioBox.add(audioLabel, c);
+        JTextField audioInput = new JTextField(audioSource.get(), 1);
+        c.gridx = 1;
+        c.gridy = 1;
+        c.weightx = 0.9;
+        audioBox.add(audioInput, c);
+        JButton applyAudio = new JButton("Load");
+        c.gridx = 0;
+        c.gridy = 2;
+        c.weightx = .2;
+        audioBox.add(applyAudio, c);
+        applyAudio.addActionListener(evt -> audioSource.set(audioInput.getText()));
+        audioBox.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        add(audioBox);
+        add(new JSeparator(SwingConstants.HORIZONTAL));
+
         Box visualBox = Box.createVerticalBox();
-        visualBox.add(new JLabel("<html><u>View</u></html>"));
+        visualBox.add(new JLabel("<html><u>Visuals</u></html>"));
         JCheckBox cursorBox = new JCheckBox("Custom cursor enabled: ");
         cursorBox.setHorizontalTextPosition(SwingConstants.LEFT);
         cursorBox.setSelected(true);

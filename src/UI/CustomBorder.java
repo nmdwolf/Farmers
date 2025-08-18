@@ -6,8 +6,8 @@ import java.awt.geom.Rectangle2D;
 
 public class CustomBorder extends AbstractBorder
 {
-    private static final int RADIUS = 10;
-    private static final int STROKE_WIDTH = 4;
+    public static final int RADIUS = 15;
+    public static final int STROKE_WIDTH = 4;
 
     private final Color borderColour;
     private final int rectWidth, rectHeight;

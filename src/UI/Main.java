@@ -23,6 +23,9 @@ public class Main extends JFrame{
 
     private final Property<Integer> current, cycle;
     private final Property<Player> currentPlayer;
+    private final Property<String> audioSource;
+    private Thread audioThread;
+    private DJ dj;
 
     /**
      * List of players.
@@ -50,6 +53,7 @@ public class Main extends JFrame{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
+        audioSource = new Property<>("src/music/FAVA - Lifetracks/");
         current = new Property<>(0);
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
@@ -57,8 +61,9 @@ public class Main extends JFrame{
         showPlayerInputDialog();
         currentPlayer.set(players.get(current.get()));
 
-        game = new GamePanel(this, cells, current, cycle, currentPlayer);
+        game = new GamePanel(this, cells, current, cycle, currentPlayer, audioSource);
         game.initialize();
+        startMusic();
 
         // Add player change logic
         current.bind(() -> {
@@ -100,6 +105,19 @@ public class Main extends JFrame{
             game.refreshWindow();
         });
         garbageCollector.start();
+    }
+
+    public void startMusic() {
+        audioSource.bind(() -> {
+            if(audioThread != null) {
+                audioThread.interrupt();
+                dj.closeStream();
+            }
+            dj = new DJ(audioSource.get());
+            audioThread = new Thread(dj);
+            audioThread.start();
+        });
+        audioSource.set("src/music/FAVA - Lifetracks/");
     }
 
     public void showPlayerInputDialog() {

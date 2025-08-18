@@ -39,18 +39,20 @@ public class GamePanel extends JFrame {
     private final Property<Integer> cycle, current;
     private final Property<Boolean> clicked, cursorFlag;
     private final Property<GameObject> selected;
+    private final Property<String> audioSource;
     private int travelDistance;
     private Location clickPos, destination;
     private Location[] hoverPath;
     private final Grid cells;
 
     public GamePanel(Main main, Grid cells,
-                     Property<Integer> current, Property<Integer> cycle, Property<Player> player) {
+                     Property<Integer> current, Property<Integer> cycle, Property<Player> player, Property<String> audioSource) {
         parent = main;
         this.cells = cells;
         this.current = current;
         this.cycle = cycle;
         this.player = player;
+        this.audioSource = audioSource;
 
         screenWidth = 0;
         screenHeight = 0;
@@ -66,7 +68,7 @@ public class GamePanel extends JFrame {
         choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight);
         infoPanel = new InfoPanel();
         cellPanel = new CellPanel(selected);
-        settingsPanel = new SettingsPanel(cursorFlag);
+        settingsPanel = new SettingsPanel(cursorFlag, audioSource);
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
         tintedGlassPanel = new JPanel() {
@@ -452,7 +454,7 @@ public class GamePanel extends JFrame {
         popLabel = new JMenuItem("Population: " + player.get().getPop() + "/" + player.get().getPopCap());
         playerMenu.add(popLabel);
 
-        JMenuItem viewItem = new JMenuItem("View");
+        JMenuItem viewItem = new JMenuItem("Audio & Visuals");
         viewItem.addActionListener(e -> {
             settingsPanel.setVisible(true);
             contentPanel.requestFocus();
