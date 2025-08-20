@@ -1,7 +1,7 @@
 package core.contracts;
 
 import objects.Constructable;
-import objects.Foundation;
+import objects.buildings.Foundation;
 import objects.Spacer;
 import objects.units.Unit;
 import objects.units.Worker;
@@ -12,7 +12,7 @@ public class ConstructContract<T extends Constructable> extends Contract{
     private final Foundation<T> foundation;
 
     public ConstructContract(Worker employee, T constructable) {
-        super(employee, constructable.getCompleted());
+        super(employee, constructable.getCompletion());
         this.constructable = constructable;
         foundation = new Foundation<>(employee.getPlayer(), constructable, constructable.hasVisibleFoundation(), constructable.getStartCycle());
     }
@@ -22,6 +22,7 @@ public class ConstructContract<T extends Constructable> extends Contract{
         if(getEmployee().getPlayer().hasResources(constructable.getCost())) {
             getEmployee().getPlayer().changeResources(constructable.getCost().negative());
             getEmployee().getPlayer().addObject(foundation);
+            getEmployee().setTarget(foundation);
             super.initialize();
         }
     }
@@ -44,12 +45,13 @@ public class ConstructContract<T extends Constructable> extends Contract{
 
     @Override
     public boolean work() {
-
         super.work();
 
-        if(getEmployee().getEnergy() >= constructable.getDifficulty()) {
-            constructable.construct();
-            getEmployee().changeEnergy(constructable.getDifficulty());
+        if(isStarted()) {
+            if (getEmployee().getEnergy() >= constructable.getDifficulty()) {
+                constructable.construct();
+                getEmployee().changeEnergy(constructable.getDifficulty());
+            }
         }
 
         if(constructable.isCompleted()) {

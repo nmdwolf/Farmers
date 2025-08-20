@@ -5,6 +5,7 @@ import core.upgrade.Upgrade;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class CustomMethods {
         System.out.println(Arrays.deepToString(temp).replace("], ", "]\n").replace(toReplace, replacement) + "\n\n");
     }
 
-    public static void customDrawString(Graphics g, String text, int x, int y) {
+    public static void drawString(Graphics g, String text, int x, int y) {
         for (String line : text.split("\n"))
             g.drawString(line, x, y += g.getFontMetrics().getHeight());
     }
@@ -88,5 +89,28 @@ public class CustomMethods {
         gr.drawRect(1, 1, sprite.getWidth(), sprite.getHeight());
         gr.dispose();
         return img;
+    }
+
+    public static BufferedImage rotateImage(BufferedImage img, double angle) {
+        double sin = Math.abs(Math.sin(angle));
+        double cos = Math.abs(Math.cos(angle));
+        int w = img.getWidth();
+        int h = img.getHeight();
+
+        // Calculate the new dimensions of the rotated image
+        int newW = (int) Math.floor(w * cos + h * sin);
+        int newH = (int) Math.floor(h * cos + w * sin);
+        BufferedImage rotated = new BufferedImage(newW, newH, img.getType());
+
+        AffineTransform tf = new AffineTransform();
+        tf.translate(newW / 2f, newH / 2f);
+        tf.rotate(-angle);
+        tf.translate( - w / 2f, - h / 2f);
+
+        Graphics2D g2d = CustomMethods.optimizeGraphics(rotated.createGraphics());
+        g2d.drawRenderedImage(img, tf);
+        g2d.dispose();
+
+        return rotated;
     }
 }

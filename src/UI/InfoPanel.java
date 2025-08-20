@@ -44,7 +44,7 @@ public class InfoPanel extends JPanel {
         gr.drawRoundRect(1, 1, width - 3, height - 3, 10, 10);
 
         if(selected != null)
-            CustomMethods.customDrawString(gr, selected.toString(), 20, 20);
+            CustomMethods.drawString(gr, selected.toString(), 20, 20);
 
         gr.dispose();
     }

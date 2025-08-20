@@ -15,14 +15,17 @@ import core.upgrade.WellUpgrade;
 
 import java.awt.image.BufferedImage;
 
+import static core.GameConstants.SPRITE_SIZE;
+import static core.GameConstants.SPRITE_SIZE_MAX;
+
 public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolvable {
 
-    public final static BufferedImage BONFIRE_SPRITE = CustomMethods.getSprite("src/img/bonfire.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
-    public final static BufferedImage TOWN_SPRITE = CustomMethods.getSprite("src/img/town.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
-    public final static BufferedImage CASTLE_SPRITE = CustomMethods.getSprite("src/img/castle.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
-    public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.getSprite("src/img/bonfire.png", GameConstants.BUILDING_SPRITE_SIZE_MAX, GameConstants.BUILDING_SPRITE_SIZE_MAX);
-    public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.getSprite("src/img/town.png", GameConstants.BUILDING_SPRITE_SIZE_MAX, GameConstants.BUILDING_SPRITE_SIZE_MAX);
-    public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.getSprite("src/img/castle.png", GameConstants.BUILDING_SPRITE_SIZE_MAX, GameConstants.BUILDING_SPRITE_SIZE_MAX);
+    public final static BufferedImage BONFIRE_SPRITE = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE, SPRITE_SIZE);
+    public final static BufferedImage TOWN_SPRITE = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE, SPRITE_SIZE);
+    public final static BufferedImage CASTLE_SPRITE = CustomMethods.getSprite("src/img/castle.png", SPRITE_SIZE, SPRITE_SIZE);
+    public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
+    public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
+    public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.getSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
     public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "A new city has been founded.");
 
     public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer() {{
@@ -69,10 +72,10 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
 
     @Override
     public String getClassLabel() {
-        return switch(getLevel()) {
-            case 0: yield "Bonfire";
-            case 1: yield "Town Center";
-            case 2: default: yield "Castle";
+        return switch (getLevel()) {
+            case 0 -> "Bonfire";
+            case 1 -> "Town Center";
+            default -> "Castle";
         };
     }
 

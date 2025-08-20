@@ -89,8 +89,9 @@ public abstract class Worker extends Unit {
 
     public void addContract(Contract c) {
         if(c instanceof LaborContract)
-            contracts.removeIf(obj -> obj instanceof LaborContract); // Removes current LabourContract  è s2j.0/
+            contracts.removeIf(obj -> obj instanceof LaborContract); // Removes current LabourContract
         contracts.add(c);
+        c.initialize();
     }
 
     @Override

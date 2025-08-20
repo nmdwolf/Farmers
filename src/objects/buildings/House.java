@@ -10,10 +10,13 @@ import core.upgrade.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import static core.GameConstants.SPRITE_SIZE;
+import static core.GameConstants.SPRITE_SIZE_MAX;
+
 public class House extends IdleBuilding implements Upgradable, Spacer {
 
-    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/hut.png", GameConstants.BUILDING_SPRITE_SIZE, GameConstants.BUILDING_SPRITE_SIZE);
-    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/hut.png", GameConstants.BUILDING_SPRITE_SIZE_MAX, GameConstants.BUILDING_SPRITE_SIZE_MAX);
+    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/hut.png", SPRITE_SIZE, SPRITE_SIZE);
+    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/hut.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
     public final static ResourceContainer HOUSE_COST = new ResourceContainer() {{
         put(Resource.WOOD, 50);
         put(Resource.TIME, 5);

@@ -29,11 +29,10 @@ public abstract class Constructable extends GameObject implements Evolvable {
         this.hasVisibleFoundation = hasVisibleFoundation;
     }
 
-    public int getCompleted() {
+    public int getCompletion() {
         return completed;
     }
-
-    public int getRequired() { return required; }
+    public int getRequirement() { return required; }
     public boolean isCompleted() { return completed >= required; }
 
     public void construct() { completed++; }

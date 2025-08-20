@@ -21,7 +21,7 @@ public class Player {
     private final AwardSystem awards;
 
     private final Set<GameObject> objects;
-    private Set<GameObject> newObjects;
+    private Set<GameObject> newObjects, removableObjects;
     private final HashSet<Upgrade> enabledUpgrades;
     private final HashSet<Cell> discovered, spotted;
     private final ResourceContainer resources, totalResources;
@@ -41,6 +41,7 @@ public class Player {
         viewpoint = start;
         objects = ConcurrentHashMap.newKeySet();
         newObjects = ConcurrentHashMap.newKeySet();
+        removableObjects = ConcurrentHashMap.newKeySet();
         enabledUpgrades = new HashSet<>();
         discovered = new HashSet<>();
         spotted = new HashSet<>();
@@ -68,7 +69,12 @@ public class Player {
         return temp;
     }
 
-    public void clearNewObjects() { newObjects.clear(); }
+    public Set<GameObject> getRemovableObjects() {
+        objects.removeAll(removableObjects);
+        HashSet<GameObject> temp = new HashSet<>(removableObjects);
+        removableObjects = ConcurrentHashMap.newKeySet();
+        return temp;
+    }
 
     /**
      * Make new object ready to be added to the game field.
@@ -94,7 +100,7 @@ public class Player {
     }
 
     public void removeObject(GameObject object) {
-        objects.remove(object);
+        removableObjects.add(object);
     }
 
     public String getName() {
@@ -178,7 +184,7 @@ public class Player {
     public boolean hasDiscovered(Cell loc) { return discovered.contains(loc); }
 
     public void spot(Cell cell) {
-        if(!(cell instanceof EndOfMap) && !discovered.contains(cell))
+        if(!discovered.contains(cell))
             spotted.add(cell);
     }
 

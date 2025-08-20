@@ -1,6 +1,9 @@
 package core;
 
+import UI.CustomMethods;
+
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Random;
 
 public interface GameConstants {
@@ -16,10 +19,10 @@ public interface GameConstants {
     int COLD_LEVEL = 2;
     int HOT_LEVEL = 10;
 
-    int UNIT_SPRITE_SIZE = 15;
-    int BUILDING_SPRITE_SIZE = 15;
-    int UNIT_SPRITE_SIZE_MAX = 50;
-    int BUILDING_SPRITE_SIZE_MAX = 50;
+    int SPRITE_SIZE = 15;
+    int SPRITE_SIZE_MAX = 50;
+    int CELL_X_MARGIN = 5;
+    int CELL_Y_MARGIN = 10;
 
     int WATER_THRESHOLD = 150;
     int WOOD_THRESHOLD = 150;
@@ -37,10 +40,15 @@ public interface GameConstants {
     Random rand = new Random(19960808);
 
     boolean GAME_3D = false;
-
-    int CELL_UNIT_X_MARGIN = 5;
-    int CELL_UNIT_Y_MARGIN = 10;
+    boolean SHUFFLE_MUSIC = true;
+    boolean PLAY_MUSIC = false;
+    boolean SHOW_CELL_ARROWS = true;
+    boolean CUSTOM_CURSOR = true;
 
     Color GRAY = new Color(210, 210, 210);
     String[] PLAYER_COLORS = new String[]{"Blue", "Green", "Yellow"};
+
+    BufferedImage CLOUD = CustomMethods.getSprite("src/img/cloud.png", GameConstants.SPRITE_SIZE * 2, GameConstants.SPRITE_SIZE);
+    BufferedImage SUN = CustomMethods.getSprite("src/img/sun.png", GameConstants.SPRITE_SIZE,
+            GameConstants.SPRITE_SIZE);
 }

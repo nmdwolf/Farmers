@@ -14,17 +14,15 @@ public class Cell {
 
     private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel;
     private final ResourceContainer resources;
-    private int x, y, z;
+    private final int cellX, cellY, cellZ;
 
     private Cell east, west, north, south, up, down;
-    private boolean linking;
     private final HashSet<GameObject> content;
 
     public Cell(int x, int y, int z, int s, int b) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.linking = false;
+        this.cellX = x;
+        this.cellY = y;
+        this.cellZ = z;
         this.content = new HashSet<>();
         unitSpace = s;
         buildingSpace = b;
@@ -175,63 +173,40 @@ public class Cell {
     }
 
     public int getX() {
-        return x;
+        return cellX;
     }
 
     public int getY() {
-        return y;
+        return cellY;
     }
 
     public int getZ() {
-        return z;
+        return cellZ;
     }
 
     public void link(Cell cell) {
-        int dx = cell.x - x;
-        int dy = cell.y - y;
-        int dz = cell.z - z;
+        int dx = cell.cellX - cellX;
+        int dy = cell.cellY - cellY;
+        int dz = cell.cellZ - cellZ;
 
         if(Math.abs(dx) + Math.abs(dy) + Math.abs(dz) != 1)
             throw new IllegalArgumentException("Distance should be exactly 1!");
 
-        if(!linking) {
-            linking = true;
-            if (dx == 1) {
-                if (east == null)
-                    cell.link(this);
-                east = cell;
-            }
-            if (dx == -1) {
-                if (west == null)
-                    cell.link(this);
-                west = cell;
-            }
-            if (dy == 1) {
-                if (north == null)
-                    cell.link(this);
-                north = cell;
-            }
-            if (dy == -1) {
-                if (south == null)
-                    cell.link(this);
-                south = cell;
-            }
-            if (dz == 1) {
-                if (up == null)
-                    cell.link(this);
-                up = cell;
-            }
-            if (dz == -1) {
-                if (down == null)
-                    cell.link(this);
-                down = cell;
-            }
-        }
-        linking = false;
+        if (dx == 1)
+            east = cell;
+        if (dx == -1)
+            west = cell;
+        if (dy == 1)
+            north = cell;
+        if (dy == -1)
+            south = cell;
+        if (dz == 1)
+            up = cell;
+        if (dz == -1)
+            down = cell;
     }
 
     public Cell fetch(int x, int y, int z) throws NullPointerException {
-
         if(x == 0 && y == 0 && z == 0)
             return this;
 
@@ -270,11 +245,14 @@ public class Cell {
     }
 
     public int distanceTo(Cell cell) {
-        return Math.abs(x - cell.getX()) + Math.abs(y - cell.getY()) + Math.abs(z - cell.getZ());
+        return Math.abs(cellX - cell.getX()) + Math.abs(cellY - cell.getY()) + Math.abs(cellZ - cell.getZ());
     }
 
     public Location getLocation() {
-        return new Location(x, y, z);
+        return new Location(cellX, cellY, cellZ);
+    }
+
+    public boolean isEndOfMap() { return cellX == 0 || cellX == NUMBER_OF_CELLS - 1 || cellY == 0 || cellY == NUMBER_OF_CELLS - 1;
     }
 
     /*public Location add(Location loc) {
@@ -291,14 +269,14 @@ public class Cell {
 
     @Override
     public String toString() {
-        return "Location(" + x + "," + y + "," + z + ")";
+        return "Location(" + cellX + ", " + cellY + ", " + cellZ + ")";
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Cell) {
             Cell cell = (Cell)obj;
-            return (x == cell.x) && (y == cell.y) && (z == cell.z);
+            return (cellX == cell.cellX) && (cellY == cell.cellY) && (cellZ == cell.cellZ);
         }
         return false;
     }

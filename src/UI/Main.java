@@ -2,6 +2,7 @@ package UI;
 
 import core.*;
 
+import core.Action;
 import objects.*;
 import objects.buildings.Building;
 import objects.buildings.Lumberjack;
@@ -24,6 +25,7 @@ public class Main extends JFrame{
     private final Property<Integer> current, cycle;
     private final Property<Player> currentPlayer;
     private final Property<String> audioSource;
+    private final Property<Boolean> shuffleMusic, playMusic;
     private Thread audioThread;
     private DJ dj;
 
@@ -44,7 +46,7 @@ public class Main extends JFrame{
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            Main mainframe = new Main();
+            new Main();
         });
     }
 
@@ -54,6 +56,8 @@ public class Main extends JFrame{
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
         audioSource = new Property<>("src/music/FAVA - Lifetracks/");
+        shuffleMusic = new Property<>(SHUFFLE_MUSIC);
+        playMusic = new Property<>(PLAY_MUSIC);
         current = new Property<>(0);
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
@@ -61,7 +65,7 @@ public class Main extends JFrame{
         showPlayerInputDialog();
         currentPlayer.set(players.get(current.get()));
 
-        game = new GamePanel(this, cells, current, cycle, currentPlayer, audioSource);
+        game = new GamePanel(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic);
         game.initialize();
         startMusic();
 
@@ -80,9 +84,6 @@ public class Main extends JFrame{
 
             currentPlayer.set(players.get(current.get()));
 
-            for (String text : currentPlayer.get().getMessages())
-                game.showMessagePanel(text);
-
             for (GameObject object : currentPlayer.get().getObjects())
                 object.cycle(cycle.get());
 
@@ -92,32 +93,48 @@ public class Main extends JFrame{
 
         garbageCollector = new Timer(500, e -> {
             for(Player p : allPlayers) {
-                for(GameObject obj : p.getNewObjects())
+                for(GameObject obj : p.getNewObjects()) {
                     addObject(obj);
-                p.clearNewObjects();
+                    obj.setCell(obj.getCell());
+                }
 
-                for (GameObject obj : p.getObjects())
-                    if ((obj.getHealth() <= 0) && !(obj instanceof Revivable)) {
+                for (GameObject obj : p.getObjects()) {
+                    if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                         p.removeObject(obj);
-                        removeObject(obj);
-                    }
+
+                    if(obj instanceof Operational o)
+                        o.step();
+                }
+
+                for(GameObject obj : p.getRemovableObjects())
+                    removeObject(obj);
             }
+
+            for (String text : currentPlayer.get().getMessages())
+                game.showMessagePanel(text);
+
             game.refreshWindow();
         });
         garbageCollector.start();
     }
 
     public void startMusic() {
-        audioSource.bind(() -> {
-            if(audioThread != null) {
-                audioThread.interrupt();
-                dj.closeStream();
+
+        Action audioAction = () -> {
+            if(playMusic.get()) {
+                if (audioThread != null) {
+                    audioThread.interrupt();
+                    dj.closeStream();
+                }
+                dj = new DJ(audioSource.get(), shuffleMusic.get());
+                audioThread = new Thread(dj);
+                audioThread.start();
             }
-            dj = new DJ(audioSource.get());
-            audioThread = new Thread(dj);
-            audioThread.start();
-        });
-        audioSource.set("src/music/FAVA - Lifetracks/");
+        };
+
+        audioSource.bind(audioAction); // Last property in settings panel needs binding (TODO fix this minor detail)
+//        shuffleMusic.bind(audioAction);
+        audioSource.set("src/music/FAVA - Lifetracks/"); // This call will also start playing the music on startup
     }
 
     public void showPlayerInputDialog() {
@@ -147,8 +164,10 @@ public class Main extends JFrame{
                 case "Yellow" -> Color.yellow;
                 default -> Color.blue;
             };
-            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+//            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+//            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+            int x = 5;
+            int y = 5;
             addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
@@ -204,7 +223,6 @@ public class Main extends JFrame{
         }
 
         if(added) {
-            obj.getPlayer().addObject(obj);
             if(obj instanceof Spacer)
                 obj.getCell().changeUnitSpace(((Spacer)obj).getSpaceBoost());
             if(obj instanceof Obstruction)
@@ -227,6 +245,7 @@ public class Main extends JFrame{
             obj.getCell().changeUnitSpace(-((Spacer)obj).getSpaceBoost());
         if(obj instanceof Obstruction)
             obj.getCell().changeTravelCost(-100);
+        obj.getCell().removeContent(obj);
     }
 
     /**
@@ -393,7 +412,7 @@ public class Main extends JFrame{
         if(obj instanceof Unit object) {
             int locX = object.getMaxEnergy();
             int locY = object.getMaxEnergy();
-            int locLevel = object.getMaxEnergy();
+//            int locLevel = object.getMaxEnergy();
 
             ArrayList<Cell> toDo = new ArrayList<>();
             ArrayList<Cell> done = new ArrayList<>();

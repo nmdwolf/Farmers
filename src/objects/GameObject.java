@@ -19,7 +19,6 @@ public abstract class GameObject {
         id = CustomMethods.getNewIdentifier();
 
         this.cell = cell;
-        this.cell.addContent(this);
 
         this.player = player;
         this.startCycle = cycle;

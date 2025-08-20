@@ -30,7 +30,6 @@ public class LaborContract extends Contract {
 
     @Override
     public void initialize() {
-
     }
 
     @Override

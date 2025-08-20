@@ -77,7 +77,7 @@ public class OperationPanel extends JPanel {
         OperationsList operations = selected.getOperations(cycle, code);
         for(int i = 0; i < operations.size(); i++) {
             final int step = (i >= 7) ? i + 1 : i;
-            buttons[step].setText(operations.getDescription(i));
+            buttons[step].updateText(operations.getDescription(i));
             buttons[step].enableGhost(false);
             buttons[step].addActionListener(actionEvent -> operations.get(step).perform());
         }
@@ -85,7 +85,7 @@ public class OperationPanel extends JPanel {
         setVisible(true);
     }
 
-    public void resize(int cellWidth, int cellHeight) {
+    public void resizePanel(int cellWidth, int cellHeight) {
         setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         for(RoundedButton button : buttons)

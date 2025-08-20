@@ -14,11 +14,13 @@ public class RoundedButton extends JButton {
     private BufferedImage img;
     private Color hover;
     private boolean ghost;
+    private String text;
 
     public RoundedButton(String text, Dimension dim, Color color) {
-        super(text);
+        super();
         hover = color;
         ghost = false;
+        this.text = text;
 
         this.width = dim.width;
         this.height = dim.height;
@@ -77,7 +79,7 @@ public class RoundedButton extends JButton {
         this.width = dim.width;
         this.height = dim.height;
         setPreferredSize(dim);
-        setBorder(new CustomBorder(Color.black, width, height));
+        setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
     }
 
     @Override
@@ -85,14 +87,16 @@ public class RoundedButton extends JButton {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
-        gr.setColor(GRAY);
-        gr.fillRoundRect(1, 1, width - 2, height - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
+        if(!ghost) {
+            gr.setColor(GRAY);
+            gr.fillRoundRect(1, 1, width - 2, height - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
 
-        if (img != null)
-            gr.drawImage(img, Math.round((width - img.getWidth()) / 2f), Math.round((height - img.getHeight()) / 2f), null);
-        else {
-            gr.setColor(Color.black);
-            gr.drawString(getText(), Math.floorDiv(width - g.getFontMetrics().stringWidth(getText()), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4));
+            if (img != null)
+                gr.drawImage(img, Math.round((width - img.getWidth()) / 2f), Math.round((height - img.getHeight()) / 2f), null);
+            else {
+                gr.setColor(Color.black);
+                gr.drawString(text, Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4));
+            }
         }
 
         gr.dispose();
@@ -100,6 +104,11 @@ public class RoundedButton extends JButton {
 
     public void enableGhost(boolean flag) {
         ghost = flag;
+        setEnabled(!flag);
         setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
+    }
+
+    public void updateText(String text) {
+        this.text = text;
     }
 }

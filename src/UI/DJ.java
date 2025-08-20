@@ -4,18 +4,22 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class DJ implements Runnable{
 
     private static final int BUFFER_SIZE = 4096;
 
-    private String src;
+    private final String src;
+    private final boolean shuffle;
     private SourceDataLine line;
     private AudioInputStream stream;
     private boolean running;
 
-    public DJ(String folder) {
+    public DJ(String folder, boolean shuffle) {
         src = folder;
+        this.shuffle = shuffle;
     }
 
     public void run() {
@@ -23,7 +27,10 @@ public class DJ implements Runnable{
         try {
             File dir = new File(src);
             if(dir.isDirectory()) {
-                for (File file : Arrays.stream(dir.listFiles()).filter(obj -> obj.getName().endsWith("wav")).toList()){
+                List<File> files = Arrays.asList(dir.listFiles());
+                if(shuffle)
+                    Collections.shuffle(files);
+                for (File file : files.stream().filter(obj -> obj.getName().endsWith("wav")).toList()){
                     stream = AudioSystem.getAudioInputStream(file);
                     AudioFormat format = stream.getFormat();
                     DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);

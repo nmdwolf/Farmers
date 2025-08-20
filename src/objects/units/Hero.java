@@ -21,7 +21,7 @@ public class Hero extends Unit{
 
     public Hero(Player p, Cell cell, int cycle, String name) {
         super(p, cell, cycle, HERO_ANIMATION, HERO_SPACE, HERO_SIGHT, HERO_HEALTH,
-                0, 0, 0, HERO_ENERGY, HERO_COST);
+                0, 0, 1, HERO_ENERGY, HERO_COST);
         this.name = name;
     }
 

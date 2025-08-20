@@ -16,6 +16,7 @@ public abstract class Operational extends Constructable {
     private Status status, oldStatus;
     private int step;
     private final int cycleLength;
+    private GameObject target;
 
     public Operational(Player player, Cell cell, int cycle, int space, int sight, int health,
                        int degradeTime, int degradeAmount, int cycleLength,
@@ -25,9 +26,14 @@ public abstract class Operational extends Constructable {
 
         this.status = IDLE;
         this.oldStatus = IDLE;
+        this.target = null;
 
         this.step = 0;
-        this.cycleLength = cycleLength;
+
+        if(cycleLength == 0)
+            throw new IllegalArgumentException("Cycle length has to be nonzero.");
+        else
+            this.cycleLength = cycleLength;
     }
 
     /**
@@ -64,5 +70,13 @@ public abstract class Operational extends Constructable {
     public void setStatus(Status newStatus) {
         oldStatus = status;
         status = newStatus;
+    }
+
+    public void setTarget(GameObject newTarget) {
+        target = newTarget;
+    }
+
+    public GameObject getTarget() {
+        return target;
     }
 }

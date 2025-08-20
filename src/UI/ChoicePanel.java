@@ -11,29 +11,32 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
+import java.util.ArrayList;
 
 public class ChoicePanel extends JPanel {
 
     private final OperationPanel operationsPanel;
-    private final RoundedButton[] buttons;
-    private OperationsList actions;
+    private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
-    private final ActionListener hide;
+    private final ActionListener hide, hideThis;
 
-    public ChoicePanel(OperationPanel operationsPanel, int cellWidth, int cellHeight) {
+    public ChoicePanel(OperationPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide) {
         this.operationsPanel = operationsPanel;
-        hide = e -> setVisible(false);
+        this.hide = hide;
+        hideThis = event -> setVisible(false);
 
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-        buttons = new RoundedButton[4]; // Resource, Build, Upgrades, Evolutions
+        buttons = new ArrayList<>(); // Move, Resource, Build, Upgrades, Evolutions
 
-        buttons[0] = new RoundedButton("Work", buttonSize, Color.gray);
-        buttons[1] = new RoundedButton("Construct", buttonSize, Color.gray);
-        buttons[2] = new RoundedButton("Upgrade", buttonSize, Color.gray);
-        buttons[3] = new RoundedButton("Evolve", buttonSize, Color.gray);
+        buttons.add(new RoundedButton("Move", buttonSize, Color.gray));
+        buttons.add(new RoundedButton("Work", buttonSize, Color.gray));
+        buttons.add(new RoundedButton("Construct", buttonSize, Color.gray));
+        buttons.add(new RoundedButton("Upgrade", buttonSize, Color.gray));
+        buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray));
 
         for(JButton button : buttons)
-            button.addActionListener(hide);
+            button.addActionListener(hideThis);
+        buttons.get(0).addActionListener(hide);
 
         // Intercepts mouse events
         addMouseListener(new MouseAdapter() {});
@@ -42,13 +45,13 @@ public class ChoicePanel extends JPanel {
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
 
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < buttons.size(); i++) {
             c.gridx = i % 2;
             c.gridy = i / 2;
             c.weightx = 0.5;
             c.weighty = 0.5;
             c.anchor = c.gridx == 0 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
-            add(buttons[i], c);
+            add(buttons.get(i), c);
         }
 
         setVisible(false);
@@ -61,30 +64,29 @@ public class ChoicePanel extends JPanel {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());
             for(ActionListener listener : button.getActionListeners())
-                if(listener != hide)
+                if(listener != hide && listener != hideThis)
                     button.removeActionListener(listener);
         }
 
-        buttons[0].addActionListener(event -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
-        buttons[1].addActionListener(event -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
-        buttons[2].addActionListener(event -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
-        buttons[3].addActionListener(event -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
+        buttons.get(1).addActionListener(event -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
+        buttons.get(2).addActionListener(event -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
+        buttons.get(3).addActionListener(event -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
+        buttons.get(4).addActionListener(event -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
 
-        if(selected != null) {
-            if(selected instanceof Worker)
-                buttons[0].setVisible(true);
-            if(selected instanceof Constructor)
-                buttons[1].setVisible(true);
-            if(selected instanceof Upgrader)
-                buttons[2].setVisible(true);
-            if(selected instanceof Evolvable)
-                buttons[3].setVisible(true);
-        }
+        buttons.get(0).setVisible(true);
+        if(selected instanceof Worker)
+            buttons.get(1).setVisible(true);
+        if(selected instanceof Constructor)
+            buttons.get(2).setVisible(true);
+        if(selected instanceof Upgrader)
+            buttons.get(3).setVisible(true);
+        if(selected instanceof Evolvable)
+            buttons.get(4).setVisible(true);
 
         setVisible(true);
     }
 
-    public void resize(int cellWidth, int cellHeight) {
+    public void resizePanel(int cellWidth, int cellHeight) {
         setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         for(RoundedButton button : buttons)

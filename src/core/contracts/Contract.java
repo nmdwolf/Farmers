@@ -22,7 +22,9 @@ public abstract class Contract {
     /**
      * Sets up the contract and deals with things such as costs.
      */
-    public void initialize() { isStarted = true; }
+    public void initialize() {
+        isStarted = true;
+    }
 
     public boolean isStarted() { return isStarted; }
 
