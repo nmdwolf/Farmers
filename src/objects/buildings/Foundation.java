@@ -5,6 +5,7 @@ import UI.CustomMethods;
 import UI.OperationsList;
 import objects.Constructable;
 import objects.GameObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Arc2D;
@@ -12,6 +13,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
@@ -46,7 +48,7 @@ public class Foundation<T extends Constructable> extends GameObject {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
         if(visible) {
             BufferedImage sprite = max ? FOUNDATION_SPRITE_MAX : FOUNDATION_SPRITE;
             BufferedImage img = new BufferedImage(sprite.getWidth(), sprite.getHeight(), sprite.getType());
@@ -66,10 +68,10 @@ public class Foundation<T extends Constructable> extends GameObject {
             gr.fill(outerDisk);
 
             gr.dispose();
-            return img;
+            return Optional.of(img);
         }
         else
-            return null;
+            return Optional.empty();
     }
 
     @Override

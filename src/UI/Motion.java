@@ -15,7 +15,7 @@ public class Motion {
     public Motion(Unit obj, ArrayList<Location> path, int effectiveLength) {
         length = effectiveLength;
         locations = path;
-        locations.add(0, obj.getCell().getLocation());
+        locations.addFirst(obj.getCell().getLocation());
         if(path.size() > 1 && path.get(0) == path.get(1))
             throw new IllegalArgumentException("Path should not contain starting location.");
         object = obj;

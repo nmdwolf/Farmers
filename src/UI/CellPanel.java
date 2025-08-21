@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Set;
 
+import static UI.CustomMethods.coordinateTransform;
 import static core.GameConstants.*;
 
 public class CellPanel extends JPanel {
@@ -169,22 +170,19 @@ public class CellPanel extends JPanel {
 
     public void drawObjects(Graphics2D gr) {
         /*
-         * Draw all (visible/relevant) game objects
-         * taking into account their state
+         * Draw all (visible/relevant) game objects taking into account their state
          */
-
-
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
             GameObject object = objectMap.get(pair);
-            gr.setColor(object == selected.get() ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor());
-            BufferedImage sprite = object.getSprite(true);
+            selected.get().ifPresent(obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()));
 
             if(object instanceof Unit u) {
                 if(u.getStatus() == Status.WORKING) {
-                    if(cellArrowProperty.get() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation))
-                        drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,
-                                objectMap.get(u.getTarget()).key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),
-                                getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                    if(cellArrowProperty.getFlat() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation)) {
+                        Pair<Integer, Integer> targetPair = objectMap.get(u.getTarget());
+                        if(targetPair != null)
+                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                    }
 
                     double pieces = u.getCycleLength() / 4f;
                     int currentLength = u.getCurrentStep() + 1;
@@ -209,20 +207,19 @@ public class CellPanel extends JPanel {
                         gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)(SPRITE_SIZE_MAX * remainder), CELL_Y_MARGIN);
                 }
 
-                if(sprite != null)
-                    gr.drawImage(object == selected.get() ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN, CELL_Y_MARGIN, null);
-                else
-                    gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 15);
+                object.getSprite(true).ifPresentOrElse(
+                        sprite -> gr.drawImage(selected.get().map(obj -> object.equals(obj) ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite).orElse(sprite), (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN, CELL_Y_MARGIN, null),
+                        () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 15));
 
             } else if(object instanceof Building || object instanceof Foundation) {
-                if(sprite != null)
-                    gr.drawImage(object == selected.get() ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN, getHeight() - SPRITE_SIZE_MAX - CELL_Y_MARGIN, null);
-                else {
-                    gr.drawString(object.getToken(), 5 + 10 * pair.key(), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
-//                                if(b instanceof Worker)
-//                                    if (b.checkStatus(CONTRACT))
-//                                        gr.drawLine(5 + x * getWidth( + 10 * objectMap.get(object), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2, x * getWidth( + 10 * objectMap.get(object) + gr.getFontMetrics().stringWidth(b.getToken()), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
-                }
+                object.getSprite(true).ifPresentOrElse(
+                        sprite -> gr.drawImage(selected.get().map(obj -> object.equals(obj) ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite).orElse(sprite), (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN, getHeight() - SPRITE_SIZE_MAX - CELL_Y_MARGIN, null),
+                        () -> {
+                            gr.drawString(object.getToken(), 5 + 10 * pair.key(), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
+        //                                if(b instanceof Worker)
+        //                                    if (b.checkStatus(CONTRACT))
+        //                                        gr.drawLine(5 + x * getWidth( + 10 * objectMap.get(object), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2, x * getWidth( + 10 * objectMap.get(object) + gr.getFontMetrics().stringWidth(b.getToken()), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
+                        });
             }
         }
 
@@ -253,12 +250,6 @@ public class CellPanel extends JPanel {
         gr.drawImage(rotated, x2 +  (SPRITE_SIZE_MAX / 2) + CELL_X_MARGIN - rotated.getWidth() / 2,
                 y2 - rotated.getHeight() / 2,
                 null);
-    }
-
-    private Pair<Integer, Integer> coordinateTransform(int x, int y) {
-        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(SPRITE_SIZE_MAX + CELL_X_MARGIN));
-        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(SPRITE_SIZE_MAX + CELL_Y_MARGIN));
-        return new Pair<>(selectionX, selectionY);
     }
 
     public class BiMap {

@@ -3,8 +3,10 @@ package objects;
 import core.*;
 
 import UI.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public abstract class GameObject {
 
@@ -37,6 +39,7 @@ public abstract class GameObject {
     public int getObjectIdentifier() { return id; }
 
     public Player getPlayer() { return player; }
+    public void setPlayer(Player newPlayer) { player = newPlayer; }
 
     public Cell getCell() { return cell; }
     public void setCell(Cell cell) {
@@ -47,7 +50,9 @@ public abstract class GameObject {
 
     public abstract String getClassLabel();
     public abstract String getToken();
-    public abstract BufferedImage getSprite(boolean max);
+
+    @NotNull
+    public abstract Optional<BufferedImage> getSprite(boolean max);
 
     public abstract OperationsList getOperations(int cycle, OperationCode code);
 
@@ -83,6 +88,6 @@ public abstract class GameObject {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof GameObject) && (id == ((GameObject)obj).getObjectIdentifier());
+        return (obj instanceof GameObject go) && (id == go.getObjectIdentifier());
     }
 }

@@ -6,8 +6,10 @@ import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Booster;
 import objects.GameObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class Lumberjack extends IdleBuilding implements Booster {
 
@@ -41,8 +43,8 @@ public class Lumberjack extends IdleBuilding implements Booster {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
-        return null;
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+        return Optional.empty();
     }
 
     @Override

@@ -4,6 +4,7 @@ import core.*;
 import objects.GameObject;
 import objects.resources.Resource;
 import objects.units.Unit;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +25,7 @@ public class GamePanel extends JFrame {
     private JMenuItem[] playerLabels, resourceLabels;
     private final InfoPanel infoPanel;
     private final ChoicePanel choicePanel;
-    private final OperationPanel operationsPanel;
+    private final OperationsPanel operationsPanel;
     private final CellPanel cellPanel;
     private final SpringLayout layout;
     private final JLayeredPane contentPanel;
@@ -32,21 +33,21 @@ public class GamePanel extends JFrame {
     private final JPanel tintedGlassPanel;
 
     private int cellWidth, cellHeight, poolSize, screenWidth, screenHeight;
-    private final Property<Player> player;
+    @NotNull private final Property<Player> player;
     private int mouseX, mouseY;
 
     private final Main parent;
-    private final Property<Integer> cycle, current;
-    private final Property<Boolean> clicked, cursorFlag;
-    private final Property<GameObject> selected;
+    @NotNull private final Property<Integer> cycle, current;
+    @NotNull private final Property<Boolean> clicked, cursorFlag;
+    @NotNull private final Property<GameObject> selected;
     private int travelDistance;
     private Location clickPos, destination;
-    private Location[] hoverPath;
+    @NotNull private final Property<Location[]> hoverPath;
     private final Grid cells;
 
     public GamePanel(Main main, Grid cells,
-                     Property<Integer> current, Property<Integer> cycle, Property<Player> player,
-                     Property<String> audioSource, Property<Boolean> playMusic, Property<Boolean> shuffleMusic) {
+                     @NotNull Property<Integer> current, @NotNull Property<Integer> cycle, @NotNull Property<Player> player,
+                     @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic, @NotNull Property<Boolean> shuffleMusic) {
         parent = main;
         this.cells = cells;
         this.current = current;
@@ -63,8 +64,9 @@ public class GamePanel extends JFrame {
         selected = new Property<>();
         Property<Boolean> cellArrowProperty = new Property<>(SHOW_CELL_ARROWS);
         clickPos = new Location(0, 0, 0);
+        hoverPath = new Property<>();
 
-        operationsPanel = new OperationPanel(cellWidth, cellHeight);
+        operationsPanel = new OperationsPanel(cellWidth, cellHeight);
         choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, event -> hidePanels());
         infoPanel = new InfoPanel();
         cellPanel = new CellPanel(selected, cellArrowProperty);
@@ -81,11 +83,14 @@ public class GamePanel extends JFrame {
         };
 
         selected.bind(() -> {
-            if(selected.get() != null) {
-                infoPanel.update(selected.get());
+            selected.get().ifPresentOrElse(obj -> {
+                infoPanel.update(obj);
                 infoPanel.setVisible(true);
-                choicePanel.update(selected.get(), cycle.get());
-            }
+                choicePanel.update(obj, cycle.getFlat());
+            }, () -> {
+                choicePanel.setVisible(false);
+                infoPanel.setVisible(false);
+            });
             refreshWindow();
         });
     }
@@ -130,12 +135,11 @@ public class GamePanel extends JFrame {
                     drawCells(gr);
                     drawDetails(gr);
 
-                    gr.setColor(player.get().getAlternativeColor());
+                    gr.setColor(player.getFlat().getAlternativeColor());
                     gr.setStroke(new BasicStroke(2));
                     Cell p = posToCell(mouseX, mouseY, 0);
                     gr.drawRect(p.getX() * cellWidth, p.getY() * cellHeight, cellWidth, cellHeight);
-                    if (hoverPath != null)
-                        drawPath(gr);
+                    hoverPath.get().ifPresent(loc -> drawPath(gr));
                     gr.dispose();
                 }
             }
@@ -160,19 +164,16 @@ public class GamePanel extends JFrame {
         contentPanel.getActionMap().put("escape", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(selected.get() == null)
-                    hidePanels();
-                else
-                    cellPanel.setVisible(false);
+                selected.get().ifPresentOrElse(obj -> hidePanels(), () -> cellPanel.setVisible(false));
             }
         });
         contentPanel.getActionMap().put("next_player", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                hoverPath = null;
+                hoverPath.set(null);
                 destination = null;
                 selected.set(null);
-                current.set(current.get() + 1);
+                current.set(current.getFlat() + 1);
 
                 hidePanels();
                 refreshWindow();
@@ -181,8 +182,8 @@ public class GamePanel extends JFrame {
         contentPanel.getActionMap().put("left", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.get().getViewPoint().getX() > 0) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(-1, 0, 0));
+                if(player.getFlat().getViewPoint().getX() > 0) {
+                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(-1, 0, 0));
                     refreshWindow();
                 }
             }
@@ -190,8 +191,8 @@ public class GamePanel extends JFrame {
         contentPanel.getActionMap().put("right", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.get().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(1, 0, 0));
+                if(player.getFlat().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(1, 0, 0));
                     refreshWindow();
                 }
             }
@@ -199,8 +200,8 @@ public class GamePanel extends JFrame {
         contentPanel.getActionMap().put("up", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.get().getViewPoint().getY() > 0) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(0, -1, 0));
+                if(player.getFlat().getViewPoint().getY() > 0) {
+                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, -1, 0));
                     refreshWindow();
                 }
             }
@@ -208,8 +209,8 @@ public class GamePanel extends JFrame {
         contentPanel.getActionMap().put("down", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.get().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(0, 1, 0));
+                if(player.getFlat().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, 1, 0));
                     refreshWindow();
                 }
             }
@@ -226,23 +227,26 @@ public class GamePanel extends JFrame {
                 Cell mousePos = posToCell(mouseX, mouseY, 0);
 
                 // Moves info panel to make sure that the underlying cells are reachable.
-                if(infoPanel != null && selected.get() != null) {
-                    layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() >= 7) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
-                    refreshWindow();
-                }
+                selected.get().ifPresent( obj -> {
+                    if(infoPanel != null) {
+                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() >= 7) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
+                        refreshWindow();
+                    }
 
-                if(selected.get() != null && (selected.get() instanceof Unit) && (hoverPath == null || !mousePos.getLocation().equals(destination)) && !mousePos.isEndOfMap()) {
-                    Pair<Motion, Location> motion = parent.getShortestAdmissiblePath(selected.get(), mousePos.fetch(player.get().getViewPoint()));
-                    if (motion != null && motion.key().length() > 0) {
-                        hoverPath = motion.key().getRelativePath();
-                        destination = motion.value();
-                        travelDistance = motion.key().length();
+                    if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getFlat().getViewPoint()).isEndOfMap()) {
+                        Pair<Motion, Location> motion = parent.getShortestAdmissiblePath(obj,
+                                mousePos.fetch(player.getFlat().getViewPoint()));
+                        if (motion != null && motion.key().length() > 0) {
+                            hoverPath.set(motion.key().getRelativePath());
+                            destination = motion.value();
+                            travelDistance = motion.key().length();
+                        }
+                        else {
+                            hoverPath.set(null);
+                            destination = null;
+                        }
                     }
-                    else {
-                        hoverPath = null;
-                        destination = null;
-                    }
-                }
+                });
 
                 refreshWindow();
             }
@@ -251,9 +255,10 @@ public class GamePanel extends JFrame {
             public void mouseWheelMoved(MouseWheelEvent e) {
                 super.mouseWheelMoved(e);
                 if(GAME_3D) {
-                    if (e.getWheelRotation() != 0 && !player.get().isViewLocked()) {
-                        player.get().changeViewpoint(player.get().getViewPoint().fetch(0, 0, e.getWheelRotation()));
-                        viewMenu.setText("View: " + (player.get().getViewPoint().getZ()));
+                    if (e.getWheelRotation() != 0 && !player.getFlat().isViewLocked()) {
+                        player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, 0,
+                                e.getWheelRotation()));
+                        viewMenu.setText("View: " + (player.getFlat().getViewPoint().getZ()));
                         selected.set(null);
 
                         hidePanels();
@@ -263,13 +268,14 @@ public class GamePanel extends JFrame {
             }
 
             @Override
-            public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
                 Location oldPos = clickPos;
-                clickPos = player.get().getViewPoint().fetch(posToCell(e.getX(), e.getY(), player.get().getViewPoint().getZ())).getLocation();
+                clickPos = player.getFlat().getViewPoint().fetch(posToCell(e.getX(), e.getY(),
+                        player.getFlat().getViewPoint().getZ())).getLocation();
 
                 if(!cells.get(clickPos).isEndOfMap()) {
-                    hoverPath = null;
+                    hoverPath.set(null);
                     destination = null;
 
                     // Any existing panels should be hidden on click
@@ -281,31 +287,36 @@ public class GamePanel extends JFrame {
                     if (SwingUtilities.isLeftMouseButton(e)) {
 
                         // Unselect GameObject on left click
-                        if (clicked.get())
+                        if (clicked.getFlat())
                             selected.set(null);
 
                         // If clicked on cell with objects, show info panel
-                        if (player.get().getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
-                            cellPanel.update(cells.get(clickPos), player.get());
+                        if (player.getFlat().getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
+                            cellPanel.update(cells.get(clickPos), player.getFlat());
                             cellPanel.setVisible(true);
                             clicked.set(true);
                         } else
                             clicked.set(false);
 
                         // right-click events
-                    } else if (SwingUtilities.isRightMouseButton(e) && (selected.get() instanceof Unit)) {
-                        Pair<Motion, Location> motion =
-                                parent.getShortestAdmissiblePath(selected.get(), cells.get(clickPos));
+                    } else if (SwingUtilities.isRightMouseButton(e)) {
 
-                        if(motion != null) {
-                            hoverPath = null;
-                            destination = null;
-                            if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= selected.get().getSpace()
-                                    && motion.key().length() != 0) {
-                                ((Unit) selected.get()).changeEnergy(-motion.key().length());
-                                parent.motionToThread(motion.key());
+                        selected.get().ifPresent(obj -> {
+                            if(obj instanceof Unit unit) {
+                                Pair<Motion, Location> motion =
+                                        parent.getShortestAdmissiblePath(unit, cells.get(clickPos));
+
+                                if(motion != null) {
+                                    hoverPath.set(null);
+                                    destination = null;
+                                    if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= unit.getSpace()
+                                            && motion.key().length() != 0) {
+                                        unit.changeEnergy(-motion.key().length());
+                                        parent.motionToThread(motion.key());
+                                    }
+                                }
                             }
-                        }
+                        });
                     }
 
                     // Redraw game panel
@@ -344,7 +355,8 @@ public class GamePanel extends JFrame {
                 layout.putConstraint(SpringLayout.NORTH, cellPanel, cellHeight - 20, SpringLayout.NORTH, contentPanel);
 
                 infoPanel.resize(cellWidth, cellHeight);
-                layout.putConstraint(SpringLayout.WEST, infoPanel, (clickPos.x() - player.get().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
+                layout.putConstraint(SpringLayout.WEST, infoPanel,
+                        (clickPos.x() - player.getFlat().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
                 settingsPanel.resize(cellWidth, cellHeight);
@@ -361,8 +373,8 @@ public class GamePanel extends JFrame {
         // Create menus
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
-        playerMenu = new JMenu("Player: " + player.get().getName());
-        viewMenu = new JMenu("View: " + player.get().getViewPoint().getZ());
+        playerMenu = new JMenu("Player: " + player.getFlat().getName());
+        viewMenu = new JMenu("View: " + player.getFlat().getViewPoint().getZ());
         cellMenu = new JMenu("Nothing to show");
         JMenu settingsMenu = new JMenu("Settings");
         menubar.add(playerMenu);
@@ -414,7 +426,8 @@ public class GamePanel extends JFrame {
         // Initializes resource labels for player and cell menus
         playerLabels = new JMenuItem[Resource.values().length];
         for(int i = 0; i < Resource.values().length; i++) {
-            JMenuItem label = new JMenuItem(Resource.values()[i].name + ": " + player.get().getResource(Resource.values()[i]));
+            JMenuItem label =
+                    new JMenuItem(Resource.values()[i].name + ": " + player.getFlat().getResource(Resource.values()[i]));
             playerMenu.add(label);
             playerLabels[i] = label;
         }
@@ -427,7 +440,7 @@ public class GamePanel extends JFrame {
 
         cycleLabel = new JMenuItem("Cycle: " + 1);
         viewMenu.add(cycleLabel);
-        popLabel = new JMenuItem("Population: " + player.get().getPop() + "/" + player.get().getPopCap());
+        popLabel = new JMenuItem("Population: " + player.getFlat().getPop() + "/" + player.getFlat().getPopCap());
         playerMenu.add(popLabel);
 
         JMenuItem viewItem = new JMenuItem("Audio & Visuals");
@@ -457,7 +470,7 @@ public class GamePanel extends JFrame {
         });
 
         cursorFlag.bind(() -> {
-            if(cursorFlag.get())
+            if(cursorFlag.getFlat())
                 setCustomCursor();
             else
                 setCursor(Cursor.getDefaultCursor());
@@ -548,7 +561,7 @@ public class GamePanel extends JFrame {
 
         for (int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for (int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
-                Cell vp = player.get().getViewPoint();
+                Cell vp = player.getFlat().getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
                 if (cell.isField()) {
@@ -598,33 +611,38 @@ public class GamePanel extends JFrame {
     private void drawPath(Graphics2D gr) {
         gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                 0, new float[]{9}, 0));
-        Cell vp = player.get().getViewPoint();
-        Cell current = cells.get(hoverPath[0]).fetch(-vp.getX(), -vp.getY(), -vp.getZ());
-        for (int i = 1; i < hoverPath.length - 1; i++) {
-            current = current.fetch(hoverPath[i].x(), hoverPath[i].y(), hoverPath[i].z());
-            Location previous = hoverPath[i];
-            Location next = hoverPath[i + 1];
 
-            if (previous.x() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-            else if (previous.x() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-            else if (previous.y() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
-            else if (previous.y() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
+        hoverPath.get().ifPresent(path -> {
+            Cell vp = player.getFlat().getViewPoint();
+            Cell current = cells.get(path[0]).fetch(-vp.getX(), -vp.getY(), -vp.getZ());
+            for (int i = 1; i < path.length - 1; i++) {
+                current = current.fetch(path[i].x(), path[i].y(), path[i].z());
+                Location previous = path[i];
+                Location next = path[i + 1];
 
-            if (next.x() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-            else if (next.x() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-            else if (next.y() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
-            else if (next.y() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
-        }
-        current = current.fetch(hoverPath[hoverPath.length - 1].x(), hoverPath[hoverPath.length - 1].y(), hoverPath[hoverPath.length - 1].z());
-        gr.drawString(String.valueOf(travelDistance), Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+                if (previous.x() == 1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+                else if (previous.x() == -1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+                else if (previous.y() == 1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
+                else if (previous.y() == -1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
+
+                if (next.x() == 1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+                else if (next.x() == -1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+                else if (next.y() == 1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
+                else if (next.y() == -1)
+                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
+            }
+
+            Location finalMove = path[path.length - 1];
+            current = current.fetch(finalMove.x(), finalMove.y(), finalMove.z());
+            gr.drawString(String.valueOf(travelDistance), Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+        });
     }
 
     /**
@@ -635,23 +653,23 @@ public class GamePanel extends JFrame {
 
         for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
-                Cell vp = player.get().getViewPoint();
+                Cell vp = player.getFlat().getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
-                gr.setColor(player.get().getColor());
+                gr.setColor(player.getFlat().getColor());
                 List<Player> playersInCell = new ArrayList<>(cell.getContent().stream().map(GameObject::getPlayer).distinct().toList());
-                if(playersInCell.contains(player.get())) {
+                if(playersInCell.contains(player.getFlat())) {
                     gr.fillOval(x * cellWidth + 5, y * cellHeight + 5, 10, 10);
-                    playersInCell.remove(player.get());
+                    playersInCell.remove(player.getFlat());
                 }
 
                 if(cell.isEndOfMap()) {
                     gr.setColor(Color.black);
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 10, cellHeight + 1);
-                } else if (!player.get().hasSpotted(cell)) {
+                } else if (!player.getFlat().hasSpotted(cell)) {
                     gr.setColor(Color.lightGray);
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
-                } else if (!player.get().hasDiscovered(cell)) {
+                } else if (!player.getFlat().hasDiscovered(cell)) {
                     gr.setColor(new Color(192, 192, 192, 200));
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
                 } else {
@@ -675,13 +693,13 @@ public class GamePanel extends JFrame {
      * Refreshes the game window components that are not drawn (menus, ...)
      */
     public void refreshWindow() {
-        playerMenu.setText("Player: " + player.get().getName());
+        playerMenu.setText("Player: " + player.getFlat().getName());
         cycleLabel.setText("Cycle: " + cycle.get());
 
-        popLabel.setText("Population: " + player.get().getPop() + "/" + player.get().getPopCap());
+        popLabel.setText("Population: " + player.getFlat().getPop() + "/" + player.getFlat().getPopCap());
 
         for(int i = 0; i < Resource.values().length; i++)
-            playerLabels[i].setText(Resource.values()[i].name + ": " + player.get().getResource(Resource.values()[i]));
+            playerLabels[i].setText(Resource.values()[i].name + ": " + player.getFlat().getResource(Resource.values()[i]));
 
         Cell cell = cells.get(clickPos);
         for(int i = 0; i < Resource.values().length; i++)

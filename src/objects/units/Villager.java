@@ -8,9 +8,11 @@ import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.buildings.House;
 import objects.buildings.Lumberjack;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Optional;
 
 public class Villager extends Worker {
 
@@ -73,11 +75,11 @@ public class Villager extends Worker {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
         if(getStatus() != Status.WORKING)
-            return max ? SPRITE_MAX : SPRITE;
+            return Optional.of(max ? SPRITE_MAX : SPRITE);
         else
-            return max ? WORKING_SPRITE_MAX : WORKING_SPRITE;
+            return Optional.of(max ? WORKING_SPRITE_MAX : WORKING_SPRITE);
     }
 
     @Override

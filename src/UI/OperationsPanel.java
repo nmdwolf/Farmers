@@ -10,14 +10,14 @@ import java.awt.event.MouseAdapter;
 
 import static core.GameConstants.GRAY;
 
-public class OperationPanel extends JPanel {
+public class OperationsPanel extends JPanel {
 
     private final RoundedButton[] buttons;
     private Dimension buttonSize;
     private final ActionListener hide, next, previous;
     private int actionPage;
 
-    public OperationPanel(int cellWidth, int cellHeight) {
+    public OperationsPanel(int cellWidth, int cellHeight) {
         buttons = new RoundedButton[16];
         actionPage = 0;
         hide = e -> setVisible(false);
@@ -33,27 +33,25 @@ public class OperationPanel extends JPanel {
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
 
         for(int i = 0; i < buttons.length; i++) {
-            if(i == 7) {
-                buttons[i] = new RoundedButton("Next", buttonSize, Color.gray);
-                buttons[i].addActionListener(next);
-            }
-            else if (i == 15) {
-                buttons[i] = new RoundedButton("Previous", buttonSize, Color.gray);
-                buttons[i].addActionListener(previous);
-            }
-            else {
-                buttons[i] = new RoundedButton("", buttonSize, Color.gray);
-                buttons[i].addActionListener(hide);
+            switch(i) {
+                case 7:
+                    buttons[i] = new RoundedButton("Next", buttonSize, Color.gray);
+                    buttons[i].addActionListener(next);
+                    break;
+                case 15:
+                    buttons[i] = new RoundedButton("Previous", buttonSize, Color.gray);
+                    buttons[i].addActionListener(previous);
+                    break;
+                default:
+                    buttons[i] = new RoundedButton("", buttonSize, Color.gray);
+                    buttons[i].addActionListener(hide);
             }
 
             c.gridx = i % 4;
             c.gridy = Math.floorDiv(i % 8, 4);
             c.weightx = 0.5;
             c.weighty = 0.5;
-            if(c.gridx < 2)
-                c.anchor = GridBagConstraints.WEST;
-            else
-                c.anchor = GridBagConstraints.EAST;
+            c.anchor = c.gridx < 2 ? GridBagConstraints.WEST : GridBagConstraints.EAST;;
             add(buttons[i], c);
         }
 

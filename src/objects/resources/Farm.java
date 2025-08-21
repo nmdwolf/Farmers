@@ -2,8 +2,10 @@ package objects.resources;
 
 import core.*;
 import UI.CustomMethods;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class Farm extends ResourceBuilding {
 
@@ -40,8 +42,8 @@ public class Farm extends ResourceBuilding {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
-        return null;
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+        return Optional.empty();
     }
 
     @Override

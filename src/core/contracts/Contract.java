@@ -45,7 +45,7 @@ public abstract class Contract {
     public boolean work() {
         if(!isStarted)
             initialize();
-        return true;
+        return isStarted;
     }
 
     /**

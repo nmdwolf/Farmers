@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static core.GameConstants.*;
+import static core.GameConstants.CELL_Y_MARGIN;
+import static core.GameConstants.SPRITE_SIZE_MAX;
+
 public class CustomMethods {
 
     private static int ID_COUNT, UPGRADE_COUNT, AWARD_COUNT;
@@ -112,5 +116,11 @@ public class CustomMethods {
         g2d.dispose();
 
         return rotated;
+    }
+
+    public static Pair<Integer, Integer> coordinateTransform(int x, int y) {
+        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(SPRITE_SIZE_MAX + CELL_X_MARGIN));
+        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(SPRITE_SIZE_MAX + CELL_Y_MARGIN));
+        return new Pair<>(selectionX, selectionY);
     }
 }

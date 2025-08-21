@@ -5,8 +5,10 @@ import UI.CustomMethods;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Obstruction;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class Wall extends IdleBuilding implements Obstruction {
 
@@ -42,8 +44,8 @@ public class Wall extends IdleBuilding implements Obstruction {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
-        return null;
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+        return Optional.empty();
     }
 
     @Override

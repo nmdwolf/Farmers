@@ -1,22 +1,28 @@
 package core;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Property<T> {
 
     private T property;
     private final ArrayList<Action> actions;
 
-    public Property(T initialValue) {
-        actions = new ArrayList<>();
-        property = initialValue;
-    }
-
     public Property() {
         actions = new ArrayList<>();
     }
 
-    public T get() { return property; }
+    public Property(T initialValue) {
+        this();
+        property = initialValue;
+    }
+
+    @NotNull
+    public Optional<T> get() { return Optional.ofNullable(property); }
+
+    public T getFlat() { return property; }
 
     public void set(T property) {
         this.property = property;

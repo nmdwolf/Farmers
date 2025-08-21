@@ -15,12 +15,12 @@ import java.util.ArrayList;
 
 public class ChoicePanel extends JPanel {
 
-    private final OperationPanel operationsPanel;
+    private final OperationsPanel operationsPanel;
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hide, hideThis;
 
-    public ChoicePanel(OperationPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide) {
+    public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide) {
         this.operationsPanel = operationsPanel;
         this.hide = hide;
         hideThis = event -> setVisible(false);

@@ -10,6 +10,7 @@ import objects.buildings.MainBuilding;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -22,10 +23,10 @@ import static core.GameConstants.*;
 
 public class Main extends JFrame{
 
-    private final Property<Integer> current, cycle;
-    private final Property<Player> currentPlayer;
-    private final Property<String> audioSource;
-    private final Property<Boolean> shuffleMusic, playMusic;
+    @NotNull private final Property<Integer> current, cycle;
+    @NotNull private final Property<Player> currentPlayer;
+    @NotNull private final Property<String> audioSource;
+    @NotNull private final Property<Boolean> shuffleMusic, playMusic;
     private Thread audioThread;
     private DJ dj;
 
@@ -33,9 +34,8 @@ public class Main extends JFrame{
      * List of players.
      */
     private final ArrayList<Player> players, allPlayers;
-    private final ArrayList<AI> ais;
 
-    // Currently selected GameObject
+    private final ArrayList<AI> ais;
     private final Timer garbageCollector;
     private final GamePanel game;
 
@@ -63,7 +63,7 @@ public class Main extends JFrame{
         cells = new Grid(NUMBER_OF_CELLS);
 
         showPlayerInputDialog();
-        currentPlayer.set(players.get(current.get()));
+        currentPlayer.set(players.get(current.getFlat()));
 
         game = new GamePanel(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic);
         game.initialize();
@@ -72,20 +72,20 @@ public class Main extends JFrame{
         // Add player change logic
         current.bind(() -> {
             // When last player of round has played
-            if(current.get() == players.size()) {
+            if(current.getFlat() == players.size()) {
                 for(AI ai : ais) // Let AIs play at end of cycle
-                    ai.makeMove(cycle.get());
+                    ai.makeMove(cycle.getFlat());
 
-                cycle.set(cycle.get() + 1);
-                cells.cycle(cycle.get());
+                cycle.set(cycle.getFlat() + 1);
+                cells.cycle(cycle.getFlat());
 
                 current.setAsParent(0);
             }
 
-            currentPlayer.set(players.get(current.get()));
+            currentPlayer.set(players.get(current.getFlat()));
 
-            for (GameObject object : currentPlayer.get().getObjects())
-                object.cycle(cycle.get());
+            for (GameObject object : currentPlayer.getFlat().getObjects())
+                object.cycle(cycle.getFlat());
 
             game.hidePanels();
             game.refreshWindow();
@@ -110,7 +110,7 @@ public class Main extends JFrame{
                     removeObject(obj);
             }
 
-            for (String text : currentPlayer.get().getMessages())
+            for (String text : currentPlayer.getFlat().getMessages())
                 game.showMessagePanel(text);
 
             game.refreshWindow();
@@ -121,12 +121,12 @@ public class Main extends JFrame{
     public void startMusic() {
 
         Action audioAction = () -> {
-            if(playMusic.get()) {
+            if(playMusic.getFlat()) {
                 if (audioThread != null) {
                     audioThread.interrupt();
                     dj.closeStream();
                 }
-                dj = new DJ(audioSource.get(), shuffleMusic.get());
+                dj = new DJ(audioSource.getFlat(), shuffleMusic.getFlat());
                 audioThread = new Thread(dj);
                 audioThread.start();
             }
@@ -164,10 +164,8 @@ public class Main extends JFrame{
                 case "Yellow" -> Color.yellow;
                 default -> Color.blue;
             };
-//            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-//            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            int x = 5;
-            int y = 5;
+            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
             addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
@@ -191,11 +189,11 @@ public class Main extends JFrame{
 //        else
         players.add(p);
 
-        GameObject base = new MainBuilding(p, p.getViewPoint().fetch(2, 2, 0), cycle.get());
-        GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle.get());
-        GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.get());
-        GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.get());
-        GameObject hero = new Hero(p, p.getViewPoint(), cycle.get(), p.getName());
+        GameObject base = new MainBuilding(p, p.getViewPoint().fetch(2, 2, 0), cycle.getFlat());
+        GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle.getFlat());
+        GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getFlat());
+        GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getFlat());
+        GameObject hero = new Hero(p, p.getViewPoint(), cycle.getFlat(), p.getName());
 
         p.addObject(base);
         p.addObject(lumber);
@@ -325,7 +323,9 @@ public class Main extends JFrame{
                             if (x + y != 0 && x * y == 0)
                                 min = Math.min(grid[maxDist + (loc.x() - target.getX()) + x][maxDist + (loc.y() - target.getY()) + y], min);
 
-                    grid[maxDist + (loc.x() - target.getX())][maxDist + (loc.y() - target.getY())] = min + cells.get(loc).getTravelCost() + (currentPlayer.get().hasSpotted(cells.get(loc)) ? 0 : maxDist);
+                    grid[maxDist + (loc.x() - target.getX())][maxDist + (loc.y() - target.getY())] =
+                            min + cells.get(loc).getTravelCost() + (currentPlayer.getFlat().hasSpotted(cells.get(loc))
+                                    ? 0 : maxDist);
                     done.add(loc);
 
                     for (int x = -1; x < 2; x++) {

@@ -6,9 +6,11 @@ import objects.Spacer;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import core.upgrade.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
@@ -61,8 +63,8 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
-        return max ? SPRITE_MAX : SPRITE;
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+        return Optional.of(max ? SPRITE_MAX : SPRITE);
     }
 
     @Override

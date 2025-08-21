@@ -4,8 +4,10 @@ import core.Award;
 import core.OperationCode;
 import UI.OperationsList;
 import objects.Constructable;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class SourceDecorator extends Constructable implements Source{
 
@@ -61,7 +63,7 @@ public class SourceDecorator extends Constructable implements Source{
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
         return obj.getSprite(max);
     }
 

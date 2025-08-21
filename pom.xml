@@ -1,0 +1,22 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.farmers</groupId>
+    <artifactId>age-of-farmers</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+    <name>Age of Farmers</name>
+
+    <properties>
+        <maven.compiler.source>1.24</maven.compiler.source>
+        <maven.compiler.target>1.24</maven.compiler.target>
+        <maven.compiler.release>24</maven.compiler.release>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>26.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

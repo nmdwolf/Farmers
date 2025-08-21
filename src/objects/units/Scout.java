@@ -7,8 +7,10 @@ import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Evolvable;
 import core.upgrade.EvolveUpgrade;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class Scout extends Unit implements Evolvable {
 
@@ -78,7 +80,7 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
-        return null;
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+        return Optional.empty();
     }
 }

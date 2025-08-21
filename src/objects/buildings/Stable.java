@@ -5,8 +5,10 @@ import UI.CustomMethods;
 import UI.OperationsList;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 public class Stable extends ConstructiveBuilding {
 
@@ -52,8 +54,8 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
-        return null;
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+        return Optional.empty();
     }
 
     @Override

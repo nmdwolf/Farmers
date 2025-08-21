@@ -12,8 +12,10 @@ import objects.units.Villager;
 import core.upgrade.EvolveUpgrade;
 import core.upgrade.LookoutUpgrade;
 import core.upgrade.WellUpgrade;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.Optional;
 
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
@@ -85,11 +87,11 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
     }
 
     @Override
-    public BufferedImage getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
         return switch (getLevel()) {
-            case 0 -> max ? BONFIRE_SPRITE_MAX : BONFIRE_SPRITE;
-            case 1 -> max ? TOWN_SPRITE_MAX : TOWN_SPRITE;
-            default -> max ? CASTLE_SPRITE_MAX : CASTLE_SPRITE;
+            case 0 -> Optional.of(max ? BONFIRE_SPRITE_MAX : BONFIRE_SPRITE);
+            case 1 -> Optional.of(max ? TOWN_SPRITE_MAX : TOWN_SPRITE);
+            default -> Optional.of(max ? CASTLE_SPRITE_MAX : CASTLE_SPRITE);
         };
     }
 

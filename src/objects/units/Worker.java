@@ -76,6 +76,14 @@ public abstract class Worker extends Unit {
             setStatus(Status.IDLE);
     }
 
+    public void addContract(Contract c) {
+        if(c instanceof LaborContract)
+            contracts.removeIf(obj -> obj instanceof LaborContract); // Removes current LabourContract
+        contracts.add(c);
+        c.initialize(); // If this fails (e.g. insufficient resources), it will be called again in work() until it succeeds.
+        setStatus(Status.WORKING);
+    }
+
     public int getYield(Resource resource) {
         int gain = 0;
         if(production.get(resource) > 0) {
@@ -85,13 +93,6 @@ public abstract class Worker extends Unit {
 
         }
         return gain;
-    }
-
-    public void addContract(Contract c) {
-        if(c instanceof LaborContract)
-            contracts.removeIf(obj -> obj instanceof LaborContract); // Removes current LabourContract
-        contracts.add(c);
-        c.initialize();
     }
 
     @Override
