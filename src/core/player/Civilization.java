@@ -1,4 +1,4 @@
-package core;
+package core.player;
 
 import objects.GameObject;
 import core.upgrade.Upgrade;

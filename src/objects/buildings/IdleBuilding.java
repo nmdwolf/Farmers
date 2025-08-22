@@ -1,11 +1,12 @@
 package objects.buildings;
 
-import core.Award;
+import core.player.Award;
 import core.Cell;
 import core.OperationCode;
-import core.Player;
+import core.player.Player;
 import UI.OperationsList;
 import objects.resources.ResourceContainer;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class IdleBuilding extends Building {
 
@@ -23,7 +24,7 @@ public abstract class IdleBuilding extends Building {
     public void cycle(int cycle) {}
 
     @Override
-    public Award getEvolveAward() {
+    public @NotNull Award getEvolveAward() {
         return null;
     }
 }

@@ -1,6 +1,7 @@
 package objects;
 
-import core.Award;
+import core.player.Award;
+import org.jetbrains.annotations.NotNull;
 
 public interface Evolvable {
 
@@ -8,6 +9,7 @@ public interface Evolvable {
 
     public void increaseLevel();
 
+    @NotNull
     public Award getEvolveAward();
 
 }

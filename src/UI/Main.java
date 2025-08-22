@@ -3,10 +3,11 @@ package UI;
 import core.*;
 
 import core.Action;
+import core.player.Player;
 import objects.*;
 import objects.buildings.Building;
 import objects.buildings.Lumberjack;
-import objects.buildings.MainBuilding;
+import objects.buildings.TownHall;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
@@ -37,7 +38,7 @@ public class Main extends JFrame{
 
     private final ArrayList<AI> ais;
     private final Timer garbageCollector;
-    private final GamePanel game;
+    private final GameFrame game;
 
     /**
      * Map of all game cells.
@@ -45,9 +46,7 @@ public class Main extends JFrame{
     private final Grid cells;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new Main();
-        });
+        SwingUtilities.invokeLater(Main::new);
     }
 
     public Main() {
@@ -65,33 +64,14 @@ public class Main extends JFrame{
         showPlayerInputDialog();
         currentPlayer.set(players.get(current.getFlat()));
 
-        game = new GamePanel(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic);
+        game = new GameFrame(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic);
         game.initialize();
         startMusic();
 
         // Add player change logic
-        current.bind(() -> {
-            // When last player of round has played
-            if(current.getFlat() == players.size()) {
-                for(AI ai : ais) // Let AIs play at end of cycle
-                    ai.makeMove(cycle.getFlat());
+        current.bind(this::nextPlayer);
 
-                cycle.set(cycle.getFlat() + 1);
-                cells.cycle(cycle.getFlat());
-
-                current.setAsParent(0);
-            }
-
-            currentPlayer.set(players.get(current.getFlat()));
-
-            for (GameObject object : currentPlayer.getFlat().getObjects())
-                object.cycle(cycle.getFlat());
-
-            game.hidePanels();
-            game.refreshWindow();
-        });
-
-        garbageCollector = new Timer(500, e -> {
+        garbageCollector = new Timer(100, _ -> {
             for(Player p : allPlayers) {
                 for(GameObject obj : p.getNewObjects()) {
                     addObject(obj);
@@ -118,6 +98,34 @@ public class Main extends JFrame{
         garbageCollector.start();
     }
 
+    /**
+     * Gives control to the next player in queue.
+     * If the last player of the queue has finished his turn, the AIs are given control and a new cycle is started.
+     */
+    private void nextPlayer() {
+        // When last player of round has played
+        if(current.getFlat() == players.size()) {
+            for(AI ai : ais) // Let AIs play at end of cycle
+                ai.makeMove(cycle.getFlat());
+
+            cycle.set(cycle.getFlat() + 1);
+            cells.cycle(cycle.getFlat());
+
+            current.setAsParent(0);
+        }
+
+        currentPlayer.set(players.get(current.getFlat()));
+
+        for (GameObject object : currentPlayer.getFlat().getObjects())
+            object.cycle(cycle.getFlat());
+
+        game.hidePanels(true);
+        game.refreshWindow();
+    }
+
+    /**
+     * Sets up a new {@code DJ} in charge of music.
+     */
     public void startMusic() {
 
         Action audioAction = () -> {
@@ -189,7 +197,7 @@ public class Main extends JFrame{
 //        else
         players.add(p);
 
-        GameObject base = new MainBuilding(p, p.getViewPoint().fetch(2, 2, 0), cycle.getFlat());
+        GameObject base = new TownHall(p, p.getViewPoint().fetch(2, 2, 0), cycle.getFlat());
         GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle.getFlat());
         GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getFlat());
         GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getFlat());
@@ -374,30 +382,6 @@ public class Main extends JFrame{
             return new Pair<>(new Motion(unit, path, cost), target.getLocation());
         } else
             return null;
-    }
-
-    /**
-     * Turns a given Motion object into a thread that moves the object along the given path.
-     * If the thread is interrupted, the path is completed instantly.
-     * @param motion path to complete
-     */
-    public void motionToThread(Motion motion) {
-
-        motion.getObject().setStatus(Status.WALKING);
-        motion.next(); // To skip the starting position.
-        ActionListener taskPerformer = evt -> {
-            if(!motion.isDone()) {
-                Location next = motion.next();
-                moveObject(motion.getObject(), motion.getObject().getCell().getLocation().add(next.x(), next.y(), next.z()));
-                game.refreshWindow();
-            }
-
-            if(motion.isDone()) {
-                motion.getObject().setStatus(Status.IDLE);
-                ((Timer)evt.getSource()).stop();
-            }
-        };
-        new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
     }
 
     /**

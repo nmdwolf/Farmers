@@ -3,6 +3,8 @@ package objects.units;
 import UI.CustomMethods;
 import core.*;
 import UI.OperationsList;
+import core.player.Award;
+import core.player.Player;
 import objects.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 import org.jetbrains.annotations.NotNull;
@@ -57,12 +59,12 @@ public class Hero extends Unit{
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return null;
     }
 
     @Override
-    public Award getEvolveAward() {
+    public @NotNull Award getEvolveAward() {
         return null;
     }
 }

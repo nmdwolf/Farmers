@@ -1,6 +1,6 @@
 package core.upgrade;
 
-import core.Civilization;
+import core.player.Civilization;
 import objects.GameObject;
 
 import java.util.List;

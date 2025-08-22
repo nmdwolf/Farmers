@@ -4,8 +4,12 @@ import objects.resources.Resource;
 
 public interface Booster {
 
-    public int getBoostRadius();
+    /**
+     * The number of cells (l1-distance) over which this booster has influence.
+     * @return boost radius (in l1-distance)
+     */
+    int getBoostRadius();
 
-    public int getBoostAmount(GameObject obj, Resource res);
+    int getBoostAmount(GameObject obj, Resource res);
 
 }

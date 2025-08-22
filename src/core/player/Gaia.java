@@ -1,5 +1,6 @@
-package core;
+package core.player;
 
+import core.Cell;
 import objects.resources.Resource;
 
 import java.awt.*;

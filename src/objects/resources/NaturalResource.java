@@ -1,7 +1,7 @@
 package objects.resources;
 
 import core.Cell;
-import core.Player;
+import core.player.Player;
 import objects.GameObject;
 
 public abstract class NaturalResource extends GameObject implements Source {

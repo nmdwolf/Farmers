@@ -1,6 +1,7 @@
 package objects.units;
 
 import core.*;
+import core.player.Player;
 import objects.Operational;
 import objects.resources.ResourceContainer;
 

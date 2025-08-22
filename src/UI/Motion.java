@@ -1,5 +1,6 @@
 package UI;
 
+import core.Location;
 import objects.units.Unit;
 
 import java.util.ArrayList;
@@ -36,12 +37,13 @@ public class Motion {
 
     public Location[] getPath() {
         Location[] totalPath = new Location[locations.size()];
-        totalPath[0] = locations.get(0);
+        totalPath[0] = locations.getFirst();
         for(int i = 1; i <= locations.size(); i++)
             totalPath[i] = totalPath[i - 1].add(locations.get(i));
         return totalPath;
     }
 
+    // TODO Find out what this does or why it's useful
     public Location[] getRelativePath() {
         return locations.toArray(new Location[0]);
     }

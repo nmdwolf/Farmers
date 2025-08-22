@@ -2,6 +2,7 @@ package objects.buildings;
 
 import core.*;
 
+import core.player.Player;
 import objects.resources.ResourceContainer;
 import objects.Constructable;
 

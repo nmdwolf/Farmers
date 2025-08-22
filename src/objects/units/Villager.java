@@ -4,6 +4,10 @@ import core.*;
 import core.contracts.ConstructContract;
 import UI.CustomMethods;
 import UI.OperationsList;
+import core.player.Award;
+import core.player.Player;
+import objects.Constructor;
+import objects.buildings.Wall;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.buildings.House;
@@ -14,13 +18,13 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Optional;
 
-public class Villager extends Worker {
+public class Villager extends Worker implements Constructor {
 
     public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/villager.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
     public final static BufferedImage WORKING_SPRITE = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
     public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/villager.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX);
     public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX);
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "A baby was born.");
+    public final static Award BUILT_AWARD = Award.createAward("A baby was born.");
 
     public final static List<Resource> resources = List.of(Resource.FOOD, Resource.WOOD, Resource.STONE, Resource.COAL, Resource.IRON);
 
@@ -62,15 +66,26 @@ public class Villager extends Worker {
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations =  super.getOperations(cycle, code);
 
-        if(code == OperationCode.RESOURCE) {
-            operations.put("House", () -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(), getCell(), cycle))));
-            operations.put("Lumberjack", () -> addContract(new ConstructContract<>(Villager.this, new Lumberjack(getPlayer(), getCell(), cycle))));
-        }
+        if(code == OperationCode.CONSTRUCTION)
+            operations.addAll(getConstructions(cycle));
+
         return operations;
     }
 
     @Override
-    public Award getEvolveAward() {
+    public OperationsList getConstructions(int cycle) {
+        OperationsList constructions = new OperationsList();
+        constructions.put("House", () -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(),
+                getCell(), cycle))));
+        constructions.put("Lumberjack", () -> addContract(new ConstructContract<>(Villager.this,
+                new Lumberjack(getPlayer(), getCell(), cycle))));
+        constructions.put("Wall", () -> addContract(new ConstructContract<>(Villager.this,
+                new Wall(getPlayer(), getCell(), cycle))));
+        return constructions;
+    }
+
+    @Override
+    public @NotNull Award getEvolveAward() {
         return null;
     }
 
@@ -83,7 +98,7 @@ public class Villager extends Worker {
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 }

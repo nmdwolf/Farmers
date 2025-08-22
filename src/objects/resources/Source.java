@@ -1,7 +1,8 @@
 package objects.resources;
 
 public interface Source {
-    public ResourceContainer getYield();
+    
+    ResourceContainer getYield();
 
-    public Resource getResourceType();
+    Resource getResourceType();
 }

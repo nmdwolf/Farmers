@@ -10,6 +10,8 @@ public interface GameConstants {
 
     int NUMBER_OF_CELLS = 100;
     int NUMBER_OF_CELLS_IN_VIEW = 8;
+    int INITIAL_SCREEN_SIZE = 500;
+
     int INITIAL_CELL_UNIT_SPACE = 2;
     int INITIAL_CELL_BUILDING_SPACE = 5;
     int INITIAL_TRAVEL_COST = 1;
@@ -23,6 +25,7 @@ public interface GameConstants {
     int SPRITE_SIZE_MAX = 50;
     int CELL_X_MARGIN = 5;
     int CELL_Y_MARGIN = 10;
+    int STROKE_WIDTH = 2;
 
     int WATER_THRESHOLD = 150;
     int WOOD_THRESHOLD = 150;
@@ -51,4 +54,6 @@ public interface GameConstants {
     BufferedImage CLOUD = CustomMethods.getSprite("src/img/cloud.png", GameConstants.SPRITE_SIZE * 2, GameConstants.SPRITE_SIZE);
     BufferedImage SUN = CustomMethods.getSprite("src/img/sun.png", GameConstants.SPRITE_SIZE,
             GameConstants.SPRITE_SIZE);
+    BufferedImage ARROWHEAD = CustomMethods.getSprite("src/img/Arrowhead.png",
+            GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
 }

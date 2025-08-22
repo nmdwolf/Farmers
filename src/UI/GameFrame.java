@@ -1,7 +1,9 @@
 package UI;
 
 import core.*;
+import core.player.Player;
 import objects.GameObject;
+import objects.buildings.TownHall;
 import objects.resources.Resource;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,7 @@ import static javax.swing.MenuSelectionManager.defaultManager;
 import static core.GameConstants.*;
 import static core.GameConstants.NUMBER_OF_CELLS_IN_VIEW;
 
-public class GamePanel extends JFrame {
+public class GameFrame extends JFrame {
 
     // UI elements
     private JMenu playerMenu, viewMenu, cellMenu;
@@ -36,38 +38,50 @@ public class GamePanel extends JFrame {
     @NotNull private final Property<Player> player;
     private int mouseX, mouseY;
 
-    private final Main parent;
+    @NotNull private final Main parent;
     @NotNull private final Property<Integer> cycle, current;
-    @NotNull private final Property<Boolean> clicked, cursorFlag;
+    @NotNull private final Property<Boolean> clicked, cursorFlag, showResources;
     @NotNull private final Property<GameObject> selected;
     private int travelDistance;
     private Location clickPos, destination;
     @NotNull private final Property<Location[]> hoverPath;
-    private final Grid cells;
+    @NotNull private final Grid cells;
+    private boolean gps;
 
-    public GamePanel(Main main, Grid cells,
+    public GameFrame(@NotNull Main main, @NotNull Grid cells,
                      @NotNull Property<Integer> current, @NotNull Property<Integer> cycle, @NotNull Property<Player> player,
-                     @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic, @NotNull Property<Boolean> shuffleMusic) {
+                     @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic,
+                     @NotNull Property<Boolean> shuffleMusic) {
         parent = main;
         this.cells = cells;
         this.current = current;
         this.cycle = cycle;
         this.player = player;
 
-        screenWidth = 1;
-        screenHeight = 1;
-        cellWidth = 1;
-        cellHeight = 1;
-        poolSize = 1;
+        // Initial values to avoid 0 issues
+        screenWidth = INITIAL_SCREEN_SIZE;
+        screenHeight = INITIAL_SCREEN_SIZE;
+        cellWidth = INITIAL_SCREEN_SIZE / NUMBER_OF_CELLS_IN_VIEW;
+        cellHeight = INITIAL_SCREEN_SIZE / NUMBER_OF_CELLS_IN_VIEW;
+        poolSize = cellWidth;
+
         clicked = new Property<>(false);
         cursorFlag = new Property<>(true);
         selected = new Property<>();
         Property<Boolean> cellArrowProperty = new Property<>(SHOW_CELL_ARROWS);
         clickPos = new Location(0, 0, 0);
         hoverPath = new Property<>();
+        showResources = new Property<>(false);
+        gps = false;
+
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         operationsPanel = new OperationsPanel(cellWidth, cellHeight);
-        choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, event -> hidePanels());
+        choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources);
         infoPanel = new InfoPanel();
         cellPanel = new CellPanel(selected, cellArrowProperty);
         settingsPanel = new SettingsPanel(cursorFlag, audioSource, playMusic, shuffleMusic, cellArrowProperty);
@@ -82,15 +96,13 @@ public class GamePanel extends JFrame {
             }
         };
 
+        showResources.bind(() -> selected.get().ifPresent(obj -> infoPanel.update(obj, !showResources.getFlat())));
         selected.bind(() -> {
             selected.get().ifPresentOrElse(obj -> {
-                infoPanel.update(obj);
+                showResources.set(false);
                 infoPanel.setVisible(true);
                 choicePanel.update(obj, cycle.getFlat());
-            }, () -> {
-                choicePanel.setVisible(false);
-                infoPanel.setVisible(false);
-            });
+            }, () -> hidePanels(false));
             refreshWindow();
         });
     }
@@ -99,9 +111,12 @@ public class GamePanel extends JFrame {
      * Constructs the game frame.
      */
     public void initialize() {
-        super.setTitle("Game of Ages");
+        super.setTitle("The Game of Ages");
 
-        addResizeListener(); // Will initialize size parameters on first call
+        addResizeListener();
+        setSize(new Dimension(INITIAL_SCREEN_SIZE, INITIAL_SCREEN_SIZE));
+//        revalidate();
+//        repaint();
 
         contentPanel.add(choicePanel, Integer.valueOf(1));
         contentPanel.add(operationsPanel, Integer.valueOf(1));
@@ -137,9 +152,9 @@ public class GamePanel extends JFrame {
 
                     gr.setColor(player.getFlat().getAlternativeColor());
                     gr.setStroke(new BasicStroke(2));
-                    Cell p = posToCell(mouseX, mouseY, 0);
+                    Cell p = posToCellCoord(mouseX, mouseY, 0);
                     gr.drawRect(p.getX() * cellWidth, p.getY() * cellHeight, cellWidth, cellHeight);
-                    hoverPath.get().ifPresent(loc -> drawPath(gr));
+                    hoverPath.get().ifPresent(_ -> drawPath(gr));
                     gr.dispose();
                 }
             }
@@ -152,19 +167,31 @@ public class GamePanel extends JFrame {
         return contentPanel;
     }
 
+    /**
+     * Adds {@code KeyListener}s to the game window.
+     */
     public void addKeyInputs() {
-        // Cycle players on "n" stroke
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('n'), "next_player");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "right");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_G,
+                InputEvent.CTRL_DOWN_MASK), "GPS");
 
+
+        contentPanel.getActionMap().put("GPS", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gps = !gps;
+                refreshWindow();
+            }
+        });
         contentPanel.getActionMap().put("escape", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                selected.get().ifPresentOrElse(obj -> hidePanels(), () -> cellPanel.setVisible(false));
+                selected.get().ifPresentOrElse(_ -> hidePanels(true), () -> cellPanel.setVisible(false));
             }
         });
         contentPanel.getActionMap().put("next_player", new AbstractAction() {
@@ -175,7 +202,7 @@ public class GamePanel extends JFrame {
                 selected.set(null);
                 current.set(current.getFlat() + 1);
 
-                hidePanels();
+                hidePanels(true);
                 refreshWindow();
             }
         });
@@ -185,6 +212,9 @@ public class GamePanel extends JFrame {
                 if(player.getFlat().getViewPoint().getX() > 0) {
                     player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(-1, 0, 0));
                     refreshWindow();
+
+                    if(cellPanel.isVisible())
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.getFlat());
                 }
             }
         });
@@ -194,6 +224,9 @@ public class GamePanel extends JFrame {
                 if(player.getFlat().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
                     player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(1, 0, 0));
                     refreshWindow();
+
+                    if(cellPanel.isVisible())
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(1, 0, 0), player.getFlat());
                 }
             }
         });
@@ -203,6 +236,9 @@ public class GamePanel extends JFrame {
                 if(player.getFlat().getViewPoint().getY() > 0) {
                     player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, -1, 0));
                     refreshWindow();
+
+                    if(cellPanel.isVisible())
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, -1, 0), player.getFlat());
                 }
             }
         });
@@ -212,11 +248,17 @@ public class GamePanel extends JFrame {
                 if(player.getFlat().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
                     player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, 1, 0));
                     refreshWindow();
+
+                    if(cellPanel.isVisible())
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, 1, 0), player.getFlat());
                 }
             }
         });
     }
 
+    /**
+     * Adds {@code MouseListener}s to the game window.
+     */
     public void addMouseInputs() {
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
@@ -224,18 +266,19 @@ public class GamePanel extends JFrame {
                 super.mouseMoved(e);
                 mouseX = e.getX();
                 mouseY = e.getY();
-                Cell mousePos = posToCell(mouseX, mouseY, 0);
+                Cell mousePos = posToCellCoord(mouseX, mouseY, 0);
 
                 // Moves info panel to make sure that the underlying cells are reachable.
                 selected.get().ifPresent( obj -> {
                     if(infoPanel != null) {
-                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() >= 7) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
+                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                         refreshWindow();
                     }
 
-                    if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getFlat().getViewPoint()).isEndOfMap()) {
+                    if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getFlat().getViewPoint().getLocation()).isEndOfMap()) {
                         Pair<Motion, Location> motion = parent.getShortestAdmissiblePath(obj,
-                                mousePos.fetch(player.getFlat().getViewPoint()));
+                                mousePos.fetch(player.getFlat().getViewPoint().getLocation()));
+
                         if (motion != null && motion.key().length() > 0) {
                             hoverPath.set(motion.key().getRelativePath());
                             destination = motion.value();
@@ -261,7 +304,7 @@ public class GamePanel extends JFrame {
                         viewMenu.setText("View: " + (player.getFlat().getViewPoint().getZ()));
                         selected.set(null);
 
-                        hidePanels();
+                        hidePanels(true);
                         refreshWindow();
                     }
                 }
@@ -271,15 +314,15 @@ public class GamePanel extends JFrame {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 Location oldPos = clickPos;
-                clickPos = player.getFlat().getViewPoint().fetch(posToCell(e.getX(), e.getY(),
-                        player.getFlat().getViewPoint().getZ())).getLocation();
+                clickPos = player.getFlat().getViewPoint().fetch(posToCellCoord(e.getX(), e.getY(),
+                        player.getFlat().getViewPoint().getZ()).getLocation()).getLocation();
 
                 if(!cells.get(clickPos).isEndOfMap()) {
                     hoverPath.set(null);
                     destination = null;
 
                     // Any existing panels should be hidden on click
-                    hidePanels();
+                    hidePanels(true);
 
                     /*
                      * left-click events
@@ -291,6 +334,7 @@ public class GamePanel extends JFrame {
                             selected.set(null);
 
                         // If clicked on cell with objects, show info panel
+                        // TODO Change this check to cells within view distance
                         if (player.getFlat().getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
                             cellPanel.update(cells.get(clickPos), player.getFlat());
                             cellPanel.setVisible(true);
@@ -312,7 +356,7 @@ public class GamePanel extends JFrame {
                                     if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= unit.getSpace()
                                             && motion.key().length() != 0) {
                                         unit.changeEnergy(-motion.key().length());
-                                        parent.motionToThread(motion.key());
+                                        motionToThread(motion.key());
                                     }
                                 }
                             }
@@ -330,6 +374,9 @@ public class GamePanel extends JFrame {
         contentPanel.addMouseWheelListener(mouseAdapter);
     }
 
+    /**
+     * Adds a {@code ComponentListener} to the game window that reacts to window resizing.
+     */
     public void addResizeListener() {
         // Rescale game elements on screen resize
         addComponentListener(new ComponentAdapter() {
@@ -354,21 +401,25 @@ public class GamePanel extends JFrame {
                 layout.putConstraint(SpringLayout.WEST, cellPanel, cellWidth - 20, SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, cellPanel, cellHeight - 20, SpringLayout.NORTH, contentPanel);
 
-                infoPanel.resize(cellWidth, cellHeight);
+                infoPanel.resizePanel(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, infoPanel,
                         (clickPos.x() - player.getFlat().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
-                settingsPanel.resize(cellWidth, cellHeight);
+                settingsPanel.resizePanel(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, settingsPanel, 2 * cellWidth, SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, settingsPanel, cellHeight, SpringLayout.NORTH, contentPanel);
 
-                hidePanels();
+                hidePanels(true);
                 refreshWindow();
             }
         });
     }
 
+    /**
+     * Adds menus to the game window.
+     * These are responsible for listing the current Player's stats, the selected Cell's stats and providing access to other functionalities such as settings.
+     */
     public void addMenu() {
         // Create menus
         JMenuBar menubar = new JMenuBar();
@@ -444,13 +495,16 @@ public class GamePanel extends JFrame {
         playerMenu.add(popLabel);
 
         JMenuItem viewItem = new JMenuItem("Audio & Visuals");
-        viewItem.addActionListener(e -> {
+        viewItem.addActionListener(_ -> {
             settingsPanel.setVisible(true);
             contentPanel.requestFocus();
         });
         settingsMenu.add(viewItem);
     }
 
+    /**
+     * Adds an {@code InfoPanel} to the game window.
+     */
     public void initializeSettingsPanel() {
 
         tintedGlassPanel.setOpaque(false);
@@ -531,7 +585,7 @@ public class GamePanel extends JFrame {
     }
 
     /**
-     * Recalculates screen size and rescales derived dimensions
+     * Recalculates screen size and rescales derived dimensions.
      */
     public void resetScales() {
         screenWidth = getContentPane().getWidth();
@@ -605,16 +659,22 @@ public class GamePanel extends JFrame {
     }
 
     /**
-     * Draws path for selected unit
+     * Draws the motion path for the currently selected unit.
      * @param gr Graphics object of the game panel
      */
     private void drawPath(Graphics2D gr) {
-        gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-                0, new float[]{9}, 0));
 
         hoverPath.get().ifPresent(path -> {
             Cell vp = player.getFlat().getViewPoint();
-            Cell current = cells.get(path[0]).fetch(-vp.getX(), -vp.getY(), -vp.getZ());
+            Cell current = cells.get(path[0]).fetch(vp.getLocation().negative());
+
+            // Draws the initial marker
+            gr.fillOval(Math.round((current.getX() + 0.5f) * cellWidth) - 5, Math.round((current.getY() + 0.5f) * cellHeight) - 5, 10, 10);
+
+            Stroke oldStroke = gr.getStroke();
+            gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    0, new float[]{9}, 0));
+
             for (int i = 1; i < path.length - 1; i++) {
                 current = current.fetch(path[i].x(), path[i].y(), path[i].z());
                 Location previous = path[i];
@@ -641,7 +701,12 @@ public class GamePanel extends JFrame {
 
             Location finalMove = path[path.length - 1];
             current = current.fetch(finalMove.x(), finalMove.y(), finalMove.z());
-            gr.drawString(String.valueOf(travelDistance), Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+
+            // Draws the destination circle with corresponding distance
+            gr.setStroke(oldStroke);
+            gr.drawOval(Math.round((current.getX() + 0.5f) * cellWidth) - 10, Math.round((current.getY() + 0.5f) * cellHeight) - 10, 20, 20);
+            String distanceText = String.valueOf(travelDistance);
+            gr.drawString(distanceText, (current.getX() + 0.5f) * cellWidth - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * cellHeight + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
         });
     }
 
@@ -687,6 +752,36 @@ public class GamePanel extends JFrame {
                 }
             }
         }
+
+        // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistically).
+        if(gps) {
+
+            Cell vp = player.getFlat().getViewPoint();
+            Cell nearestTownHall =
+                    player.getFlat().getObjects().stream()
+                            .filter(obj -> obj instanceof TownHall)
+                            .min((obj1, obj2) -> Integer.min(obj1.getCell().getLocation().distanceTo(vp.getLocation()), obj2.getCell().getLocation().distanceTo(vp.getLocation())))
+                            .map(GameObject::getCell)
+                            .orElse(vp);
+
+            gr.setColor(Color.black);
+            Stroke oldStroke =  gr.getStroke();
+            gr.setStroke(new BasicStroke(5));
+            Location drawLoc = nearestTownHall.getLocation().add(vp.getLocation().negative());
+            gr.drawRoundRect(drawLoc.x() * cellWidth - 10, drawLoc.y() * cellHeight - 10, cellWidth + 20,
+                    cellHeight + 20, 20, 20);
+            gr.setStroke(oldStroke);
+
+            if (drawLoc.x() >= NUMBER_OF_CELLS_IN_VIEW)
+                gr.fillOval(contentPanel.getWidth() - 60, contentPanel.getHeight() / 2 - 10, 20, 20);
+            else if(drawLoc.x() < 0)
+                gr.fillOval(40, contentPanel.getHeight() / 2 - 10, 20, 20);
+
+            if (drawLoc.y() >= NUMBER_OF_CELLS_IN_VIEW)
+                gr.fillOval(contentPanel.getWidth() / 2 - 10, contentPanel.getHeight() - 60, 20, 20);
+            else if(drawLoc.y() < 0)
+                gr.fillOval(contentPanel.getWidth() / 2 - 10, 40, 20, 20);
+        }
     }
 
     /**
@@ -713,22 +808,48 @@ public class GamePanel extends JFrame {
         contentPanel.repaint();
     }
 
-    public void hidePanels() {
+    public void hidePanels(boolean alsoCellPanel) {
         infoPanel.setVisible(false);
         operationsPanel.setVisible(false);
         choicePanel.setVisible(false);
-        cellPanel.setVisible(false);
         settingsPanel.setVisible(false);
+        if(alsoCellPanel)
+            cellPanel.setVisible(false);
     }
 
     /**
-     * Converts screen coordinates to a core.Location object
+     * Converts screen coordinates to a {@code Cell} object (not taking into account the {@code Player} viewpoint).
      * @param x horizontal coordinate
      * @param y vertical coordinate
-     * @param l elevation
-     * @return core.Location representation of the coordinates
+     * @param h elevation
+     * @return Cell representation of the coordinates
      */
-    private Cell posToCell(int x, int y, int l) {
-        return cells.get(new Location(Math.floorDiv(x, cellWidth), Math.floorDiv(y, cellHeight), l));
+    @NotNull
+    private Cell posToCellCoord(int x, int y, int h) {
+        return cells.get(new Location(Math.floorDiv(x, cellWidth), Math.floorDiv(y, cellHeight), h));
+    }
+
+    /**
+     * Turns a given Motion object into a thread that moves the object along the given path.
+     * If the thread is interrupted, the path is completed instantly.
+     * @param motion path to complete
+     */
+    public void motionToThread(Motion motion) {
+
+        motion.getObject().setStatus(Status.WALKING);
+        motion.next(); // To skip the starting position.
+        ActionListener taskPerformer = evt -> {
+            if(!motion.isDone()) {
+                Location next = motion.next();
+                parent.moveObject(motion.getObject(), motion.getObject().getCell().getLocation().add(next.x(), next.y(), next.z()));
+                refreshWindow();
+            }
+
+            if(motion.isDone()) {
+                motion.getObject().setStatus(Status.IDLE);
+                ((Timer)evt.getSource()).stop();
+            }
+        };
+        new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
     }
 }

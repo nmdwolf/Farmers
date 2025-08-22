@@ -1,6 +1,6 @@
 package objects.resources;
 
-import core.Award;
+import core.player.Award;
 import core.OperationCode;
 import UI.OperationsList;
 import objects.Constructable;
@@ -33,12 +33,12 @@ public class SourceDecorator extends Constructable implements Source{
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return null;
     }
 
     @Override
-    public Award getEvolveAward() {
+    public @NotNull Award getEvolveAward() {
         return obj.getEvolveAward();
     }
 

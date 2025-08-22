@@ -4,15 +4,18 @@ import core.Cell;
 import objects.resources.Resource;
 import objects.units.Worker;
 
+/**
+ * This Contract type implements the extraction of resources.
+ */
 public class LaborContract extends Contract {
 
     private final Resource resource;
     private final Cell cell;
 
-    public LaborContract(Worker employee, Resource r, Cell cell, int cost) {
+    public LaborContract(Worker employee, Resource r, Cell cell, int cost) throws IllegalArgumentException {
         super(employee, cost);
         if(cell == null)
-            throw new IllegalStateException("No cell has been assigned.");
+            throw new IllegalArgumentException("No cell has been assigned.");
         else
             this.cell = cell;
         resource = r;
@@ -25,7 +28,8 @@ public class LaborContract extends Contract {
         int gain = -cell.changeResource(resource, -getEmployee().getYield(resource));
         getEmployee().getPlayer().changeResource(resource, gain);
         getEmployee().step();
-        return gain == 0;
+
+        return (cell.getResource(resource) == 0);
     }
 
     @Override

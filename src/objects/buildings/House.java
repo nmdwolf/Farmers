@@ -2,6 +2,8 @@ package objects.buildings;
 
 import core.*;
 import UI.CustomMethods;
+import core.player.Award;
+import core.player.Player;
 import objects.Spacer;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
@@ -23,7 +25,7 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
         put(Resource.WOOD, 50);
         put(Resource.TIME, 5);
     }};
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "You finally gave your people some shelter.");
+    public final static Award BUILT_AWARD = Award.createAward("You finally gave your people some shelter.");
 
     public final static int HOUSE_HEALTH = 150;
     public final static int HOUSE_SPACE = 3;
@@ -68,7 +70,7 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 

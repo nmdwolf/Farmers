@@ -1,7 +1,10 @@
 package UI;
 
 import core.OperationCode;
+import core.Pair;
 import objects.GameObject;
+import objects.buildings.Foundation;
+import objects.units.Worker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,15 +17,15 @@ public class OperationsPanel extends JPanel {
 
     private final RoundedButton[] buttons;
     private Dimension buttonSize;
-    private final ActionListener hide, next, previous;
+    private final ActionListener hide;
     private int actionPage;
 
     public OperationsPanel(int cellWidth, int cellHeight) {
         buttons = new RoundedButton[16];
         actionPage = 0;
-        hide = e -> setVisible(false);
-        next = e -> actionPage++;
-        previous = e -> actionPage--;
+        hide = _ -> setVisible(false);
+        ActionListener next = _ -> actionPage++;
+        ActionListener previous = _ -> actionPage--;
 
         addMouseListener(new MouseAdapter() {});
 
@@ -51,7 +54,7 @@ public class OperationsPanel extends JPanel {
             c.gridy = Math.floorDiv(i % 8, 4);
             c.weightx = 0.5;
             c.weighty = 0.5;
-            c.anchor = c.gridx < 2 ? GridBagConstraints.WEST : GridBagConstraints.EAST;;
+//            c.anchor = c.gridx < 2 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
             add(buttons[i], c);
         }
 
@@ -73,11 +76,13 @@ public class OperationsPanel extends JPanel {
         }
 
         OperationsList operations = selected.getOperations(cycle, code);
+        selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), () -> ((Worker)selected).transferContract(pair.value())));
+
         for(int i = 0; i < operations.size(); i++) {
             final int step = (i >= 7) ? i + 1 : i;
             buttons[step].updateText(operations.getDescription(i));
             buttons[step].enableGhost(false);
-            buttons[step].addActionListener(actionEvent -> operations.get(step).perform());
+            buttons[step].addActionListener(_ -> operations.get(step).perform());
         }
 
         setVisible(true);

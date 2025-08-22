@@ -5,18 +5,28 @@ import objects.units.Worker;
 
 public abstract class Contract {
 
-    private final Worker employee;
+    private Worker employee;
     private final int cost;
-    private boolean isStarted;
+    private boolean isStarted, idle;
 
-    public Contract(Worker party, int energy) {
-        employee = party;
+    public Contract(Worker employee, int energy) {
+        this.employee = employee;
         cost = energy;
         isStarted = false;
+        idle = false;
     }
 
     public Worker getEmployee() {
         return employee;
+    }
+
+    public void setEmployee(Worker worker) {
+        employee = worker;
+        idle = (worker == null);
+    }
+
+    public boolean isIdle() {
+        return idle;
     }
 
     /**

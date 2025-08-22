@@ -3,6 +3,8 @@ package objects.buildings;
 import core.*;
 import UI.CustomMethods;
 import UI.OperationsList;
+import core.contracts.ConstructContract;
+import core.player.Player;
 import objects.Constructable;
 import objects.GameObject;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +13,6 @@ import java.awt.*;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
@@ -29,12 +30,18 @@ public class Foundation<T extends Constructable> extends GameObject {
     private final boolean visible;
     private final OperationsList operations;
     private final T constructable;
+    private final ConstructContract<T> contract;
 
-    public Foundation(Player p, T constructable, boolean visible, int cycle) {
+    public Foundation(Player p, T constructable, ConstructContract<T> contract, boolean visible, int cycle) {
         super(p, constructable.getCell(), cycle, constructable.getSpace(), constructable.getSight(), FOUNDATION_HEALTH, 0, 0);
+        this.contract = contract;
         this.constructable = constructable;
         this.visible = visible;
         this.operations = new OperationsList();
+    }
+
+    public ConstructContract<T> getContract() {
+        return contract;
     }
 
     @Override
@@ -84,4 +91,9 @@ public class Foundation<T extends Constructable> extends GameObject {
 
     @Override
     public void degrade(int cycle) {}
+
+    @Override
+    public String toString() {
+        return  "Foundation of [\n    " + constructable.toString().replace("\n", "\n    ") + "\n]";
+    }
 }

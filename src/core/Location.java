@@ -1,7 +1,17 @@
-package UI;
+package core;
 
 public record Location(int x, int y, int z) {
 
+    /**
+     * Calculates the distance between this location and the argument. This method is symmetric in that
+     * <pre>
+     * {@code
+     * this.distanceTo(location) = location.distanceTo(this);
+     * }
+     * </pre>
+     * @param location
+     * @return
+     */
     public int distanceTo(Location location) {
         return Math.abs(x - location.x()) + Math.abs(y - location.y()) + Math.abs(z - location.z());
     }

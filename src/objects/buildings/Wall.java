@@ -2,6 +2,8 @@ package objects.buildings;
 
 import core.*;
 import UI.CustomMethods;
+import core.player.Award;
+import core.player.Player;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Obstruction;
@@ -10,12 +12,18 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-public class Wall extends IdleBuilding implements Obstruction {
+import static core.GameConstants.SPRITE_SIZE;
+import static core.GameConstants.SPRITE_SIZE_MAX;
 
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "Your people are protected.");
+// TODO Implement direction
+public class Wall extends IdleBuilding implements Obstruction, Directional {
+
+    public final static Award BUILT_AWARD = Award.createAward("Your people are protected.");
+    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/Wall.png", SPRITE_SIZE, SPRITE_SIZE);
+    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/Wall.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
 
     public final static ResourceContainer WALL_COST = new ResourceContainer() {{
-        put(Resource.WOOD, -200);
+        put(Resource.WOOD, 0);
         put(Resource.TIME, 1);
     }};
 
@@ -45,11 +53,16 @@ public class Wall extends IdleBuilding implements Obstruction {
 
     @Override
     public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        return Optional.empty();
+        return Optional.of(max ? SPRITE_MAX : SPRITE);
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
+    }
+
+    @Override
+    public @NotNull Direction getDirection() {
+        return null;
     }
 }

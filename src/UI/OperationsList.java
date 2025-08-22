@@ -29,6 +29,11 @@ public class OperationsList extends ArrayList<Operation> {
         add(c);
     }
 
+    public void addAll(OperationsList list) {
+        for(int i = 0; i < list.size(); i++)
+            put(list.getDescription(i), list.get(i));
+    }
+
     /**
      * Adds an Upgrade as an Operation if the Upgrade is visible
      * @param s textual information about the core.upgrade

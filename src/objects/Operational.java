@@ -1,7 +1,7 @@
 package objects;
 
 import core.Cell;
-import core.Player;
+import core.player.Player;
 import core.Status;
 import objects.resources.ResourceContainer;
 

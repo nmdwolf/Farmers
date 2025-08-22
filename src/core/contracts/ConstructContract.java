@@ -14,12 +14,12 @@ public class ConstructContract<T extends Constructable> extends Contract{
     public ConstructContract(Worker employee, T constructable) {
         super(employee, constructable.getCompletion());
         this.constructable = constructable;
-        foundation = new Foundation<>(employee.getPlayer(), constructable, constructable.hasVisibleFoundation(), constructable.getStartCycle());
+        foundation = new Foundation<>(employee.getPlayer(), constructable, this, constructable.hasVisibleFoundation(), constructable.getStartCycle());
     }
 
     @Override
     public void initialize() {
-        if(getEmployee().getPlayer().hasResources(constructable.getCost())) {
+        if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())) {
             getEmployee().getPlayer().changeResources(constructable.getCost().negative());
             getEmployee().getPlayer().addObject(foundation);
             getEmployee().setTarget(foundation);

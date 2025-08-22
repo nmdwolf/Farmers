@@ -1,10 +1,12 @@
 package UI;
 
 import core.OperationCode;
+import core.Property;
 import objects.Constructor;
 import objects.Evolvable;
 import objects.GameObject;
 import objects.Upgrader;
+import objects.units.Unit;
 import objects.units.Worker;
 
 import javax.swing.*;
@@ -19,11 +21,13 @@ public class ChoicePanel extends JPanel {
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hide, hideThis;
+    private final Property<Boolean> showResources;
 
-    public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide) {
+    public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide, Property<Boolean> showResources) {
         this.operationsPanel = operationsPanel;
         this.hide = hide;
         hideThis = event -> setVisible(false);
+        this.showResources = showResources;
 
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         buttons = new ArrayList<>(); // Move, Resource, Build, Upgrades, Evolutions
@@ -36,7 +40,7 @@ public class ChoicePanel extends JPanel {
 
         for(JButton button : buttons)
             button.addActionListener(hideThis);
-        buttons.get(0).addActionListener(hide);
+        buttons.getFirst().addActionListener(hide);
 
         // Intercepts mouse events
         addMouseListener(new MouseAdapter() {});
@@ -46,11 +50,11 @@ public class ChoicePanel extends JPanel {
         GridBagConstraints c = new GridBagConstraints();
 
         for(int i = 0; i < buttons.size(); i++) {
-            c.gridx = i % 2;
-            c.gridy = i / 2;
-            c.weightx = 0.5;
-            c.weighty = 0.5;
-            c.anchor = c.gridx == 0 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
+            c.gridx = i % 4;
+            c.gridy = i / 4;
+            c.weightx = 0.25;
+            c.weighty = 0.25;
+//            c.anchor = c.gridx == 0 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
             add(buttons.get(i), c);
         }
 
@@ -69,11 +73,13 @@ public class ChoicePanel extends JPanel {
         }
 
         buttons.get(1).addActionListener(event -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
+        buttons.get(1).addActionListener(event -> showResources.set(true));
         buttons.get(2).addActionListener(event -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
         buttons.get(3).addActionListener(event -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
         buttons.get(4).addActionListener(event -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
 
-        buttons.get(0).setVisible(true);
+        if(selected instanceof Unit)
+            buttons.get(0).setVisible(true);
         if(selected instanceof Worker)
             buttons.get(1).setVisible(true);
         if(selected instanceof Constructor)

@@ -1,7 +1,5 @@
 package core;
 
-import UI.Location;
-
 import java.util.HashMap;
 
 import static core.GameConstants.*;

@@ -1,12 +1,11 @@
 package core;
 
 import core.contracts.LaborContract;
-import UI.Location;
 import UI.Main;
 import UI.Motion;
-import UI.Pair;
+import core.player.Player;
 import objects.GameObject;
-import objects.buildings.MainBuilding;
+import objects.buildings.TownHall;
 import objects.units.Villager;
 import objects.units.Worker;
 import objects.resources.Resource;
@@ -18,13 +17,13 @@ import java.util.List;
 import static core.GameConstants.rand;
 import static objects.resources.Resource.*;
 
-public class AI extends Player{
+public class AI extends Player {
 
     public final static int SEARCH_LIMIT = 5;
 
     private final Main main;
 
-    private MainBuilding base;
+    private TownHall base;
     private final HashMap<Cell, ArrayList<Resource>> harvested;
 
     public AI(String name, Color color, Color alternativeColor, Cell start, Main game) {
@@ -37,8 +36,8 @@ public class AI extends Player{
         // init step
         if(base == null)
             for(GameObject obj : getObjects())
-                if (obj instanceof MainBuilding)
-                    base = (MainBuilding) obj;
+                if (obj instanceof TownHall)
+                    base = (TownHall) obj;
 
         if(getObjects().stream().filter(obj -> obj.getToken().equals("v")).count() < 5 && base != null) {
             Villager v = new Villager(this, base.getCell().fetch(1, 0, 0), cycle);
@@ -84,7 +83,8 @@ public class AI extends Player{
 
                     if(motion != null) {
                         obj.changeEnergy(-motion.key().length());
-                        main.motionToThread(motion.key());
+//                        motionToThread(motion.key());
+                        main.moveObject(motion.key().getObject(), motion.key().getPath()[motion.key().getPath().length - 1]);
 
                         harvested.put(newLoc, new ArrayList<>());
                         harvested.get(newLoc).add(FOOD);

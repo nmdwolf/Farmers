@@ -1,8 +1,9 @@
 package objects.buildings;
 
 import core.*;
-import UI.CustomMethods;
 import UI.OperationsList;
+import core.player.Award;
+import core.player.Player;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ public class Stable extends ConstructiveBuilding {
         put(Resource.WOOD, -200);
         put(Resource.TIME, 10);
     }};
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "Yee-haw!");
+    public final static Award BUILT_AWARD = Award.createAward("Yee-haw!");
 
     public final static int STABLE_HEALTH = 500;
     public final static int STABLE_SPACE = 3;
@@ -49,7 +50,7 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 
@@ -59,7 +60,7 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
-    public Award getEvolveAward() {
+    public @NotNull Award getEvolveAward() {
         return null;
     }
 

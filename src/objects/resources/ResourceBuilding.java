@@ -1,7 +1,7 @@
 package objects.resources;
 
 import core.Cell;
-import core.Player;
+import core.player.Player;
 import objects.buildings.IdleBuilding;
 
 public abstract class ResourceBuilding extends IdleBuilding implements Source {

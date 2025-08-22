@@ -1,6 +1,7 @@
 package objects.buildings;
 
 import core.*;
+import core.player.Player;
 import objects.resources.ResourceContainer;
 
 public abstract class ConstructiveBuilding extends Building {

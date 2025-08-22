@@ -1,9 +1,9 @@
 package core;
 
-import UI.Location;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.GameObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
@@ -153,8 +153,8 @@ public class Cell {
     }
 
     /**
-     * Generates a random amount of objects.resources to initialize a cell
-     * @return HashMap with random amount of objects.resources
+     * Generates a random amount of {@code Resource}s to initialize a cell
+     * @return HashMap with random amount of resources
      */
     private static ResourceContainer generateResources() {
         ResourceContainer resources = new ResourceContainer();
@@ -206,6 +206,7 @@ public class Cell {
             down = cell;
     }
 
+    @NotNull
     public Cell fetch(int x, int y, int z) throws NullPointerException {
         if(x == 0 && y == 0 && z == 0)
             return this;
@@ -240,8 +241,9 @@ public class Cell {
         throw new NullPointerException("Cell does not exist.");
     }
 
-    public Cell fetch(Cell cell) {
-        return fetch(cell.getX(), cell.getY(), cell.getZ());
+    @NotNull
+    public Cell fetch(Location location) {
+        return fetch(location.x(), location.y(), location.z());
     }
 
     public int distanceTo(Cell cell) {
@@ -252,7 +254,8 @@ public class Cell {
         return new Location(cellX, cellY, cellZ);
     }
 
-    public boolean isEndOfMap() { return cellX == 0 || cellX == NUMBER_OF_CELLS - 1 || cellY == 0 || cellY == NUMBER_OF_CELLS - 1;
+    public boolean isEndOfMap() {
+        return cellX == 0 || cellX == NUMBER_OF_CELLS - 1 || cellY == 0 || cellY == NUMBER_OF_CELLS - 1;
     }
 
     /*public Location add(Location loc) {
@@ -270,6 +273,15 @@ public class Cell {
     @Override
     public String toString() {
         return "Location(" + cellX + ", " + cellY + ", " + cellZ + ")";
+    }
+
+    public String getDescription() {
+        StringBuilder description = new StringBuilder();
+        for(Resource res : resources.keySet())
+            if(res != TIME)
+                description.append(res.name + ": " + resources.get(res) + "\n");
+
+        return description.toString();
     }
 
     @Override

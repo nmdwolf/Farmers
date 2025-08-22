@@ -3,10 +3,10 @@ package core.upgrade;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import UI.CustomMethods;
-import objects.buildings.MainBuilding;
+import objects.buildings.TownHall;
 import objects.resources.SourceDecorator;
 
-public class WellUpgrade extends InstanceUpgrade<MainBuilding> {
+public class WellUpgrade extends InstanceUpgrade<TownHall> {
 
     public final static int WELL_ID = CustomMethods.getNewUpgradeIdentifier();
     public final static int WATER_SOURCE = 5;
@@ -18,7 +18,7 @@ public class WellUpgrade extends InstanceUpgrade<MainBuilding> {
         put(Resource.WATER, -100);
     }};
 
-    public WellUpgrade(MainBuilding obj) {
+    public WellUpgrade(TownHall obj) {
         super(obj, WELL_COST, CYCLE_THRESHOLD);
     }
 

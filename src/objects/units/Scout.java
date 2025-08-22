@@ -1,8 +1,9 @@
 package objects.units;
 
 import core.*;
-import UI.CustomMethods;
 import UI.OperationsList;
+import core.player.Award;
+import core.player.Player;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Evolvable;
@@ -14,8 +15,8 @@ import java.util.Optional;
 
 public class Scout extends Unit implements Evolvable {
 
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "You can look for new lands.");
-    public final static Award EVOLVE_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "Exploring will be even easier now");
+    public final static Award BUILT_AWARD = Award.createAward("You can look for new lands.");
+    public final static Award EVOLVE_AWARD = Award.createAward("Exploring will be even easier now.");
 
     public final static int SCOUT_HEALTH = 100;
     public final static int SCOUT_ENERGY = 10;
@@ -55,7 +56,7 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public Award getEvolveAward() {
+    public @NotNull Award getEvolveAward() {
         if(getLevel() == 2)
             return EVOLVE_AWARD;
         return null;
@@ -75,7 +76,7 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 

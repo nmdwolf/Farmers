@@ -3,6 +3,7 @@ package objects;
 import core.*;
 
 import UI.*;
+import core.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;

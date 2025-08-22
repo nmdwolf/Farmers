@@ -1,7 +1,7 @@
 package core.upgrade;
 
-import core.Civilization;
-import core.Player;
+import core.player.Civilization;
+import core.player.Player;
 import objects.resources.Resource;
 import UI.CustomMethods;
 import objects.resources.ResourceContainer;

@@ -3,6 +3,8 @@ package objects.buildings;
 import core.*;
 import UI.CustomMethods;
 import UI.OperationsList;
+import core.player.Award;
+import core.player.Player;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Evolvable;
@@ -20,7 +22,7 @@ import java.util.Optional;
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
 
-public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolvable {
+public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable {
 
     public final static BufferedImage BONFIRE_SPRITE = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE, SPRITE_SIZE);
     public final static BufferedImage TOWN_SPRITE = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE, SPRITE_SIZE);
@@ -28,7 +30,7 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
     public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
     public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
     public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.getSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "A new city has been founded.");
+    public final static Award BUILT_AWARD = Award.createAward("A new city has been founded.");
 
     public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer() {{
         put(Resource.WOOD, -200);
@@ -65,7 +67,7 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
 
     private int space;
 
-    public MainBuilding(Player p, Cell cell, int cycle) {
+    public TownHall(Player p, Cell cell, int cycle) {
         super(p, cell, cycle, BASE_SIZE, BASE_SIGHT, BASE_HEALTH,
                 BASE_DEGRADATION_TIME, BASE_DEGRADATION_AMOUNT, BUILD_RESOURCES, BASE_DIFFICULTY,
                 BASE_X, BASE_Y);
@@ -123,11 +125,11 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
         } else if(code == OperationCode.EVOLVE) {
             operations.putUpgrade("Evolve",
                     switch (getLevel()) {
-                        case 1 -> new EvolveUpgrade<>(MainBuilding.this, LEVEL1_RESOURCES, 0, () -> {
+                        case 1 -> new EvolveUpgrade<>(TownHall.this, LEVEL1_RESOURCES, 0, () -> {
                             changeMaxHealth(200);
                             changeSpaceBoost(2);
                         });
-                        case 2 -> new EvolveUpgrade<>(MainBuilding.this, LEVEL2_RESOURCES, 0, () -> {
+                        case 2 -> new EvolveUpgrade<>(TownHall.this, LEVEL2_RESOURCES, 0, () -> {
                             changeMaxHealth(300);
                             changeSpaceBoost(3);
                         });
@@ -138,12 +140,12 @@ public class MainBuilding extends ConstructiveBuilding implements Spacer, Evolva
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 
     @Override
-    public Award getEvolveAward() {
+    public @NotNull Award getEvolveAward() {
         return null;
     }
 

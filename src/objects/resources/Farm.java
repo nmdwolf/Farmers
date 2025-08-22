@@ -1,7 +1,8 @@
 package objects.resources;
 
 import core.*;
-import UI.CustomMethods;
+import core.player.Award;
+import core.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -24,7 +25,7 @@ public class Farm extends ResourceBuilding {
     }};
     public final static ResourceContainer FARM_GAINS = new ResourceContainer(10, 0, 0, 0, 0, 0);
 
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "Food is ours.");
+    public final static Award BUILT_AWARD = Award.createAward("Food is ours.");
 
     public Farm(Player p, Cell cell, int cycle) {
         super(p, cell, cycle, FARM_SIZE, FARM_SIGHT, FARM_HEALTH, FARM_COST, FARM_DIFFICULTY,
@@ -32,7 +33,7 @@ public class Farm extends ResourceBuilding {
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 

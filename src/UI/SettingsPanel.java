@@ -101,7 +101,7 @@ public class SettingsPanel extends JScrollPane {
         audioBox.add(shuffleBox, c);
 
         JButton applyAudio = new JButton("Load");
-        applyAudio.addActionListener(evt -> {
+        applyAudio.addActionListener(_ -> {
             playMusic.set(!muteBox.isSelected());
             shuffleMusic.set(shuffleBox.isSelected());
             audioSource.set(audioInput.getText());
@@ -137,7 +137,7 @@ public class SettingsPanel extends JScrollPane {
         JCheckBox cursorBox = new JCheckBox();
         cursorBox.setSelected(cursorFlag.getFlat());
         cursorBox.setBorder(new EmptyBorder(4, 0, 0, 0));
-        cursorBox.addChangeListener(e -> cursorFlag.set(cursorBox.isSelected()));
+        cursorBox.addChangeListener(_ -> cursorFlag.set(cursorBox.isSelected()));
         c.gridx = 1;
         c.gridy = 1;
         c.weightx = .9;
@@ -154,7 +154,7 @@ public class SettingsPanel extends JScrollPane {
         JCheckBox cellArrowBox = new JCheckBox();
         cellArrowBox.setSelected(cellArrowProperty.getFlat());
         cellArrowBox.setBorder(new EmptyBorder(4, 0, 0, 0));
-        cellArrowBox.addChangeListener(e -> cellArrowProperty.set(cellArrowBox.isSelected()));
+        cellArrowBox.addChangeListener(_ -> cellArrowProperty.set(cellArrowBox.isSelected()));
         c.gridx = 1;
         c.gridy = 2;
         visualBox.add(cellArrowBox, c);
@@ -163,7 +163,7 @@ public class SettingsPanel extends JScrollPane {
         canvas.add(Box.createHorizontalGlue());
     }
 
-    public void resize(int cellWidth, int cellHeight) {
+    public void resizePanel(int cellWidth, int cellHeight) {
         canvas.setPreferredSize(new Dimension(4 * cellWidth, 5 * cellHeight));
         setPreferredSize(new Dimension(4 * cellWidth, 5 * cellHeight));
         canvas.setBorder(new CustomBorder(Color.BLACK, getWidth(), getHeight()));

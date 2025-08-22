@@ -1,6 +1,6 @@
 package core.upgrade;
 
-import core.Player;
+import core.player.Player;
 import objects.resources.ResourceContainer;
 import objects.GameObject;
 

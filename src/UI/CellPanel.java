@@ -1,9 +1,11 @@
 package UI;
 
 import core.*;
+import core.player.Player;
 import objects.GameObject;
 import objects.buildings.Building;
 import objects.buildings.Foundation;
+import objects.buildings.Wall;
 import objects.units.Unit;
 
 import javax.swing.*;
@@ -15,16 +17,13 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Set;
 
-import static UI.CustomMethods.coordinateTransform;
+import static UI.CustomMethods.cellCoordinateTransform;
 import static core.GameConstants.*;
 
 public class CellPanel extends JPanel {
 
-    private static final int STROKE_WIDTH = 2;
-    private final static BufferedImage arrowhead = CustomMethods.getSprite("src/img/Arrowhead.png",
-            GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
     private Pair<Integer, Integer> selection;
-    private int poolSize;
+    private int poolSize, buildingRow;
 
     private final Property<GameObject> selected;
     private final Property<Boolean> cellArrowProperty;
@@ -35,6 +34,7 @@ public class CellPanel extends JPanel {
     public CellPanel(Property<GameObject> selected, Property<Boolean> cellArrowProperty) {
         selection = new Pair<>(-1, -1);
         objectMap = new BiMap();
+        buildingRow = 1;
         this.selected = selected;
         this.cellArrowProperty = cellArrowProperty;
 
@@ -51,9 +51,9 @@ public class CellPanel extends JPanel {
                 super.mouseMoved(e);
 
                 if(e.getY() >= CELL_Y_MARGIN && e.getY() <= (CELL_Y_MARGIN + SPRITE_SIZE_MAX))
-                    selection = coordinateTransform(e.getX(), e.getY());
+                    selection = cellCoordinateTransform(e.getX(), e.getY());
                 else if(e.getY() >= getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX && e.getY() <= getHeight() - CELL_Y_MARGIN)
-                    selection = coordinateTransform(e.getX(), e.getY());
+                    selection = cellCoordinateTransform(e.getX(), e.getY());
                 else
                     selection = new Pair<>(-1, -1);
 
@@ -74,6 +74,7 @@ public class CellPanel extends JPanel {
         this.cell = cell;
         this.player = player;
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f)); // TODO Might move to a resize method
+        buildingRow = CustomMethods.cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX).value();
 
         if(cell != null) {
             int unitCounter = 0;
@@ -84,11 +85,15 @@ public class CellPanel extends JPanel {
                     objectMap.put(new Pair<>(unitCounter, 0), object);
                     unitCounter++;
                 } else if (object instanceof Building || object instanceof Foundation) {
-                    objectMap.put(new Pair<>(buildingCounter, 1), object);
+                    objectMap.put(new Pair<>(buildingCounter, buildingRow), object);
                     buildingCounter++;
                 }
             }
         }
+    }
+
+    public Cell getCurrentCell() {
+        return cell;
     }
 
     @Override
@@ -174,7 +179,9 @@ public class CellPanel extends JPanel {
          */
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
             GameObject object = objectMap.get(pair);
-            selected.get().ifPresent(obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()));
+            selected.get().ifPresentOrElse(obj -> gr.setColor(object.equals(obj) ?
+                    object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
+                    () -> gr.setColor(object.getPlayer().getColor()));
 
             if(object instanceof Unit u) {
                 if(u.getStatus() == Status.WORKING) {
@@ -223,12 +230,21 @@ public class CellPanel extends JPanel {
             }
         }
 
+        if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
+            gr.setColor(new Color(80, 40, 10));
+            Stroke oldStroke = gr.getStroke();
+            gr.setStroke(new BasicStroke(20));
+            gr.drawOval(getWidth() / 6, getHeight() / 6, 2 * getWidth() / 3, 2 * getHeight() / 3);
+            gr.setStroke(oldStroke);
+        }
+
+        // Draws the selection box for Unit/Building/Foundation objects
         if(selection.key() !=-1 && selection.value() != -1) {
             gr.setColor(player.getAlternativeColor());
             if(selection.value() == 0)
                 gr.drawRect(selection.key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, CELL_Y_MARGIN,
                         SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-            else if(selection.value() > 1)
+            else if(selection.value() == buildingRow)
                 gr.drawRect(selection.key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN,
                         getHeight() - SPRITE_SIZE_MAX - CELL_Y_MARGIN, SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
         }
@@ -243,7 +259,7 @@ public class CellPanel extends JPanel {
         int lineY = y2 - y1;
         double angle = -Math.atan2(lineY, lineX) - Math.PI / 2;
 
-        BufferedImage rotated = CustomMethods.rotateImage(arrowhead, angle);
+        BufferedImage rotated = CustomMethods.rotateImage(ARROWHEAD, angle);
         gr.drawLine(x1 + CELL_X_MARGIN + (SPRITE_SIZE_MAX / 2),
                 y1 + (SPRITE_SIZE_MAX / 2), x2 +  (SPRITE_SIZE_MAX / 2) + CELL_X_MARGIN, y2);
         gr.setStroke(oldStroke);
@@ -252,7 +268,7 @@ public class CellPanel extends JPanel {
                 null);
     }
 
-    public class BiMap {
+    public static class BiMap {
         private final HashMap<Pair<Integer, Integer>, GameObject> posToObj;
         private final HashMap<GameObject, Pair<Integer, Integer>> objToPos;
 

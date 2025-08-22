@@ -1,5 +1,7 @@
-package core;
+package core.player;
 
+import core.Cell;
+import core.GameConstants;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.GameObject;
@@ -19,6 +21,7 @@ public class Player {
     private final Color color, altColor;
     private Cell viewpoint;
     private final AwardSystem awards;
+    private final MissionArchive archive;
 
     private final Set<GameObject> objects;
     private Set<GameObject> newObjects, removableObjects;
@@ -34,6 +37,7 @@ public class Player {
         this.name = name;
         this.color = color;
         awards = new AwardSystem();
+        archive = new MissionArchive();
         civ = new Nomads();
         altColor = alternativeColor;
         popCap = START_POP_CAP;

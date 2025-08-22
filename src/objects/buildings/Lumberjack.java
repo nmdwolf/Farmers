@@ -1,7 +1,8 @@
 package objects.buildings;
 
 import core.*;
-import UI.CustomMethods;
+import core.player.Award;
+import core.player.Player;
 import objects.resources.Resource;
 import objects.resources.ResourceContainer;
 import objects.Booster;
@@ -14,11 +15,11 @@ import java.util.Optional;
 public class Lumberjack extends IdleBuilding implements Booster {
 
     public final static ResourceContainer LUMBERJACK_COST = new ResourceContainer() {{
-        put(Resource.WOOD, -100);
-        put(Resource.WATER, -50);
+        put(Resource.WOOD, 100);
+        put(Resource.WATER, 50);
         put(Resource.TIME, 5);
     }};
-    public final static Award BUILT_AWARD = new Award(CustomMethods.getNewAwardIdentifier(), "You figured out how to chop wood.");
+    public final static Award BUILT_AWARD = Award.createAward("You figured out how to chop wood.");
 
     public final static int LUMBERJACK_HEALTH = 250;
     public final static int LUMBERJACK_SPACE = 1;
@@ -59,7 +60,7 @@ public class Lumberjack extends IdleBuilding implements Booster {
     }
 
     @Override
-    public Award getConstructionAward() {
+    public @NotNull Award getConstructionAward() {
         return BUILT_AWARD;
     }
 }

@@ -1,4 +1,4 @@
-package core;
+package core.player;
 
 import java.util.HashSet;
 import java.util.Set;
