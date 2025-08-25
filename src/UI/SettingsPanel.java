@@ -65,7 +65,7 @@ public class SettingsPanel extends JScrollPane {
         c.gridy = 1;
         audioBox.add(audioLabel, c);
 
-        JTextField audioInput = new JTextField(audioSource.getFlat(), 1);
+        JTextField audioInput = new JTextField(audioSource.getUnsafe(), 1);
         c.gridx = 1;
         c.gridy = 1;
         c.weightx = 0.9;
@@ -80,7 +80,7 @@ public class SettingsPanel extends JScrollPane {
         audioBox.add(muteLabel, c);
 
         JCheckBox muteBox = new JCheckBox();
-        muteBox.setSelected(!playMusic.getFlat());
+        muteBox.setSelected(!playMusic.getUnsafe());
         muteBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         c.gridx = 1;
         c.gridy = 2;
@@ -94,7 +94,7 @@ public class SettingsPanel extends JScrollPane {
         audioBox.add(shuffleLabel, c);
 
         JCheckBox shuffleBox = new JCheckBox();
-        shuffleBox.setSelected(shuffleMusic.getFlat());
+        shuffleBox.setSelected(shuffleMusic.getUnsafe());
         shuffleBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         c.gridx = 1;
         c.gridy = 3;
@@ -135,7 +135,7 @@ public class SettingsPanel extends JScrollPane {
         visualBox.add(cursorLabel, c);
 
         JCheckBox cursorBox = new JCheckBox();
-        cursorBox.setSelected(cursorFlag.getFlat());
+        cursorBox.setSelected(cursorFlag.getUnsafe());
         cursorBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         cursorBox.addChangeListener(_ -> cursorFlag.set(cursorBox.isSelected()));
         c.gridx = 1;
@@ -152,7 +152,7 @@ public class SettingsPanel extends JScrollPane {
         visualBox.add(cellArrowLabel, c);
 
         JCheckBox cellArrowBox = new JCheckBox();
-        cellArrowBox.setSelected(cellArrowProperty.getFlat());
+        cellArrowBox.setSelected(cellArrowProperty.getUnsafe());
         cellArrowBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         cellArrowBox.addChangeListener(_ -> cellArrowProperty.set(cellArrowBox.isSelected()));
         c.gridx = 1;

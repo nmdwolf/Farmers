@@ -1,5 +1,6 @@
 package core;
 
-public interface Action {
-    void actionPerformed();
+import java.util.function.Consumer;
+
+public interface Action<T> extends Consumer<T> {
 }

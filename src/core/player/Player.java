@@ -37,7 +37,7 @@ public class Player {
         this.name = name;
         this.color = color;
         awards = new AwardSystem();
-        archive = new MissionArchive();
+        archive = new MissionArchive(this);
         civ = new Nomads();
         altColor = alternativeColor;
         popCap = START_POP_CAP;
@@ -207,4 +207,6 @@ public class Player {
     }
 
     public Civilization getCivilization() { return civ; }
+
+    public void validateMissions() { archive.validate(); }
 }

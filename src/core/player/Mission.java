@@ -2,7 +2,7 @@ package core.player;
 
 public interface Mission {
 
-    boolean validate();
+    boolean validate(Player p);
 
     Award getAward();
 }

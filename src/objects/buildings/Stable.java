@@ -70,6 +70,11 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
+    public OperationsList getConstructions(int cycle) {
+        return new OperationsList();
+    }
+
+    @Override
     public void cycle(int cycle) {
 
     }

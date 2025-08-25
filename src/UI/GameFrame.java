@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static javax.swing.MenuSelectionManager.defaultManager;
@@ -47,6 +48,7 @@ public class GameFrame extends JFrame {
     @NotNull private final Property<Location[]> hoverPath;
     @NotNull private final Grid cells;
     private boolean gps;
+    private final HashSet<Motion> motions;
 
     public GameFrame(@NotNull Main main, @NotNull Grid cells,
                      @NotNull Property<Integer> current, @NotNull Property<Integer> cycle, @NotNull Property<Player> player,
@@ -73,6 +75,7 @@ public class GameFrame extends JFrame {
         hoverPath = new Property<>();
         showResources = new Property<>(false);
         gps = false;
+        motions = new HashSet<>();
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -96,12 +99,12 @@ public class GameFrame extends JFrame {
             }
         };
 
-        showResources.bind(() -> selected.get().ifPresent(obj -> infoPanel.update(obj, !showResources.getFlat())));
-        selected.bind(() -> {
+        showResources.bind(prop -> selected.get().ifPresent(obj -> infoPanel.update(obj, !prop)));
+        selected.bind(_ -> {
             selected.get().ifPresentOrElse(obj -> {
                 showResources.set(false);
                 infoPanel.setVisible(true);
-                choicePanel.update(obj, cycle.getFlat());
+                choicePanel.update(obj, cycle.getUnsafe());
             }, () -> hidePanels(false));
             refreshWindow();
         });
@@ -150,11 +153,12 @@ public class GameFrame extends JFrame {
                     drawCells(gr);
                     drawDetails(gr);
 
-                    gr.setColor(player.getFlat().getAlternativeColor());
+                    gr.setColor(player.getUnsafe().getAlternativeColor());
                     gr.setStroke(new BasicStroke(2));
                     Cell p = posToCellCoord(mouseX, mouseY, 0);
                     gr.drawRect(p.getX() * cellWidth, p.getY() * cellHeight, cellWidth, cellHeight);
-                    hoverPath.get().ifPresent(_ -> drawPath(gr));
+                    drawPaths(gr);
+
                     gr.dispose();
                 }
             }
@@ -200,7 +204,7 @@ public class GameFrame extends JFrame {
                 hoverPath.set(null);
                 destination = null;
                 selected.set(null);
-                current.set(current.getFlat() + 1);
+                current.set(current.getUnsafe() + 1);
 
                 hidePanels(true);
                 refreshWindow();
@@ -209,48 +213,48 @@ public class GameFrame extends JFrame {
         contentPanel.getActionMap().put("left", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.getFlat().getViewPoint().getX() > 0) {
-                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(-1, 0, 0));
+                if(player.getUnsafe().getViewPoint().getX() > 0) {
+                    player.getUnsafe().changeViewpoint(player.getUnsafe().getViewPoint().fetch(-1, 0, 0));
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.getFlat());
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.getUnsafe());
                 }
             }
         });
         contentPanel.getActionMap().put("right", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.getFlat().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(1, 0, 0));
+                if(player.getUnsafe().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                    player.getUnsafe().changeViewpoint(player.getUnsafe().getViewPoint().fetch(1, 0, 0));
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(1, 0, 0), player.getFlat());
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(1, 0, 0), player.getUnsafe());
                 }
             }
         });
         contentPanel.getActionMap().put("up", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.getFlat().getViewPoint().getY() > 0) {
-                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, -1, 0));
+                if(player.getUnsafe().getViewPoint().getY() > 0) {
+                    player.getUnsafe().changeViewpoint(player.getUnsafe().getViewPoint().fetch(0, -1, 0));
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, -1, 0), player.getFlat());
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, -1, 0), player.getUnsafe());
                 }
             }
         });
         contentPanel.getActionMap().put("down", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(player.getFlat().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, 1, 0));
+                if(player.getUnsafe().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                    player.getUnsafe().changeViewpoint(player.getUnsafe().getViewPoint().fetch(0, 1, 0));
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, 1, 0), player.getFlat());
+                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, 1, 0), player.getUnsafe());
                 }
             }
         });
@@ -264,9 +268,9 @@ public class GameFrame extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                mouseX = e.getX();
+                mouseX = e.getX(); // TODO Merge clickPos and mousePos variables!
                 mouseY = e.getY();
-                Cell mousePos = posToCellCoord(mouseX, mouseY, 0);
+                Cell mousePos = posToCellCoord(mouseX, mouseY, player.getUnsafe().getViewPoint().getZ());
 
                 // Moves info panel to make sure that the underlying cells are reachable.
                 selected.get().ifPresent( obj -> {
@@ -275,16 +279,15 @@ public class GameFrame extends JFrame {
                         refreshWindow();
                     }
 
-                    if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getFlat().getViewPoint().getLocation()).isEndOfMap()) {
+                    if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getUnsafe().getViewPoint().getLocation()).isEndOfMap()) {
                         Pair<Motion, Location> motion = parent.getShortestAdmissiblePath(obj,
-                                mousePos.fetch(player.getFlat().getViewPoint().getLocation()));
+                                mousePos.fetch(player.getUnsafe().getViewPoint().getLocation()));
 
                         if (motion != null && motion.key().length() > 0) {
                             hoverPath.set(motion.key().getRelativePath());
                             destination = motion.value();
                             travelDistance = motion.key().length();
-                        }
-                        else {
+                        } else {
                             hoverPath.set(null);
                             destination = null;
                         }
@@ -298,10 +301,10 @@ public class GameFrame extends JFrame {
             public void mouseWheelMoved(MouseWheelEvent e) {
                 super.mouseWheelMoved(e);
                 if(GAME_3D) {
-                    if (e.getWheelRotation() != 0 && !player.getFlat().isViewLocked()) {
-                        player.getFlat().changeViewpoint(player.getFlat().getViewPoint().fetch(0, 0,
+                    if (e.getWheelRotation() != 0 && !player.getUnsafe().isViewLocked()) {
+                        player.getUnsafe().changeViewpoint(player.getUnsafe().getViewPoint().fetch(0, 0,
                                 e.getWheelRotation()));
-                        viewMenu.setText("View: " + (player.getFlat().getViewPoint().getZ()));
+                        viewMenu.setText("View: " + (player.getUnsafe().getViewPoint().getZ()));
                         selected.set(null);
 
                         hidePanels(true);
@@ -314,8 +317,8 @@ public class GameFrame extends JFrame {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 Location oldPos = clickPos;
-                clickPos = player.getFlat().getViewPoint().fetch(posToCellCoord(e.getX(), e.getY(),
-                        player.getFlat().getViewPoint().getZ()).getLocation()).getLocation();
+                clickPos = player.getUnsafe().getViewPoint().fetch(posToCellCoord(e.getX(), e.getY(),
+                        player.getUnsafe().getViewPoint().getZ()).getLocation()).getLocation();
 
                 if(!cells.get(clickPos).isEndOfMap()) {
                     hoverPath.set(null);
@@ -330,13 +333,13 @@ public class GameFrame extends JFrame {
                     if (SwingUtilities.isLeftMouseButton(e)) {
 
                         // Unselect GameObject on left click
-                        if (clicked.getFlat())
+                        if (clicked.getUnsafe())
                             selected.set(null);
 
                         // If clicked on cell with objects, show info panel
                         // TODO Change this check to cells within view distance
-                        if (player.getFlat().getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
-                            cellPanel.update(cells.get(clickPos), player.getFlat());
+                        if (player.getUnsafe().getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
+                            cellPanel.update(cells.get(clickPos), player.getUnsafe());
                             cellPanel.setVisible(true);
                             clicked.set(true);
                         } else
@@ -361,6 +364,8 @@ public class GameFrame extends JFrame {
                                 }
                             }
                         });
+
+                        selected.set(null);
                     }
 
                     // Redraw game panel
@@ -403,7 +408,7 @@ public class GameFrame extends JFrame {
 
                 infoPanel.resizePanel(cellWidth, cellHeight);
                 layout.putConstraint(SpringLayout.WEST, infoPanel,
-                        (clickPos.x() - player.getFlat().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
+                        (clickPos.x() - player.getUnsafe().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
                 settingsPanel.resizePanel(cellWidth, cellHeight);
@@ -424,8 +429,8 @@ public class GameFrame extends JFrame {
         // Create menus
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
-        playerMenu = new JMenu("Player: " + player.getFlat().getName());
-        viewMenu = new JMenu("View: " + player.getFlat().getViewPoint().getZ());
+        playerMenu = new JMenu("Player: " + player.getUnsafe().getName());
+        viewMenu = new JMenu("View: " + player.getUnsafe().getViewPoint().getZ());
         cellMenu = new JMenu("Nothing to show");
         JMenu settingsMenu = new JMenu("Settings");
         menubar.add(playerMenu);
@@ -478,7 +483,7 @@ public class GameFrame extends JFrame {
         playerLabels = new JMenuItem[Resource.values().length];
         for(int i = 0; i < Resource.values().length; i++) {
             JMenuItem label =
-                    new JMenuItem(Resource.values()[i].name + ": " + player.getFlat().getResource(Resource.values()[i]));
+                    new JMenuItem(Resource.values()[i].name + ": " + player.getUnsafe().getResource(Resource.values()[i]));
             playerMenu.add(label);
             playerLabels[i] = label;
         }
@@ -491,7 +496,7 @@ public class GameFrame extends JFrame {
 
         cycleLabel = new JMenuItem("Cycle: " + 1);
         viewMenu.add(cycleLabel);
-        popLabel = new JMenuItem("Population: " + player.getFlat().getPop() + "/" + player.getFlat().getPopCap());
+        popLabel = new JMenuItem("Population: " + player.getUnsafe().getPop() + "/" + player.getUnsafe().getPopCap());
         playerMenu.add(popLabel);
 
         JMenuItem viewItem = new JMenuItem("Audio & Visuals");
@@ -523,8 +528,8 @@ public class GameFrame extends JFrame {
             }
         });
 
-        cursorFlag.bind(() -> {
-            if(cursorFlag.getFlat())
+        cursorFlag.bind(prop -> {
+            if(prop)
                 setCustomCursor();
             else
                 setCursor(Cursor.getDefaultCursor());
@@ -543,26 +548,32 @@ public class GameFrame extends JFrame {
 
     public void showMessagePanel(String text) {
 
-        int[] lines = {1};
+        int lines = 1;
         StringBuilder output = new StringBuilder();
+        StringBuilder temp = new StringBuilder();
         for(char c : text.toCharArray()) {
-            output.append(c);
-            if(getContentPane().getGraphics().getFontMetrics().stringWidth(output.toString()) >= 2 * cellWidth - 20) {
+            temp.append(c);
+            if(getContentPane().getGraphics().getFontMetrics().stringWidth(temp.toString()) >= 2 * cellWidth - 1) {
+                output.append(temp);
                 output.append("\n");
-                lines[0]++;
+                temp = new StringBuilder();
+                lines++;
             }
         }
+        output.append(temp);
 
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g);
+                Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
                 gr.setColor(new Color(200, 150, 0, 76));
                 gr.fillRoundRect(0, 0, 2 * cellWidth, getHeight(), 10, 10);
                 gr.setColor(Color.black);
                 CustomMethods.drawString(gr, output.toString(), 10, 10);
+
+                gr.dispose();
             }
         };
 
@@ -574,8 +585,8 @@ public class GameFrame extends JFrame {
             }
         });
 
-        panel.setPreferredSize(new Dimension(2 * cellWidth, 50 * lines[0]));
-        panel.setBorder(new CustomBorder(Color.black, 2 * cellWidth, 50 * lines[0]));
+        panel.setPreferredSize(new Dimension(2 * cellWidth, 50 * lines));
+        panel.setBorder(new CustomBorder(Color.black, 2 * cellWidth, 50 * lines));
         panel.setOpaque(false);
 
         getContentPane().add(panel);
@@ -615,7 +626,7 @@ public class GameFrame extends JFrame {
 
         for (int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for (int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
-                Cell vp = player.getFlat().getViewPoint();
+                Cell vp = player.getUnsafe().getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
                 if (cell.isField()) {
@@ -662,52 +673,62 @@ public class GameFrame extends JFrame {
      * Draws the motion path for the currently selected unit.
      * @param gr Graphics object of the game panel
      */
-    private void drawPath(Graphics2D gr) {
+    private void drawPaths(Graphics2D gr) {
 
         hoverPath.get().ifPresent(path -> {
-            Cell vp = player.getFlat().getViewPoint();
+            Cell vp = player.getUnsafe().getViewPoint();
             Cell current = cells.get(path[0]).fetch(vp.getLocation().negative());
 
-            // Draws the initial marker
-            gr.fillOval(Math.round((current.getX() + 0.5f) * cellWidth) - 5, Math.round((current.getY() + 0.5f) * cellHeight) - 5, 10, 10);
-
-            Stroke oldStroke = gr.getStroke();
-            gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-                    0, new float[]{9}, 0));
-
-            for (int i = 1; i < path.length - 1; i++) {
-                current = current.fetch(path[i].x(), path[i].y(), path[i].z());
-                Location previous = path[i];
-                Location next = path[i + 1];
-
-                if (previous.x() == 1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-                else if (previous.x() == -1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-                else if (previous.y() == 1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
-                else if (previous.y() == -1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
-
-                if (next.x() == 1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-                else if (next.x() == -1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
-                else if (next.y() == 1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
-                else if (next.y() == -1)
-                    gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
-            }
-
-            Location finalMove = path[path.length - 1];
-            current = current.fetch(finalMove.x(), finalMove.y(), finalMove.z());
-
-            // Draws the destination circle with corresponding distance
-            gr.setStroke(oldStroke);
-            gr.drawOval(Math.round((current.getX() + 0.5f) * cellWidth) - 10, Math.round((current.getY() + 0.5f) * cellHeight) - 10, 20, 20);
-            String distanceText = String.valueOf(travelDistance);
-            gr.drawString(distanceText, (current.getX() + 0.5f) * cellWidth - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * cellHeight + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
+            drawPath(gr, path, current);
         });
+
+        motions.stream().filter(motion -> motion.getObject().getPlayer().equals(player.getUnsafe())).forEach(motion -> {
+            Cell vp = motion.getObject().getPlayer().getViewPoint();
+            Cell current = cells.get(motion.current()).fetch(vp.getLocation().negative());
+            drawPath(gr, motion.getRemainingRelativePath(), current);
+        });
+    }
+
+    private void drawPath(Graphics2D gr, Location[] path, Cell current) {
+        // Draws the initial marker
+        gr.fillOval(Math.round((current.getX() + 0.5f) * cellWidth) - 5, Math.round((current.getY() + 0.5f) * cellHeight) - 5, 10, 10);
+
+        Stroke oldStroke = gr.getStroke();
+        gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                0, new float[]{9}, 0));
+
+        for (int i = 1; i < path.length - 1; i++) {
+            current = current.fetch(path[i].x(), path[i].y(), path[i].z());
+            Location previous = path[i];
+            Location next = path[i + 1];
+
+            if (previous.x() == 1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+            else if (previous.x() == -1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+            else if (previous.y() == 1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
+            else if (previous.y() == -1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
+
+            if (next.x() == 1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (current.getX() + 1) * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+            else if (next.x() == -1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), current.getX() * cellWidth, Math.round((current.getY() + 0.5f) * cellHeight));
+            else if (next.y() == 1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (current.getY() + 1) * cellHeight);
+            else if (next.y() == -1)
+                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), current.getY() * cellHeight);
+        }
+
+        Location finalMove = path[path.length - 1];
+        current = current.fetch(finalMove.x(), finalMove.y(), finalMove.z());
+
+        // Draws the destination circle with corresponding distance
+        gr.setStroke(oldStroke);
+        gr.drawOval(Math.round((current.getX() + 0.5f) * cellWidth) - 10, Math.round((current.getY() + 0.5f) * cellHeight) - 10, 20, 20);
+        String distanceText = String.valueOf(travelDistance);
+        gr.drawString(distanceText, (current.getX() + 0.5f) * cellWidth - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * cellHeight + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
     }
 
     /**
@@ -718,23 +739,23 @@ public class GameFrame extends JFrame {
 
         for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
-                Cell vp = player.getFlat().getViewPoint();
+                Cell vp = player.getUnsafe().getViewPoint();
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
-                gr.setColor(player.getFlat().getColor());
+                gr.setColor(player.getUnsafe().getColor());
                 List<Player> playersInCell = new ArrayList<>(cell.getContent().stream().map(GameObject::getPlayer).distinct().toList());
-                if(playersInCell.contains(player.getFlat())) {
+                if(playersInCell.contains(player.getUnsafe())) {
                     gr.fillOval(x * cellWidth + 5, y * cellHeight + 5, 10, 10);
-                    playersInCell.remove(player.getFlat());
+                    playersInCell.remove(player.getUnsafe());
                 }
 
                 if(cell.isEndOfMap()) {
                     gr.setColor(Color.black);
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 10, cellHeight + 1);
-                } else if (!player.getFlat().hasSpotted(cell)) {
+                } else if (!player.getUnsafe().hasSpotted(cell)) {
                     gr.setColor(Color.lightGray);
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
-                } else if (!player.getFlat().hasDiscovered(cell)) {
+                } else if (!player.getUnsafe().hasDiscovered(cell)) {
                     gr.setColor(new Color(192, 192, 192, 200));
                     gr.fillRect(x * cellWidth - 1, y * cellHeight - 1, cellWidth + 1, cellHeight + 1);
                 } else {
@@ -753,12 +774,12 @@ public class GameFrame extends JFrame {
             }
         }
 
-        // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistically).
+        // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistic).
         if(gps) {
 
-            Cell vp = player.getFlat().getViewPoint();
+            Cell vp = player.getUnsafe().getViewPoint();
             Cell nearestTownHall =
-                    player.getFlat().getObjects().stream()
+                    player.getUnsafe().getObjects().stream()
                             .filter(obj -> obj instanceof TownHall)
                             .min((obj1, obj2) -> Integer.min(obj1.getCell().getLocation().distanceTo(vp.getLocation()), obj2.getCell().getLocation().distanceTo(vp.getLocation())))
                             .map(GameObject::getCell)
@@ -788,13 +809,13 @@ public class GameFrame extends JFrame {
      * Refreshes the game window components that are not drawn (menus, ...)
      */
     public void refreshWindow() {
-        playerMenu.setText("Player: " + player.getFlat().getName());
+        playerMenu.setText("Player: " + player.getUnsafe().getName());
         cycleLabel.setText("Cycle: " + cycle.get());
 
-        popLabel.setText("Population: " + player.getFlat().getPop() + "/" + player.getFlat().getPopCap());
+        popLabel.setText("Population: " + player.getUnsafe().getPop() + "/" + player.getUnsafe().getPopCap());
 
         for(int i = 0; i < Resource.values().length; i++)
-            playerLabels[i].setText(Resource.values()[i].name + ": " + player.getFlat().getResource(Resource.values()[i]));
+            playerLabels[i].setText(Resource.values()[i].name + ": " + player.getUnsafe().getResource(Resource.values()[i]));
 
         Cell cell = cells.get(clickPos);
         for(int i = 0; i < Resource.values().length; i++)
@@ -836,8 +857,9 @@ public class GameFrame extends JFrame {
      */
     public void motionToThread(Motion motion) {
 
+        motions.add(motion);
+
         motion.getObject().setStatus(Status.WALKING);
-        motion.next(); // To skip the starting position.
         ActionListener taskPerformer = evt -> {
             if(!motion.isDone()) {
                 Location next = motion.next();
@@ -847,6 +869,7 @@ public class GameFrame extends JFrame {
 
             if(motion.isDone()) {
                 motion.getObject().setStatus(Status.IDLE);
+                motions.remove(motion);
                 ((Timer)evt.getSource()).stop();
             }
         };

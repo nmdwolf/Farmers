@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -62,14 +61,14 @@ public class Main extends JFrame{
         cells = new Grid(NUMBER_OF_CELLS);
 
         showPlayerInputDialog();
-        currentPlayer.set(players.get(current.getFlat()));
+        currentPlayer.set(players.get(current.getUnsafe()));
 
         game = new GameFrame(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic);
         game.initialize();
         startMusic();
 
         // Add player change logic
-        current.bind(this::nextPlayer);
+        current.bind(_-> this.nextPlayer());
 
         garbageCollector = new Timer(100, _ -> {
             for(Player p : allPlayers) {
@@ -90,7 +89,7 @@ public class Main extends JFrame{
                     removeObject(obj);
             }
 
-            for (String text : currentPlayer.getFlat().getMessages())
+            for (String text : currentPlayer.getUnsafe().getMessages())
                 game.showMessagePanel(text);
 
             game.refreshWindow();
@@ -104,20 +103,21 @@ public class Main extends JFrame{
      */
     private void nextPlayer() {
         // When last player of round has played
-        if(current.getFlat() == players.size()) {
+        if(current.getUnsafe() == players.size()) {
             for(AI ai : ais) // Let AIs play at end of cycle
-                ai.makeMove(cycle.getFlat());
+                ai.makeMove(cycle.getUnsafe());
 
-            cycle.set(cycle.getFlat() + 1);
-            cells.cycle(cycle.getFlat());
+            cycle.set(cycle.getUnsafe() + 1);
+            cells.cycle(cycle.getUnsafe());
 
             current.setAsParent(0);
         }
 
-        currentPlayer.set(players.get(current.getFlat()));
+        currentPlayer.set(players.get(current.getUnsafe()));
+        currentPlayer.getUnsafe().validateMissions();
 
-        for (GameObject object : currentPlayer.getFlat().getObjects())
-            object.cycle(cycle.getFlat());
+        for (GameObject object : currentPlayer.getUnsafe().getObjects())
+            object.cycle(cycle.getUnsafe());
 
         game.hidePanels(true);
         game.refreshWindow();
@@ -128,13 +128,13 @@ public class Main extends JFrame{
      */
     public void startMusic() {
 
-        Action audioAction = () -> {
-            if(playMusic.getFlat()) {
+        Action<String> audioAction = src -> {
+            if(playMusic.getUnsafe()) {
                 if (audioThread != null) {
                     audioThread.interrupt();
                     dj.closeStream();
                 }
-                dj = new DJ(audioSource.getFlat(), shuffleMusic.getFlat());
+                dj = new DJ(src, shuffleMusic.getUnsafe());
                 audioThread = new Thread(dj);
                 audioThread.start();
             }
@@ -197,11 +197,11 @@ public class Main extends JFrame{
 //        else
         players.add(p);
 
-        GameObject base = new TownHall(p, p.getViewPoint().fetch(2, 2, 0), cycle.getFlat());
-        GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle.getFlat());
-        GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getFlat());
-        GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getFlat());
-        GameObject hero = new Hero(p, p.getViewPoint(), cycle.getFlat(), p.getName());
+        GameObject base = new TownHall(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
+        GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
+        GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
+        GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
+        GameObject hero = new Hero(p, p.getViewPoint(), cycle.getUnsafe(), p.getName());
 
         p.addObject(base);
         p.addObject(lumber);
@@ -287,17 +287,17 @@ public class Main extends JFrame{
         }
     }
 
-    public Pair<Motion, Location> getShortestAdmissiblePath(GameObject obj, Cell target) {
+    public Pair<Motion, Location> getShortestAdmissiblePath(GameObject obj, Cell target) throws IllegalArgumentException, IllegalStateException {
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
+
         if(!(obj instanceof Unit unit))
             throw new IllegalArgumentException("GameObject should be of type Unit.");
 
         if(target == obj.getCell())
             return new Pair<>(new Motion(unit, new ArrayList<>(), 0), target.getLocation());
 
-        if(target.distanceTo(unit.getCell()) > unit.getEnergy()
-                || !unit.getPlayer().hasSpotted(target))
+        if(target.distanceTo(unit.getCell()) > unit.getEnergy() || !unit.getPlayer().hasSpotted(target))
             return null;
 
         int maxDist = unit.getEnergy();
@@ -332,7 +332,7 @@ public class Main extends JFrame{
                                 min = Math.min(grid[maxDist + (loc.x() - target.getX()) + x][maxDist + (loc.y() - target.getY()) + y], min);
 
                     grid[maxDist + (loc.x() - target.getX())][maxDist + (loc.y() - target.getY())] =
-                            min + cells.get(loc).getTravelCost() + (currentPlayer.getFlat().hasSpotted(cells.get(loc))
+                            min + cells.get(loc).getTravelCost() + (currentPlayer.getUnsafe().hasSpotted(cells.get(loc))
                                     ? 0 : maxDist);
                     done.add(loc);
 
@@ -375,6 +375,10 @@ public class Main extends JFrame{
                         }
                     }
                 }
+
+                if(temp == null)
+                    throw new IllegalStateException("No valid path could be found.");
+
                 current = current.add(temp.x(), temp.y(), 0);
                 path.add(temp);
             }

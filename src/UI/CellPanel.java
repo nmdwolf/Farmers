@@ -40,7 +40,7 @@ public class CellPanel extends JPanel {
 
         MouseAdapter adapter = new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseReleased(MouseEvent e) {
                 super.mouseClicked(e);
                 GameObject obj = objectMap.get(selection);
                 selected.set(obj);
@@ -185,7 +185,7 @@ public class CellPanel extends JPanel {
 
             if(object instanceof Unit u) {
                 if(u.getStatus() == Status.WORKING) {
-                    if(cellArrowProperty.getFlat() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation)) {
+                    if(cellArrowProperty.getUnsafe() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation)) {
                         Pair<Integer, Integer> targetPair = objectMap.get(u.getTarget());
                         if(targetPair != null)
                             drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);

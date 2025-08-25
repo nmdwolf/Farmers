@@ -1,10 +1,12 @@
 package objects.buildings;
 
+import UI.OperationsList;
 import core.*;
 import core.player.Player;
+import objects.Constructor;
 import objects.resources.ResourceContainer;
 
-public abstract class ConstructiveBuilding extends Building {
+public abstract class ConstructiveBuilding extends Building implements Constructor {
 
     private int x, y;
     public ConstructiveBuilding(Player p, Cell cell, int cycle, int space, int sight, int health,
@@ -29,5 +31,12 @@ public abstract class ConstructiveBuilding extends Building {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public OperationsList getOperations(int cycle, OperationCode code) {
+        if(code == OperationCode.CONSTRUCTION)
+            return getConstructions(cycle);
+        else
+            return new OperationsList();
     }
 }

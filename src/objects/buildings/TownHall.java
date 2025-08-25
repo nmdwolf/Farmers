@@ -98,25 +98,30 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     }
 
     @Override
+    public OperationsList getConstructions(int cycle) {
+        OperationsList operations = new OperationsList();
+        operations.put("Villager", () -> {
+            Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+            if (getPlayer().hasResources(v.getCost())) {
+                getPlayer().addObject(v);
+                v.construct();
+                getPlayer().changeResources(v.getCost().negative());
+            }
+        });
+        operations.put("Scout", () -> { // Construct scout
+            Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+            if (getPlayer().hasResources(sc.getCost())) {
+                getPlayer().addObject(sc);
+                sc.construct();
+            }
+        });
+        return operations;
+    }
+
+    @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
-
-        if(code == OperationCode.CONSTRUCTION) { // Construct villager
-            operations.put("Villager", () -> {
-                Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-                if (getPlayer().hasResources(v.getCost())) {
-                    getPlayer().addObject(v);
-                    v.construct();
-                }
-            });
-            operations.put("Scout", () -> { // Construct scout
-                Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-                if (getPlayer().hasResources(sc.getCost())) {
-                    getPlayer().addObject(sc);
-                    sc.construct();
-                }
-            });
-        } else if(code == OperationCode.UPGRADE) {
+        if(code == OperationCode.UPGRADE) {
             LookoutUpgrade lookout = new LookoutUpgrade(getPlayer());
             operations.putUpgrade(lookout.toString(), lookout);
 
@@ -135,7 +140,8 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
                         });
                         default -> null;
                     });
-        }
+        } else
+            operations = super.getOperations(cycle, code);
         return operations;
     }
 

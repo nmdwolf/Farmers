@@ -8,10 +8,11 @@ import java.util.Optional;
 public class Property<T> {
 
     private T property;
-    private final ArrayList<Action> actions;
+    private final ArrayList<Action<T>> actions, earlyActions;
 
     public Property() {
         actions = new ArrayList<>();
+        earlyActions = new ArrayList<>();
     }
 
     public Property(T initialValue) {
@@ -22,15 +23,24 @@ public class Property<T> {
     @NotNull
     public Optional<T> get() { return Optional.ofNullable(property); }
 
-    public T getFlat() { return property; }
+    public T getUnsafe() {return property; }
 
     public void set(T property) {
+        for(Action<T> action : earlyActions)
+            action.accept(property);
         this.property = property;
-        for(Action action : actions)
-            action.actionPerformed();
+        for(Action<T> action : actions)
+            action.accept(property);
     }
 
     public void setAsParent(T property) { this.property = property; }
 
-    public void bind(Action action) { actions.add(action); };
+    public void bind(Action<T> action) { actions.add(action); }
+
+    public void bindFirst(Action<T> action) { earlyActions.add(action); }
+
+    public void ifPresent(Action<T> action) {
+        if(property != null)
+            action.accept(property);
+    }
 }

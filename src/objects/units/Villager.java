@@ -36,7 +36,7 @@ public class Villager extends Worker implements Constructor {
 
     public final static ResourceContainer VILLAGER_COST = new ResourceContainer() {{
         put(Resource.FOOD, 100);
-        put(Resource.WATER, 100);
+        put(Resource.WATER, 50);
         put(Resource.TIME, 1);
     }};
     public final static ResourceContainer VILLAGER_PRODUCTION = new ResourceContainer(5, 5, 5, 5, 0, 0);
