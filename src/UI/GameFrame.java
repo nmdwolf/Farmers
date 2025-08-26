@@ -9,8 +9,10 @@ import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +36,7 @@ public class GameFrame extends JFrame {
     private final JLayeredPane contentPanel;
     private final SettingsPanel settingsPanel;
     private final JPanel tintedGlassPanel;
+    private Font font;
 
     private int cellWidth, cellHeight, poolSize, screenWidth, screenHeight;
     @NotNull private final Property<Player> player;
@@ -79,13 +82,14 @@ public class GameFrame extends JFrame {
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            setFont();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         operationsPanel = new OperationsPanel(cellWidth, cellHeight);
         choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources);
-        infoPanel = new InfoPanel();
+        infoPanel = new InfoPanel(selected);
         cellPanel = new CellPanel(selected, cellArrowProperty);
         settingsPanel = new SettingsPanel(cursorFlag, audioSource, playMusic, shuffleMusic, cellArrowProperty);
         layout = new SpringLayout();
@@ -99,7 +103,7 @@ public class GameFrame extends JFrame {
             }
         };
 
-        showResources.bind(prop -> selected.get().ifPresent(obj -> infoPanel.update(obj, !prop)));
+        showResources.bind(prop -> selected.get().ifPresent(_ -> infoPanel.update(!prop)));
         selected.bind(_ -> {
             selected.get().ifPresentOrElse(obj -> {
                 showResources.set(false);
@@ -142,7 +146,31 @@ public class GameFrame extends JFrame {
         contentPanel.requestFocus();
     }
 
-    public JLayeredPane constructContentPanel() {
+    /**
+     * Sets the font of the entire application.
+     */
+    private void setFont() {
+        InputStream is = GameFrame.class.getResourceAsStream("/UI/fonts/FiraSans-Regular.otf");
+        try {
+            font = Font.createFont(Font.TRUETYPE_FONT, is);
+            font = font.deriveFont(Font.PLAIN, 14);
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
+            is.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        var keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get (key);
+            if (value instanceof javax.swing.plaf.FontUIResource)
+                UIManager.put (key, new FontUIResource(font));
+//            new FontUIResource("Berlin Sans FB", Font.PLAIN,14)
+        }
+    }
+
+    private JLayeredPane constructContentPanel() {
         JLayeredPane contentPanel = new JLayeredPane() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -174,7 +202,7 @@ public class GameFrame extends JFrame {
     /**
      * Adds {@code KeyListener}s to the game window.
      */
-    public void addKeyInputs() {
+    private void addKeyInputs() {
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('n'), "next_player");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
@@ -182,10 +210,17 @@ public class GameFrame extends JFrame {
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_G,
-                InputEvent.CTRL_DOWN_MASK), "GPS");
+                InputEvent.CTRL_DOWN_MASK), "gps");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,
+                InputEvent.CTRL_DOWN_MASK), "missions");
 
-
-        contentPanel.getActionMap().put("GPS", new AbstractAction() {
+        contentPanel.getActionMap().put("missions", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showMessagePanel(player.getUnsafe().getCurrentMission());
+            }
+        });
+        contentPanel.getActionMap().put("gps", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gps = !gps;
@@ -263,7 +298,7 @@ public class GameFrame extends JFrame {
     /**
      * Adds {@code MouseListener}s to the game window.
      */
-    public void addMouseInputs() {
+    private void addMouseInputs() {
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -382,7 +417,7 @@ public class GameFrame extends JFrame {
     /**
      * Adds a {@code ComponentListener} to the game window that reacts to window resizing.
      */
-    public void addResizeListener() {
+    private void addResizeListener() {
         // Rescale game elements on screen resize
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -425,7 +460,7 @@ public class GameFrame extends JFrame {
      * Adds menus to the game window.
      * These are responsible for listing the current Player's stats, the selected Cell's stats and providing access to other functionalities such as settings.
      */
-    public void addMenu() {
+    private void addMenu() {
         // Create menus
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
@@ -438,46 +473,27 @@ public class GameFrame extends JFrame {
         menubar.add(cellMenu);
         menubar.add(settingsMenu);
 
-        // Enables mouse hover coloring
-        playerMenu.addMouseListener(new MouseAdapter() {
+        MouseAdapter menuEntered = new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 super.mouseEntered(e);
-                playerMenu.doClick();
+                ((JMenu)e.getComponent()).doClick();
             }
+        };
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                super.mouseExited(e);
-                defaultManager().clearSelectedPath();
-            }
-        });
-        viewMenu.addMouseListener(new MouseAdapter() {
+        MouseAdapter menuLeft = new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                super.mouseEntered(e);
-                viewMenu.doClick();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
                 super.mouseExited(e);
                 defaultManager().clearSelectedPath();
             }
-        });
-        cellMenu.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                super.mouseEntered(e);
-                cellMenu.doClick();
-            }
+        };
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                super.mouseExited(e);
-                defaultManager().clearSelectedPath();
-            }
-        });
+        playerMenu.addMouseListener(menuEntered);
+        viewMenu.addMouseListener(menuEntered);
+        cellMenu.addMouseListener(menuEntered);
+        settingsMenu.addMouseListener(menuEntered);
+        getContentPane().addMouseListener(menuLeft);
 
         // Initializes resource labels for player and cell menus
         playerLabels = new JMenuItem[Resource.values().length];
@@ -510,7 +526,7 @@ public class GameFrame extends JFrame {
     /**
      * Adds an {@code InfoPanel} to the game window.
      */
-    public void initializeSettingsPanel() {
+    private void initializeSettingsPanel() {
 
         tintedGlassPanel.setOpaque(false);
 
@@ -548,12 +564,14 @@ public class GameFrame extends JFrame {
 
     public void showMessagePanel(String text) {
 
-        int lines = 1;
+        int lines = 1; // TODO Implement dynamic box height based on number of lines of text.
         StringBuilder output = new StringBuilder();
         StringBuilder temp = new StringBuilder();
         for(char c : text.toCharArray()) {
             temp.append(c);
-            if(getContentPane().getGraphics().getFontMetrics().stringWidth(temp.toString()) >= 2 * cellWidth - 1) {
+            // 2 * cellWidth - 4 - 4 - 20 = getWidth() - getInsets().left - getInsets().right - 2 * x-coord of gr.drawString
+            if(font.getStringBounds(temp.toString(),
+                    ((Graphics2D)getContentPane().getGraphics()).getFontRenderContext()).getWidth() >= (2 * cellWidth - 4 - 4 - 20)) {
                 output.append(temp);
                 output.append("\n");
                 temp = new StringBuilder();
@@ -588,6 +606,8 @@ public class GameFrame extends JFrame {
         panel.setPreferredSize(new Dimension(2 * cellWidth, 50 * lines));
         panel.setBorder(new CustomBorder(Color.black, 2 * cellWidth, 50 * lines));
         panel.setOpaque(false);
+
+        player.bindSingle(_ -> getContentPane().remove(panel));
 
         getContentPane().add(panel);
         SpringLayout layout = (SpringLayout) getContentPane().getLayout();
@@ -810,7 +830,7 @@ public class GameFrame extends JFrame {
      */
     public void refreshWindow() {
         playerMenu.setText("Player: " + player.getUnsafe().getName());
-        cycleLabel.setText("Cycle: " + cycle.get());
+        cycleLabel.setText("Cycle: " + cycle.getUnsafe());
 
         popLabel.setText("Population: " + player.getUnsafe().getPop() + "/" + player.getUnsafe().getPopCap());
 

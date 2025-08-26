@@ -29,26 +29,16 @@ public class ResourceContainer extends HashMap<Resource, Integer> {
         put(COAL, coal);
     }
 
-    public ResourceContainer change(Resource resource, int amount) {
-        ResourceContainer resources = new ResourceContainer();
+    /**
+     * Adds the specified amount of the given {@code Resource} to the current resource container (this is performed in place).
+     * @param resource resource type
+     * @param amount amount to add (or subtract if negative)
+     */
+    public void add(Resource resource, int amount) {
         if(containsKey(resource))
-            resources.put(resource, get(resource) + amount);
+            put(resource, get(resource) + amount);
         else
-            resources.put(resource, amount);
-        return resources;
-    }
-
-    public ResourceContainer add(ResourceContainer extra) {
-        ResourceContainer resources = new ResourceContainer();
-        for(Resource res : keySet())
-            resources.put(res, get(res));
-        for(Resource res : extra.keySet()) {
-            if (containsKey(res))
-                resources.put(res, resources.get(res) + extra.get(res));
-            else
-                resources.put(res, extra.get(res));
-        }
-        return resources;
+            put(resource, amount);
     }
 
     public ResourceContainer negative() {

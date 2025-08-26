@@ -18,7 +18,7 @@ import static core.GameConstants.SPRITE_SIZE_MAX;
 // TODO Implement direction
 public class Wall extends IdleBuilding implements Obstruction, Directional {
 
-    public final static Award BUILT_AWARD = Award.createAward("Your people are protected.");
+    public final static Award BUILT_AWARD = Award.createFreeAward("Your people are protected.");
     public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/Wall.png", SPRITE_SIZE, SPRITE_SIZE);
     public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/Wall.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
 

@@ -129,11 +129,12 @@ public class Main extends JFrame{
     public void startMusic() {
 
         Action<String> audioAction = src -> {
+            if (audioThread != null) {
+                audioThread.interrupt();
+                dj.closeStream();
+            }
+
             if(playMusic.getUnsafe()) {
-                if (audioThread != null) {
-                    audioThread.interrupt();
-                    dj.closeStream();
-                }
                 dj = new DJ(src, shuffleMusic.getUnsafe());
                 audioThread = new Thread(dj);
                 audioThread.start();

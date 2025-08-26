@@ -30,7 +30,7 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
     public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
     public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.getSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-    public final static Award BUILT_AWARD = Award.createAward("A new city has been founded.");
+    public final static Award BUILT_AWARD = Award.createFreeAward("A new city has been founded.");
 
     public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer() {{
         put(Resource.WOOD, -200);

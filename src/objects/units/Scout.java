@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public class Scout extends Unit implements Evolvable {
 
-    public final static Award BUILT_AWARD = Award.createAward("You can look for new lands.");
-    public final static Award EVOLVE_AWARD = Award.createAward("Exploring will be even easier now.");
+    public final static Award BUILT_AWARD = Award.createFreeAward("You can look for new lands.");
+    public final static Award EVOLVE_AWARD = Award.createFreeAward("Exploring will be even easier now.");
 
     public final static int SCOUT_HEALTH = 100;
     public final static int SCOUT_ENERGY = 10;

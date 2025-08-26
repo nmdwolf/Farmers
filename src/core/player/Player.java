@@ -20,14 +20,14 @@ public class Player {
     private final String name;
     private final Color color, altColor;
     private Cell viewpoint;
-    private final AwardSystem awards;
-    private final MissionArchive archive;
+    private final MissionArchive missionArchive;
+    private final AwardArchive awardArchive;
 
     private final Set<GameObject> objects;
     private Set<GameObject> newObjects, removableObjects;
     private final HashSet<Upgrade> enabledUpgrades;
     private final HashSet<Cell> discovered, spotted;
-    private final ResourceContainer resources, totalResources;
+    private final ResourceContainer resources, totalResources, gained, spent;
 
     private int pop, popCap, cycle;
     private boolean viewLocked;
@@ -36,8 +36,8 @@ public class Player {
     public Player(String name, Color color, Color alternativeColor, Cell start) {
         this.name = name;
         this.color = color;
-        awards = new AwardSystem();
-        archive = new MissionArchive(this);
+        missionArchive = new MissionArchive(this);
+        awardArchive = new AwardArchive(this);
         civ = new Nomads();
         altColor = alternativeColor;
         popCap = START_POP_CAP;
@@ -59,7 +59,9 @@ public class Player {
         resources.put(IRON, GameConstants.START_IRON);
 //        resources.put(TIME, 0);
 
-        totalResources = new ResourceContainer(resources);
+        totalResources = new ResourceContainer(resources); // TODO What is this variable used for?
+        spent = new ResourceContainer();
+        gained = new ResourceContainer();
     }
 
     public Set<GameObject> getObjects() {
@@ -144,17 +146,29 @@ public class Player {
     }
 
     public void changeResource(Resource type, int amount) {
-        resources.put(type, resources.get(type) + amount);
-        totalResources.put(type, totalResources.get(type) + amount);
+        resources.add(type, amount);
+        totalResources.add(type, amount);
 
-        if(type == STONE)
-            awards.enable(new Award(START_STONE, "You have mined stones for the very first time."));
+        if(amount > 0)
+            gained.add(type, amount);
+        else if(amount < 0)
+            spent.add(type, -amount);
+
+        awardArchive.validate();
     }
 
     public void changeResources(ResourceContainer res) {
         for(Resource resource : res.keySet())
             if(resource != TIME && res.get(resource) != 0)
                 changeResource(resource, res.get(resource));
+    }
+
+    public int getGainedAmount(Resource type) {
+        return gained.get(type);
+    }
+
+    public int getSpentAmount(Resource type) {
+        return spent.get(type);
     }
 
     public void cycle() { cycle++; }
@@ -197,16 +211,16 @@ public class Player {
         discovered.add(cell);
     }
 
-    public boolean hasAward(Award award) { return awards.hasEnabled(award); }
-
-    public void enableAward(Award award) { awards.enable(award); }
-
     public Set<String> getMessages() {
-        Set<String> messages = awards.getNewAwards();
+        Set<String> messages = awardArchive.getNewAwards();
         return messages;
     }
 
+    public AwardArchive getAwardArchive() { return awardArchive; }
+
     public Civilization getCivilization() { return civ; }
 
-    public void validateMissions() { archive.validate(); }
+    public void validateMissions() { missionArchive.validate(); }
+
+    public String getCurrentMission() { return missionArchive.getNextDescription(); }
 }

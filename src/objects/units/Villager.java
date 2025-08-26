@@ -24,7 +24,7 @@ public class Villager extends Worker implements Constructor {
     public final static BufferedImage WORKING_SPRITE = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
     public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/villager.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX);
     public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX);
-    public final static Award BUILT_AWARD = Award.createAward("A baby was born.");
+    public final static Award BUILT_AWARD = Award.createFreeAward("A baby was born.");
 
     public final static List<Resource> resources = List.of(Resource.FOOD, Resource.WOOD, Resource.STONE, Resource.COAL, Resource.IRON);
 

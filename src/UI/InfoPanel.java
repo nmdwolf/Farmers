@@ -1,7 +1,7 @@
 package UI;
 
+import core.Property;
 import objects.GameObject;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,11 +10,12 @@ import java.awt.event.MouseAdapter;
 public class InfoPanel extends JPanel {
 
     private int width, height;
-    private GameObject selected;
+    private final Property<GameObject> selected;
     private boolean objectOrCell;
 
-    public InfoPanel() {
+    public InfoPanel(Property<GameObject> selected) {
         objectOrCell = false;
+        this.selected = selected;
 
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         setOpaque(false);
@@ -23,8 +24,7 @@ public class InfoPanel extends JPanel {
         addMouseListener(new MouseAdapter() {});
     }
 
-    public void update(@NotNull GameObject object, boolean objectOrCell) {
-        selected = object;
+    public void update(boolean objectOrCell) {
         this.objectOrCell = objectOrCell;
     }
 
@@ -45,12 +45,15 @@ public class InfoPanel extends JPanel {
         gr.setStroke(new BasicStroke(2));
         gr.drawRoundRect(1, 1, width - 3, height - 3, 10, 10);
 
-        if(selected != null) { // Will only be null before any object has been selected, but paint manager will try to paint this panel before that occurs.
+        // Will only be null before any object has been selected, but paint manager will try to paint this panel before that occurs.
+        selected.ifPresent(s -> {
             if (objectOrCell)
-                CustomMethods.drawString(gr, selected.toString(), 20, 20);
-            else
-                CustomMethods.drawString(gr, selected.getCell().getDescription(), 20, 20);
-        }
+                CustomMethods.drawString(gr, s.toString(), 20, 20);
+            else {
+                String desc = "Cell content:\n\n" + s.getCell().getDescription();
+                CustomMethods.drawString(gr, desc, 20, 20);
+            }
+        });
 
         gr.dispose();
     }

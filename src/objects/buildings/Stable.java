@@ -19,7 +19,7 @@ public class Stable extends ConstructiveBuilding {
         put(Resource.WOOD, -200);
         put(Resource.TIME, 10);
     }};
-    public final static Award BUILT_AWARD = Award.createAward("Yee-haw!");
+    public final static Award BUILT_AWARD = Award.createFreeAward("Yee-haw!");
 
     public final static int STABLE_HEALTH = 500;
     public final static int STABLE_SPACE = 3;

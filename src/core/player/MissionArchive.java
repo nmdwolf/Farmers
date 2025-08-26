@@ -14,9 +14,9 @@ public class MissionArchive extends ArrayDeque<Mission> {
         initialize();
     }
 
-    public String getFirstDescription() {
+    public String getNextDescription() {
         Mission next = peekFirst();
-        return (next != null) ? next.toString() : "Story finished!";
+        return (next != null) ? next.getDescription() : "Story finished!";
     }
 
     /**
@@ -26,20 +26,27 @@ public class MissionArchive extends ArrayDeque<Mission> {
         add(new Mission() {
             @Override
             public boolean validate(Player p) {
-                return p.getObjects().stream().filter(obj -> obj instanceof Villager).count() == 5;
+                return p.getObjects().stream().filter(obj -> obj instanceof Villager).count() == 2;
             }
 
             @Override
             public Award getAward() {
-                return Award.createAward("You have five villagers in your nation. Congratulations with completing your first mission!");
+                return Award.createFreeAward("You have five villagers in your nation. Congratulations with completing" +
+                        " your first mission!");
+            }
+
+            @Override
+            public String getDescription() {
+                return "Your glorious nation must consist of at least 5 villagers.";
             }
         });
     }
 
     public void validate() {
         Mission current = peekFirst();
-        if(current.validate(player))
-            player.enableAward(pop().getAward());
+        if(current != null) // TODO Implement alternative
+            if(current.validate(player))
+                player.getAwardArchive().awardExternal(pop().getAward());
     }
 
 }

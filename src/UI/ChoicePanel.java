@@ -20,14 +20,15 @@ public class ChoicePanel extends JPanel {
     private final OperationsPanel operationsPanel;
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
-    private final ActionListener hide, hideThis;
+    private final ActionListener hideListener, hideThisListener, srListener;
     private final Property<Boolean> showResources;
 
     public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide, Property<Boolean> showResources) {
         this.operationsPanel = operationsPanel;
-        this.hide = hide;
-        hideThis = event -> setVisible(false);
+        this.hideListener = hide;
         this.showResources = showResources;
+        hideThisListener = _ -> setVisible(false);
+        srListener = _ -> showResources.set(true);
 
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         buttons = new ArrayList<>(); // Move, Resource, Build, Upgrades, Evolutions
@@ -39,8 +40,10 @@ public class ChoicePanel extends JPanel {
         buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray));
 
         for(JButton button : buttons)
-            button.addActionListener(hideThis);
+            button.addActionListener(hideThisListener);
         buttons.getFirst().addActionListener(hide);
+        for(JButton buttons : buttons.subList(1, buttons.size()))
+            buttons.addActionListener(srListener);
 
         // Intercepts mouse events
         addMouseListener(new MouseAdapter() {});
@@ -68,15 +71,14 @@ public class ChoicePanel extends JPanel {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());
             for(ActionListener listener : button.getActionListeners())
-                if(listener != hide && listener != hideThis)
+                if(listener != hideListener && listener != hideThisListener && listener != srListener)
                     button.removeActionListener(listener);
         }
 
-        buttons.get(1).addActionListener(event -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
-        buttons.get(1).addActionListener(event -> showResources.set(true));
-        buttons.get(2).addActionListener(event -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
-        buttons.get(3).addActionListener(event -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
-        buttons.get(4).addActionListener(event -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
+        buttons.get(1).addActionListener(_ -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
+        buttons.get(2).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
+        buttons.get(3).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
+        buttons.get(4).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
 
         if(selected instanceof Unit)
             buttons.get(0).setVisible(true);

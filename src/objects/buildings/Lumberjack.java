@@ -19,7 +19,7 @@ public class Lumberjack extends IdleBuilding implements Booster {
         put(Resource.WATER, 50);
         put(Resource.TIME, 5);
     }};
-    public final static Award BUILT_AWARD = Award.createAward("You figured out how to chop wood.");
+    public final static Award BUILT_AWARD = Award.createFreeAward("You figured out how to chop wood.");
 
     public final static int LUMBERJACK_HEALTH = 250;
     public final static int LUMBERJACK_SPACE = 1;

@@ -25,7 +25,7 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
         put(Resource.WOOD, 50);
         put(Resource.TIME, 5);
     }};
-    public final static Award BUILT_AWARD = Award.createAward("You finally gave your people some shelter.");
+    public final static Award BUILT_AWARD = Award.createFreeAward("You finally gave your people some shelter.");
 
     public final static int HOUSE_HEALTH = 150;
     public final static int HOUSE_SPACE = 3;

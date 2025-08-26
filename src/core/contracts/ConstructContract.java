@@ -35,7 +35,7 @@ public class ConstructContract<T extends Constructable> extends Contract{
             getEmployee().getPlayer().changePopCap(((Spacer) constructable).getSpaceBoost());
         if (constructable instanceof Unit)
             getEmployee().getPlayer().changePopCap(constructable.getSpace());
-        getEmployee().getPlayer().enableAward(constructable.getConstructionAward());
+        getEmployee().getPlayer().getAwardArchive().awardExternal(constructable.getConstructionAward());
     }
 
     @Override
