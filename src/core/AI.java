@@ -52,7 +52,7 @@ public class AI extends Player {
 
                 boolean needsToMove = true;
                 if (harvested.containsKey(newLoc)) {
-                    List<Resource> resources = Arrays.asList(Resource.values());
+                    ArrayList<Resource> resources = new ArrayList<>(getResources().keySet());
                     Collections.shuffle(resources, rand);
                     for (Resource res : resources) {
                         if (!harvested.get(newLoc).contains(res) && obj.getYield(res) > 0) {

@@ -60,7 +60,7 @@ public class Lumberjack extends IdleBuilding implements Booster {
     }
 
     @Override
-    public @NotNull Award getConstructionAward() {
-        return BUILT_AWARD;
+    public Optional<Award> getConstructionAward() {
+        return Optional.of(BUILT_AWARD);
     }
 }

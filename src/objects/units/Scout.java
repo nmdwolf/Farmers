@@ -56,10 +56,11 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public @NotNull Award getEvolveAward() {
+    public @NotNull Optional<Award> getEvolveAward() {
         if(getLevel() == 2)
-            return EVOLVE_AWARD;
-        return null;
+            return Optional.of(EVOLVE_AWARD);
+        else
+            return super.getEvolveAward();
     }
 
     @Override
@@ -76,8 +77,8 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public @NotNull Award getConstructionAward() {
-        return BUILT_AWARD;
+    public Optional<Award> getConstructionAward() {
+        return Optional.of(BUILT_AWARD);
     }
 
     @Override

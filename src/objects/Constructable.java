@@ -4,7 +4,8 @@ import core.player.Award;
 import core.Cell;
 import core.player.Player;
 import objects.resources.ResourceContainer;
-import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 import static objects.resources.Resource.TIME;
 
@@ -46,8 +47,7 @@ public abstract class Constructable extends GameObject implements Evolvable {
 
     public boolean hasVisibleFoundation() { return hasVisibleFoundation; }
 
-    @NotNull
-    public abstract Award getConstructionAward();
+    public Optional<Award> getConstructionAward() { return Optional.empty(); }
 
     @Override
     public int getLevel() {

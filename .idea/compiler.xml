@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Farmers" />
+        <module name="age-of-farmers" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

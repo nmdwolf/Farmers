@@ -12,6 +12,7 @@ import objects.Booster;
 import objects.GameObject;
 import objects.resources.Source;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -92,15 +93,8 @@ public abstract class Worker extends Unit {
      * @throws IllegalArgumentException If the given contract does not have this Worker as assigned employee, an exception is thrown. For existing contracts, the {@code transferContract(Contract c) } method should be used.
      */
     public void addContract(Contract c) throws IllegalArgumentException {
-
         if(!c.getEmployee().equals(this))
             throw new IllegalArgumentException("Contract is required to have this Worker as assigned employee.");
-
-        // Removes current LaborContract(s), if any
-        if(c instanceof LaborContract) {
-            contracts.stream().filter(obj -> obj instanceof LaborContract).forEach(Contract::abandon);
-            contracts.removeIf(obj -> obj instanceof LaborContract);
-        }
 
         contracts.add(c);
         c.initialize(); // If this fails (e.g. insufficient resources), it will be called again in work() until it succeeds.
@@ -135,7 +129,7 @@ public abstract class Worker extends Unit {
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
         if(code == OperationCode.RESOURCE) {
-            for (Resource res : Resource.values()) {
+            for (Resource res : getPlayer().getResources().keySet()) {
                 if(production.get(res) > 0) {
 //                    for (GameObject obj : getCell().getContent()) {
 //                        if (obj instanceof Source source && source.getResourceType() == res) {
@@ -145,10 +139,12 @@ public abstract class Worker extends Unit {
 //                            });
 //                        }
 //                    }
-                    operations.put(res.name, () -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
+                    operations.put(res.getName(), () -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
                 }
             }
         }
         return operations;
     }
+
+    protected ArrayList<Contract> getContracts() { return contracts; }
 }

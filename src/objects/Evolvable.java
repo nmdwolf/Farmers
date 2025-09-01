@@ -3,13 +3,14 @@ package objects;
 import core.player.Award;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public interface Evolvable {
 
-    public int getLevel();
+    int getLevel();
 
-    public void increaseLevel();
+    void increaseLevel();
 
-    @NotNull
-    public Award getEvolveAward();
+    default @NotNull Optional<Award> getEvolveAward() { return Optional.empty(); }
 
 }

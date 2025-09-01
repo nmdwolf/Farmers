@@ -8,6 +8,7 @@ import objects.*;
 import objects.buildings.Building;
 import objects.buildings.Lumberjack;
 import objects.buildings.TownHall;
+import objects.resources.ResourceContainer;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
@@ -20,6 +21,10 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static core.GameConstants.*;
+import static objects.resources.Resource.*;
+import static objects.resources.Resource.COAL;
+import static objects.resources.Resource.IRON;
+import static objects.resources.Resource.STONE;
 
 public class Main extends JFrame{
 
@@ -59,6 +64,13 @@ public class Main extends JFrame{
         current = new Property<>(0);
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
+
+        ResourceContainer.attachResource(FOOD);
+        ResourceContainer.attachResource(WATER);
+        ResourceContainer.attachResource(WOOD);
+        ResourceContainer.attachResource(STONE);
+        ResourceContainer.attachResource(COAL);
+        ResourceContainer.attachResource(IRON);
 
         showPlayerInputDialog();
         currentPlayer.set(players.get(current.getUnsafe()));

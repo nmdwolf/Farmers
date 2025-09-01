@@ -50,18 +50,8 @@ public class Stable extends ConstructiveBuilding {
     }
 
     @Override
-    public @NotNull Award getConstructionAward() {
-        return BUILT_AWARD;
-    }
-
-    @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        return Optional.empty();
-    }
-
-    @Override
-    public @NotNull Award getEvolveAward() {
-        return null;
+    public Optional<Award> getConstructionAward() {
+        return Optional.of(BUILT_AWARD);
     }
 
     @Override

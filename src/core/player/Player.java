@@ -51,13 +51,12 @@ public class Player {
         spotted = new HashSet<>();
 
         resources = new ResourceContainer();
-        resources.put(FOOD, GameConstants.START_FOOD);
-        resources.put(WOOD, GameConstants.START_WOOD);
-        resources.put(WATER, GameConstants.START_WATER);
-        resources.put(STONE, GameConstants.START_STONE);
-        resources.put(COAL, GameConstants.START_COAL);
-        resources.put(IRON, GameConstants.START_IRON);
-//        resources.put(TIME, 0);
+        resources.put(FOOD, START_FOOD);
+        resources.put(WATER, START_WATER);
+        resources.put(WOOD, START_WOOD);
+        resources.put(STONE, START_STONE);
+        resources.put(COAL, START_COAL);
+        resources.put(IRON, START_IRON);
 
         totalResources = new ResourceContainer(resources); // TODO What is this variable used for?
         spent = new ResourceContainer();
@@ -132,6 +131,8 @@ public class Player {
     public int getTotalResource(Resource type) {
         return totalResources.get(type);
     }
+
+    public ResourceContainer getResources() { return resources; }
 
     /**
      * Checks if the Player has the required amount of objects.resources.

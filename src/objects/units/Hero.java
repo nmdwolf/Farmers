@@ -58,13 +58,4 @@ public class Hero extends Unit{
         return operations;
     }
 
-    @Override
-    public @NotNull Award getConstructionAward() {
-        return null;
-    }
-
-    @Override
-    public @NotNull Award getEvolveAward() {
-        return null;
-    }
 }

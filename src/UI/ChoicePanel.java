@@ -20,15 +20,14 @@ public class ChoicePanel extends JPanel {
     private final OperationsPanel operationsPanel;
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
-    private final ActionListener hideListener, hideThisListener, srListener;
-    private final Property<Boolean> showResources;
+    private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
 
-    public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide, Property<Boolean> showResources) {
+    public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources) {
         this.operationsPanel = operationsPanel;
         this.hideListener = hide;
-        this.showResources = showResources;
         hideThisListener = _ -> setVisible(false);
-        srListener = _ -> showResources.set(true);
+        showCellResources = _ -> showResources.set(InfoPanel.Mode.CELL);
+        showPlayerResources = _ -> showResources.set(InfoPanel.Mode.PLAYER);
 
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         buttons = new ArrayList<>(); // Move, Resource, Build, Upgrades, Evolutions
@@ -42,8 +41,9 @@ public class ChoicePanel extends JPanel {
         for(JButton button : buttons)
             button.addActionListener(hideThisListener);
         buttons.getFirst().addActionListener(hide);
-        for(JButton buttons : buttons.subList(1, buttons.size()))
-            buttons.addActionListener(srListener);
+        buttons.get(1).addActionListener(showCellResources);
+        for(JButton buttons : buttons.subList(2, buttons.size()))
+            buttons.addActionListener(showPlayerResources);
 
         // Intercepts mouse events
         addMouseListener(new MouseAdapter() {});
@@ -71,7 +71,7 @@ public class ChoicePanel extends JPanel {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());
             for(ActionListener listener : button.getActionListeners())
-                if(listener != hideListener && listener != hideThisListener && listener != srListener)
+                if(listener != hideListener && listener != hideThisListener && listener != showCellResources && listener != showPlayerResources)
                     button.removeActionListener(listener);
         }
 

@@ -23,7 +23,7 @@ public class Farm extends ResourceBuilding {
         put(Resource.WATER, 100);
         put(Resource.TIME, 5);
     }};
-    public final static ResourceContainer FARM_GAINS = new ResourceContainer(10, 0, 0, 0, 0, 0);
+    public final static ResourceContainer FARM_GAINS = new ResourceContainer(Resource.FOOD, 10);
 
     public final static Award BUILT_AWARD = Award.createFreeAward("Food is ours.");
 
@@ -33,18 +33,13 @@ public class Farm extends ResourceBuilding {
     }
 
     @Override
-    public @NotNull Award getConstructionAward() {
-        return BUILT_AWARD;
+    public Optional<Award> getConstructionAward() {
+        return Optional.of(BUILT_AWARD);
     }
 
     @Override
     public Resource getResourceType() {
         return Resource.FOOD;
-    }
-
-    @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        return Optional.empty();
     }
 
     @Override

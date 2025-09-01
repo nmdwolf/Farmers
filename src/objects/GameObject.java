@@ -53,7 +53,7 @@ public abstract class GameObject {
     public abstract String getToken();
 
     @NotNull
-    public abstract Optional<BufferedImage> getSprite(boolean max);
+    public Optional<BufferedImage> getSprite(boolean max) { return Optional.empty(); }
 
     public abstract OperationsList getOperations(int cycle, OperationCode code);
 

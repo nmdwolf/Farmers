@@ -146,13 +146,8 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     }
 
     @Override
-    public @NotNull Award getConstructionAward() {
-        return BUILT_AWARD;
-    }
-
-    @Override
-    public @NotNull Award getEvolveAward() {
-        return null;
+    public Optional<Award> getConstructionAward() {
+        return Optional.of(BUILT_AWARD);
     }
 
     @Override

@@ -9,12 +9,14 @@ import java.awt.event.MouseAdapter;
 
 public class InfoPanel extends JPanel {
 
+    public enum Mode {OBJECT, CELL, PLAYER}
+
     private int width, height;
     private final Property<GameObject> selected;
-    private boolean objectOrCell;
+    private Mode mode;
 
     public InfoPanel(Property<GameObject> selected) {
-        objectOrCell = false;
+        mode = Mode.OBJECT;
         this.selected = selected;
 
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -24,8 +26,8 @@ public class InfoPanel extends JPanel {
         addMouseListener(new MouseAdapter() {});
     }
 
-    public void update(boolean objectOrCell) {
-        this.objectOrCell = objectOrCell;
+    public void update(Mode mode) {
+        this.mode = mode;
     }
 
     public void resizePanel(int cellWidth, int cellHeight) {
@@ -47,11 +49,21 @@ public class InfoPanel extends JPanel {
 
         // Will only be null before any object has been selected, but paint manager will try to paint this panel before that occurs.
         selected.ifPresent(s -> {
-            if (objectOrCell)
-                CustomMethods.drawString(gr, s.toString(), 20, 20);
-            else {
-                String desc = "Cell content:\n\n" + s.getCell().getDescription();
-                CustomMethods.drawString(gr, desc, 20, 20);
+            switch(mode) {
+                case OBJECT: {
+                    CustomMethods.drawString(gr, s.toString(), 20, 20);
+                    break;
+                }
+                case CELL: {
+                    String desc = "Cell content:\n\n" + s.getCell().getDescription();
+                    CustomMethods.drawString(gr, desc, 20, 20);
+                    break;
+                }
+                case PLAYER: {
+                    String desc = "Player resources:\n\n" + s.getPlayer().getResources().toString().replace(", ", "\n");
+                    CustomMethods.drawString(gr, desc, 20, 20);
+                    break;
+                }
             }
         });
 

@@ -18,7 +18,7 @@ public class EvolveUpgrade<T extends GameObject & Evolvable> extends InstanceUpg
     public void upgrade() {
         super.upgrade();
         getObject().increaseLevel();
-        getObject().getPlayer().getAwardArchive().awardExternal(getObject().getEvolveAward());
+        getObject().getEvolveAward().ifPresent(a -> getObject().getPlayer().getAwardArchive().awardExternal(a));
         evolution.perform();
     }
 

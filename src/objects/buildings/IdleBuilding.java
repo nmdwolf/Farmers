@@ -8,6 +8,8 @@ import UI.OperationsList;
 import objects.resources.ResourceContainer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public abstract class IdleBuilding extends Building {
 
     public IdleBuilding(Player p, Cell cell, int cycle, int space, int sight,
@@ -22,9 +24,4 @@ public abstract class IdleBuilding extends Building {
 
     @Override
     public void cycle(int cycle) {}
-
-    @Override
-    public @NotNull Award getEvolveAward() {
-        return null;
-    }
 }

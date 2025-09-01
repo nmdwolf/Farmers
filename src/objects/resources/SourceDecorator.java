@@ -33,12 +33,12 @@ public class SourceDecorator extends Constructable implements Source{
     }
 
     @Override
-    public @NotNull Award getConstructionAward() {
+    public Optional<Award> getConstructionAward() {
         return null;
     }
 
     @Override
-    public @NotNull Award getEvolveAward() {
+    public @NotNull Optional<Award> getEvolveAward() {
         return obj.getEvolveAward();
     }
 

@@ -278,8 +278,8 @@ public class Cell {
     public String getDescription() {
         StringBuilder description = new StringBuilder();
         for(Resource res : resources.keySet())
-            if(res != TIME)
-                description.append(res.name + ": " + resources.get(res) + "\n");
+            if(!res.equals(TIME))
+                description.append(res.getName() + ": " + resources.get(res) + "\n");
 
         return description.toString();
     }

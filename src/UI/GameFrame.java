@@ -5,6 +5,7 @@ import core.player.Player;
 import objects.GameObject;
 import objects.buildings.TownHall;
 import objects.resources.Resource;
+import objects.resources.ResourceContainer;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +22,7 @@ import static javax.swing.MenuSelectionManager.defaultManager;
 
 import static core.GameConstants.*;
 import static core.GameConstants.NUMBER_OF_CELLS_IN_VIEW;
+import static objects.resources.ResourceContainer.RESOURCES;
 
 public class GameFrame extends JFrame {
 
@@ -44,7 +46,8 @@ public class GameFrame extends JFrame {
 
     @NotNull private final Main parent;
     @NotNull private final Property<Integer> cycle, current;
-    @NotNull private final Property<Boolean> clicked, cursorFlag, showResources;
+    @NotNull private final Property<Boolean> clicked, cursorFlag;
+    @NotNull private final Property<InfoPanel.Mode> showResources;
     @NotNull private final Property<GameObject> selected;
     private int travelDistance;
     private Location clickPos, destination;
@@ -76,7 +79,7 @@ public class GameFrame extends JFrame {
         Property<Boolean> cellArrowProperty = new Property<>(SHOW_CELL_ARROWS);
         clickPos = new Location(0, 0, 0);
         hoverPath = new Property<>();
-        showResources = new Property<>(false);
+        showResources = new Property<>(InfoPanel.Mode.OBJECT);
         gps = false;
         motions = new HashSet<>();
 
@@ -103,10 +106,10 @@ public class GameFrame extends JFrame {
             }
         };
 
-        showResources.bind(prop -> selected.get().ifPresent(_ -> infoPanel.update(!prop)));
+        showResources.bind(prop -> selected.get().ifPresent(_ -> infoPanel.update(prop)));
         selected.bind(_ -> {
             selected.get().ifPresentOrElse(obj -> {
-                showResources.set(false);
+                showResources.set(InfoPanel.Mode.OBJECT);
                 infoPanel.setVisible(true);
                 choicePanel.update(obj, cycle.getUnsafe());
             }, () -> hidePanels(false));
@@ -496,16 +499,17 @@ public class GameFrame extends JFrame {
         getContentPane().addMouseListener(menuLeft);
 
         // Initializes resource labels for player and cell menus
-        playerLabels = new JMenuItem[Resource.values().length];
-        for(int i = 0; i < Resource.values().length; i++) {
+        Resource[] resources = ResourceContainer.getDefaultResources();
+        playerLabels = new JMenuItem[resources.length];
+        for(int i = 0; i < resources.length; i++) {
             JMenuItem label =
-                    new JMenuItem(Resource.values()[i].name + ": " + player.getUnsafe().getResource(Resource.values()[i]));
+                    new JMenuItem(resources[i] + ": " + player.getUnsafe().getResource(resources[i]));
             playerMenu.add(label);
             playerLabels[i] = label;
         }
-        resourceLabels = new JMenuItem[Resource.values().length];
-        for(int i = 0; i < Resource.values().length; i++) {
-            JMenuItem label = new JMenuItem(Resource.values()[i].name + ": N/A");
+        resourceLabels = new JMenuItem[resources.length];
+        for(int i = 0; i < resources.length; i++) {
+            JMenuItem label = new JMenuItem(resources[i] + ": N/A");
             cellMenu.add(label);
             resourceLabels[i] = label;
         }
@@ -834,12 +838,13 @@ public class GameFrame extends JFrame {
 
         popLabel.setText("Population: " + player.getUnsafe().getPop() + "/" + player.getUnsafe().getPopCap());
 
-        for(int i = 0; i < Resource.values().length; i++)
-            playerLabels[i].setText(Resource.values()[i].name + ": " + player.getUnsafe().getResource(Resource.values()[i]));
+        Resource[] resources = ResourceContainer.getDefaultResources();
+        for(int i = 0; i < resources.length; i++)
+            playerLabels[i].setText(resources[i].getName() + ": " + player.getUnsafe().getResource(resources[i]));
 
         Cell cell = cells.get(clickPos);
-        for(int i = 0; i < Resource.values().length; i++)
-            resourceLabels[i].setText(Resource.values()[i].name + ": " + cell.getResource(Resource.values()[i]));
+        for(int i = 0; i < resources.length; i++)
+            resourceLabels[i].setText(resources[i].getName() + ": " + cell.getResource(resources[i]));
 
         cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
                 " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
