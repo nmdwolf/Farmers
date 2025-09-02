@@ -1,4 +1,4 @@
-package objects.resources;
+package core.resources;
 
 public interface Source {
     

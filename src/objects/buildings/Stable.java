@@ -4,11 +4,9 @@ import core.*;
 import UI.OperationsList;
 import core.player.Award;
 import core.player.Player;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
-import org.jetbrains.annotations.NotNull;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 
-import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 public class Stable extends ConstructiveBuilding {

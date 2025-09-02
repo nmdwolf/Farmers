@@ -1,14 +1,14 @@
 package core;
 
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 import objects.GameObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
 import static core.GameConstants.*;
-import static objects.resources.Resource.*;
+import static core.resources.Resource.*;
 
 public class Cell {
 
@@ -258,18 +258,6 @@ public class Cell {
         return cellX == 0 || cellX == NUMBER_OF_CELLS - 1 || cellY == 0 || cellY == NUMBER_OF_CELLS - 1;
     }
 
-    /*public Location add(Location loc) {
-        return new Location(x + loc.x, y + loc.y, z + loc.z);
-    }
-
-    public Location subtract(Location loc) {
-        return new Location(x - loc.x, y - loc.y, z - loc.z);
-    }
-
-    public Location add(int xIncr, int yIncr, int zIncr) {
-        return new Location(x + xIncr, y + yIncr, z + zIncr);
-    }*/
-
     @Override
     public String toString() {
         return "Location(" + cellX + ", " + cellY + ", " + cellZ + ")";
@@ -279,17 +267,15 @@ public class Cell {
         StringBuilder description = new StringBuilder();
         for(Resource res : resources.keySet())
             if(!res.equals(TIME))
-                description.append(res.getName() + ": " + resources.get(res) + "\n");
+                description.append(res.getName()).append(": ").append(resources.get(res)).append("\n");
 
         return description.toString();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Cell) {
-            Cell cell = (Cell)obj;
+        if(obj instanceof Cell cell)
             return (cellX == cell.cellX) && (cellY == cell.cellY) && (cellZ == cell.cellZ);
-        }
         return false;
     }
 }

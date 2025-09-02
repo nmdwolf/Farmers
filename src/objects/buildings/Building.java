@@ -3,7 +3,7 @@ package objects.buildings;
 import core.*;
 
 import core.player.Player;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 import objects.Constructable;
 
 public abstract class Building extends Constructable {

@@ -3,8 +3,8 @@ package core.upgrade;
 import core.player.Player;
 import UI.CustomMethods;
 import objects.GameObject;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 
 public class LookoutUpgrade extends Upgrade {
 

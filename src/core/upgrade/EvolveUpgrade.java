@@ -1,7 +1,7 @@
 package core.upgrade;
 
 import core.Operation;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 import objects.Evolvable;
 import objects.GameObject;
 

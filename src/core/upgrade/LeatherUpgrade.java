@@ -1,8 +1,8 @@
 package core.upgrade;
 
 import core.player.Player;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 import UI.CustomMethods;
 import objects.GameObject;
 import objects.units.Unit;

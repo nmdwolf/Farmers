@@ -1,10 +1,9 @@
 package core.player;
 
-import objects.resources.Resource;
+import core.resources.Resource;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 public class AwardArchive {

@@ -5,13 +5,13 @@ import core.contracts.ConstructContract;
 import UI.CustomMethods;
 import UI.OperationsList;
 import core.contracts.Contract;
-import core.contracts.LaborContract;
 import core.player.Award;
 import core.player.Player;
 import objects.Constructor;
+import objects.Status;
 import objects.buildings.Wall;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 import objects.buildings.House;
 import objects.buildings.Lumberjack;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-import static objects.resources.Resource.*;
+import static core.resources.Resource.*;
 
 public class Villager extends Worker implements Constructor {
 

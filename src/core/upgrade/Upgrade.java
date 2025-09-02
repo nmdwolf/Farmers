@@ -1,7 +1,7 @@
 package core.upgrade;
 
 import core.player.Player;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 import objects.GameObject;
 
 public abstract class Upgrade {

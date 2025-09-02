@@ -2,9 +2,9 @@ package core.upgrade;
 
 import core.player.Civilization;
 import core.player.Player;
-import objects.resources.Resource;
+import core.resources.Resource;
 import UI.CustomMethods;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 import objects.GameObject;
 
 import java.util.ArrayList;

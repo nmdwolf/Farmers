@@ -1,7 +1,7 @@
 package core.player;
 
 import core.Cell;
-import objects.resources.Resource;
+import core.resources.Resource;
 
 import java.awt.*;
 import java.util.Map;

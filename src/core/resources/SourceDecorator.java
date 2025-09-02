@@ -1,4 +1,4 @@
-package objects.resources;
+package core.resources;
 
 import core.player.Award;
 import core.OperationCode;

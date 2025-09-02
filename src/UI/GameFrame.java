@@ -3,9 +3,9 @@ package UI;
 import core.*;
 import core.player.Player;
 import objects.GameObject;
+import objects.Status;
 import objects.buildings.TownHall;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +22,6 @@ import static javax.swing.MenuSelectionManager.defaultManager;
 
 import static core.GameConstants.*;
 import static core.GameConstants.NUMBER_OF_CELLS_IN_VIEW;
-import static objects.resources.ResourceContainer.RESOURCES;
 
 public class GameFrame extends JFrame {
 
@@ -499,7 +498,7 @@ public class GameFrame extends JFrame {
         getContentPane().addMouseListener(menuLeft);
 
         // Initializes resource labels for player and cell menus
-        Resource[] resources = ResourceContainer.getDefaultResources();
+        Resource[] resources = player.getUnsafe().getResources().keySet().toArray(Resource[]::new);
         playerLabels = new JMenuItem[resources.length];
         for(int i = 0; i < resources.length; i++) {
             JMenuItem label =
@@ -617,17 +616,6 @@ public class GameFrame extends JFrame {
         SpringLayout layout = (SpringLayout) getContentPane().getLayout();
         layout.putConstraint(SpringLayout.WEST, panel, screenWidth - 2 * cellWidth - 50, SpringLayout.WEST, getContentPane());
         layout.putConstraint(SpringLayout.NORTH, panel, 50, SpringLayout.NORTH, getContentPane());
-    }
-
-    /**
-     * Recalculates screen size and rescales derived dimensions.
-     */
-    public void resetScales() {
-        screenWidth = getContentPane().getWidth();
-        screenHeight = getContentPane().getHeight();
-        cellWidth = Math.round(screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW);
-        cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
-        poolSize = Math.min(Math.round(cellWidth / 2f), Math.round(cellHeight / 2f));
     }
 
     /**
@@ -838,7 +826,7 @@ public class GameFrame extends JFrame {
 
         popLabel.setText("Population: " + player.getUnsafe().getPop() + "/" + player.getUnsafe().getPopCap());
 
-        Resource[] resources = ResourceContainer.getDefaultResources();
+        Resource[] resources = player.getUnsafe().getResources().keySet().toArray(Resource[]::new);
         for(int i = 0; i < resources.length; i++)
             playerLabels[i].setText(resources[i].getName() + ": " + player.getUnsafe().getResource(resources[i]));
 
@@ -852,6 +840,17 @@ public class GameFrame extends JFrame {
         cellPanel.update();
         contentPanel.revalidate();
         contentPanel.repaint();
+    }
+
+    /**
+     * Recalculates screen size and rescales derived dimensions.
+     */
+    public void resetScales() {
+        screenWidth = getContentPane().getWidth();
+        screenHeight = getContentPane().getHeight();
+        cellWidth = Math.round(screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW);
+        cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
+        poolSize = Math.min(Math.round(cellWidth / 2f), Math.round(cellHeight / 2f));
     }
 
     public void hidePanels(boolean alsoCellPanel) {

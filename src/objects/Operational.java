@@ -2,10 +2,9 @@ package objects;
 
 import core.Cell;
 import core.player.Player;
-import core.Status;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 
-import static core.Status.IDLE;
+import static objects.Status.IDLE;
 
 /**
  * Signals that a GameObject can have a "Working" status.

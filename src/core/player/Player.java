@@ -1,9 +1,8 @@
 package core.player;
 
 import core.Cell;
-import core.GameConstants;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 import objects.GameObject;
 import core.upgrade.Nomads;
 import core.upgrade.Upgrade;
@@ -13,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static core.GameConstants.*;
-import static objects.resources.Resource.*;
+import static core.resources.Resource.*;
 
 public class Player {
 
@@ -135,9 +134,9 @@ public class Player {
     public ResourceContainer getResources() { return resources; }
 
     /**
-     * Checks if the Player has the required amount of objects.resources.
+     * Checks if the Player has the required amount of core.resources.
      * @param res Map with Resource-value pairs.
-     * @return true if Player has the requested objects.resources
+     * @return true if Player has the requested core.resources
      */
     public boolean hasResources(ResourceContainer res) {
         for(Resource resource : res.keySet())

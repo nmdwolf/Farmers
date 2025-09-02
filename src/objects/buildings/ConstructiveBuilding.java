@@ -4,7 +4,7 @@ import UI.OperationsList;
 import core.*;
 import core.player.Player;
 import objects.Constructor;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 
 public abstract class ConstructiveBuilding extends Building implements Constructor {
 

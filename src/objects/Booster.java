@@ -1,6 +1,6 @@
 package objects;
 
-import objects.resources.Resource;
+import core.resources.Resource;
 
 public interface Booster {
 

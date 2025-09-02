@@ -1,7 +1,7 @@
 package core.upgrade;
 
 import UI.CustomMethods;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 import objects.GameObject;
 
 public abstract class InstanceUpgrade<T extends GameObject> extends Upgrade{

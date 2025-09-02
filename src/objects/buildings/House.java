@@ -5,8 +5,8 @@ import UI.CustomMethods;
 import core.player.Award;
 import core.player.Player;
 import objects.Spacer;
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 import core.upgrade.*;
 import org.jetbrains.annotations.NotNull;
 

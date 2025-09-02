@@ -3,11 +3,11 @@ package objects;
 import core.player.Award;
 import core.Cell;
 import core.player.Player;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 
 import java.util.Optional;
 
-import static objects.resources.Resource.TIME;
+import static core.resources.Resource.TIME;
 
 public abstract class Constructable extends GameObject implements Evolvable {
 

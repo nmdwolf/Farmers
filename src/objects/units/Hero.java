@@ -3,9 +3,8 @@ package objects.units;
 import UI.CustomMethods;
 import core.*;
 import UI.OperationsList;
-import core.player.Award;
 import core.player.Player;
-import objects.resources.ResourceContainer;
+import core.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 import org.jetbrains.annotations.NotNull;
 

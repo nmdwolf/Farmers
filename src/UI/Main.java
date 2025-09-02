@@ -3,12 +3,12 @@ package UI;
 import core.*;
 
 import core.Action;
+import core.player.AI;
 import core.player.Player;
 import objects.*;
 import objects.buildings.Building;
 import objects.buildings.Lumberjack;
 import objects.buildings.TownHall;
-import objects.resources.ResourceContainer;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
@@ -18,13 +18,8 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static core.GameConstants.*;
-import static objects.resources.Resource.*;
-import static objects.resources.Resource.COAL;
-import static objects.resources.Resource.IRON;
-import static objects.resources.Resource.STONE;
 
 public class Main extends JFrame{
 
@@ -64,13 +59,6 @@ public class Main extends JFrame{
         current = new Property<>(0);
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
-
-        ResourceContainer.attachResource(FOOD);
-        ResourceContainer.attachResource(WATER);
-        ResourceContainer.attachResource(WOOD);
-        ResourceContainer.attachResource(STONE);
-        ResourceContainer.attachResource(COAL);
-        ResourceContainer.attachResource(IRON);
 
         showPlayerInputDialog();
         currentPlayer.set(players.get(current.getUnsafe()));
@@ -185,13 +173,17 @@ public class Main extends JFrame{
                 case "Yellow" -> Color.yellow;
                 default -> Color.blue;
             };
-            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+            int x = 20;
+            int y = 20;
+//            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+//            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
             addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
-        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+        int x = 20;
+        int y = 20;
+//        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
+//        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
         addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this));
 
         allPlayers.addAll(players);

@@ -1,11 +1,11 @@
-package objects.resources;
+package objects.buildings;
 
 import core.*;
 import core.player.Award;
 import core.player.Player;
-import org.jetbrains.annotations.NotNull;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 
-import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 public class Farm extends ResourceBuilding {

@@ -1,7 +1,7 @@
 package core.contracts;
 
 import core.Cell;
-import objects.resources.Resource;
+import core.resources.Resource;
 import objects.units.Worker;
 
 /**

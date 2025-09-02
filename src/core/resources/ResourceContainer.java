@@ -1,13 +1,9 @@
-package objects.resources;
+package core.resources;
 
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ResourceContainer extends HashMap<Resource, Integer> {
-
-    public final static ArrayList<Resource> RESOURCES = new ArrayList<>();
 
     public final static ResourceContainer EMPTY_CONTAINER = new ResourceContainer();
 
@@ -68,20 +64,10 @@ public class ResourceContainer extends HashMap<Resource, Integer> {
             return getOrDefault(res, 0);
     }
 
-    public static void attachResource(Resource res) { RESOURCES.add(res); }
-
-    public static String[] getDefaultNames() {
-        return RESOURCES.stream().map(Resource::getName).toArray(String[]::new);
-    }
-
-    public static Resource[] getDefaultResources() {
-        return RESOURCES.toArray(Resource[]::new);
-    }
-
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder();
-        for(Resource res : RESOURCES)
+        for(Resource res : keySet())
             output.append(res.getName()).append(": ").append(get(res)).append(", ");
         return output.toString();
     }

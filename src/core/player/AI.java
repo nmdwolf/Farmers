@@ -1,21 +1,23 @@
-package core;
+package core.player;
 
+import core.Cell;
+import core.Location;
+import core.Pair;
+import objects.Status;
 import core.contracts.LaborContract;
 import UI.Main;
 import UI.Motion;
-import core.player.Player;
 import objects.GameObject;
 import objects.buildings.TownHall;
 import objects.units.Villager;
 import objects.units.Worker;
-import objects.resources.Resource;
+import core.resources.Resource;
 
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 import static core.GameConstants.rand;
-import static objects.resources.Resource.*;
+import static core.resources.Resource.*;
 
 public class AI extends Player {
 

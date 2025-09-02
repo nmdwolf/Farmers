@@ -1,10 +1,10 @@
 package core.upgrade;
 
-import objects.resources.Resource;
-import objects.resources.ResourceContainer;
+import core.resources.Resource;
+import core.resources.ResourceContainer;
 import UI.CustomMethods;
 import objects.buildings.TownHall;
-import objects.resources.SourceDecorator;
+import core.resources.SourceDecorator;
 
 public class WellUpgrade extends InstanceUpgrade<TownHall> {
 

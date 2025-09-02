@@ -1,4 +1,4 @@
-package core;
+package objects;
 
 public enum Status {
 

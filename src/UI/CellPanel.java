@@ -3,6 +3,7 @@ package UI;
 import core.*;
 import core.player.Player;
 import objects.GameObject;
+import objects.Status;
 import objects.buildings.Building;
 import objects.buildings.Foundation;
 import objects.buildings.Wall;
@@ -23,7 +24,7 @@ import static core.GameConstants.*;
 public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;
-    private int poolSize, buildingRow;
+    private int poolSize, unitRow, buildingRow, enemyRow;
 
     private final Property<GameObject> selected;
     private final Property<Boolean> cellArrowProperty;
@@ -74,20 +75,25 @@ public class CellPanel extends JPanel {
         this.cell = cell;
         this.player = player;
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f)); // TODO Might move to a resize method
+
+        unitRow = 0;
         buildingRow = CustomMethods.cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX).value();
+        enemyRow = (buildingRow / 2) + 1;
+
 
         if(cell != null) {
             int unitCounter = 0;
             int buildingCounter = 0;
+            int enemyCounter = 0;
             objectMap = new BiMap();
-            for (GameObject object : cell.getContent().stream().filter(obj -> obj.getPlayer().equals(player)).toList()) {
-                if (object instanceof Unit) {
-                    objectMap.put(new Pair<>(unitCounter, 0), object);
-                    unitCounter++;
-                } else if (object instanceof Building || object instanceof Foundation) {
-                    objectMap.put(new Pair<>(buildingCounter, buildingRow), object);
-                    buildingCounter++;
-                }
+            for (GameObject object : cell.getContent()) {
+                if(object.getPlayer().equals(player)) {
+                    if (object instanceof Unit)
+                        objectMap.put(new Pair<>(unitCounter++, unitRow), object);
+                    else if (object instanceof Building || object instanceof Foundation)
+                        objectMap.put(new Pair<>(buildingCounter++, buildingRow), object);
+                } else
+                    objectMap.put(new Pair<>(enemyCounter++, enemyRow), object);
             }
         }
     }
@@ -173,6 +179,10 @@ public class CellPanel extends JPanel {
         }
     }
 
+    /**
+     * Draws GameObjects such as Units and Buildings.
+     * @param gr
+     */
     public void drawObjects(Graphics2D gr) {
         /*
          * Draw all (visible/relevant) game objects taking into account their state
@@ -213,21 +223,14 @@ public class CellPanel extends JPanel {
                     } else
                         gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)(SPRITE_SIZE_MAX * remainder), CELL_Y_MARGIN);
                 }
-
-                object.getSprite(true).ifPresentOrElse(
-                        sprite -> gr.drawImage(selected.get().map(obj -> object.equals(obj) ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite).orElse(sprite), (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN, CELL_Y_MARGIN, null),
-                        () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 15));
-
-            } else if(object instanceof Building || object instanceof Foundation) {
-                object.getSprite(true).ifPresentOrElse(
-                        sprite -> gr.drawImage(selected.get().map(obj -> object.equals(obj) ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite).orElse(sprite), (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN, getHeight() - SPRITE_SIZE_MAX - CELL_Y_MARGIN, null),
-                        () -> {
-                            gr.drawString(object.getToken(), 5 + 10 * pair.key(), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
-        //                                if(b instanceof Worker)
-        //                                    if (b.checkStatus(CONTRACT))
-        //                                        gr.drawLine(5 + x * getWidth( + 10 * objectMap.get(object), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2, x * getWidth( + 10 * objectMap.get(object) + gr.getFontMetrics().stringWidth(b.getToken()), getHeight() - gr.getFontMetrics().getHeight() + 5 + 2);
-                        });
             }
+
+            object.getSprite(true).ifPresentOrElse(
+                    sprite -> gr.drawImage(selected.get().map(
+                                    obj -> object.equals(obj) ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite).orElse(sprite),
+                            (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN,
+                            (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN, null),
+                    () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN));
         }
 
         if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
