@@ -163,9 +163,9 @@ public class SettingsPanel extends JScrollPane {
         canvas.add(Box.createHorizontalGlue());
     }
 
-    public void resizePanel(int cellWidth, int cellHeight) {
-        canvas.setPreferredSize(new Dimension(4 * cellWidth, 5 * cellHeight));
-        setPreferredSize(new Dimension(4 * cellWidth, 5 * cellHeight));
+    public void resizePanel(float cellWidth, float cellHeight) {
+        canvas.setPreferredSize(new Dimension((int)(4 * cellWidth), (int)(5 * cellHeight)));
+        setPreferredSize(canvas.getPreferredSize());
         canvas.setBorder(new CustomBorder(Color.BLACK, getWidth(), getHeight()));
     }
 

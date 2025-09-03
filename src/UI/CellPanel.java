@@ -51,14 +51,17 @@ public class CellPanel extends JPanel {
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
 
-                if(e.getY() >= CELL_Y_MARGIN && e.getY() <= (CELL_Y_MARGIN + SPRITE_SIZE_MAX))
-                    selection = cellCoordinateTransform(e.getX(), e.getY());
-                else if(e.getY() >= getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX && e.getY() <= getHeight() - CELL_Y_MARGIN)
-                    selection = cellCoordinateTransform(e.getX(), e.getY());
-                else
+                selection = cellCoordinateTransform(e.getX(), e.getY());
+                if(objectMap.get(selection) == null)
                     selection = new Pair<>(-1, -1);
 
                 repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                super.mouseExited(e);
+                selection = new Pair<>(-1, -1);
             }
         };
 
@@ -181,7 +184,7 @@ public class CellPanel extends JPanel {
 
     /**
      * Draws GameObjects such as Units and Buildings.
-     * @param gr
+     * @param gr Graphics object from panel
      */
     public void drawObjects(Graphics2D gr) {
         /*
@@ -189,40 +192,39 @@ public class CellPanel extends JPanel {
          */
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
             GameObject object = objectMap.get(pair);
-            selected.get().ifPresentOrElse(obj -> gr.setColor(object.equals(obj) ?
-                    object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
+            selected.get().ifPresentOrElse(
+                    obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
                     () -> gr.setColor(object.getPlayer().getColor()));
 
-            if(object instanceof Unit u) {
-                if(u.getStatus() == Status.WORKING) {
-                    if(cellArrowProperty.getUnsafe() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation)) {
-                        Pair<Integer, Integer> targetPair = objectMap.get(u.getTarget());
-                        if(targetPair != null)
-                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
-                    }
-
-                    double pieces = u.getCycleLength() / 4f;
-                    int currentLength = u.getCurrentStep() + 1;
-                    int part = (int)(currentLength / pieces);
-                    double remainder = (currentLength / pieces) - part;
-
-                    if(part > 0) {
-                        gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN);
-                        if(part > 1) {
-                            gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + SPRITE_SIZE_MAX);
-                            if(part > 2) {
-                                gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + SPRITE_SIZE_MAX, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + SPRITE_SIZE_MAX);
-                                if(part > 3)
-                                    gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + SPRITE_SIZE_MAX);
-                                else
-                                    gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + (int)((1 - remainder) * SPRITE_SIZE_MAX), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + SPRITE_SIZE_MAX);
-                            } else
-                                gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)((1 - remainder) * SPRITE_SIZE_MAX), CELL_Y_MARGIN + SPRITE_SIZE_MAX, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + SPRITE_SIZE_MAX);
-                        } else
-                            gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + (int)(SPRITE_SIZE_MAX * remainder));
-                    } else
-                        gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)(SPRITE_SIZE_MAX * remainder), CELL_Y_MARGIN);
+            // Draws animation around working Units
+            if(object instanceof Unit u && u.getStatus() == Status.WORKING) {
+                if(cellArrowProperty.getUnsafe() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation)) {
+                    Pair<Integer, Integer> targetPair = objectMap.get(u.getTarget());
+                    if(targetPair != null)
+                        drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
                 }
+
+                double pieces = u.getCycleLength() / 4f;
+                int currentLength = u.getCurrentStep() + 1;
+                int part = (int)(currentLength / pieces);
+                double remainder = (currentLength / pieces) - part;
+
+                if(part > 0) {
+                    gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN);
+                    if(part > 1) {
+                        gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + SPRITE_SIZE_MAX);
+                        if(part > 2) {
+                            gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + SPRITE_SIZE_MAX, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + SPRITE_SIZE_MAX);
+                            if(part > 3)
+                                gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + SPRITE_SIZE_MAX);
+                            else
+                                gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + (int)((1 - remainder) * SPRITE_SIZE_MAX), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN + SPRITE_SIZE_MAX);
+                        } else
+                            gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)((1 - remainder) * SPRITE_SIZE_MAX), CELL_Y_MARGIN + SPRITE_SIZE_MAX, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + SPRITE_SIZE_MAX);
+                    } else
+                        gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN + (int)(SPRITE_SIZE_MAX * remainder));
+                } else
+                    gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)(SPRITE_SIZE_MAX * remainder), CELL_Y_MARGIN);
             }
 
             object.getSprite(true).ifPresentOrElse(
@@ -231,6 +233,10 @@ public class CellPanel extends JPanel {
                             (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN,
                             (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN, null),
                     () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN));
+
+            // Draws a coloured box around objects of other players to indicate the corresponding Player
+            if(!object.getPlayer().equals(player) && objectMap.get(object) != objectMap.get(selected.getUnsafe()))
+                drawBox(gr, object.getPlayer().getColor(), objectMap.get(object));
         }
 
         if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
@@ -242,15 +248,16 @@ public class CellPanel extends JPanel {
         }
 
         // Draws the selection box for Unit/Building/Foundation objects
-        if(selection.key() !=-1 && selection.value() != -1) {
-            gr.setColor(player.getAlternativeColor());
-            if(selection.value() == 0)
-                gr.drawRect(selection.key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, CELL_Y_MARGIN,
-                        SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-            else if(selection.value() == buildingRow)
-                gr.drawRect(selection.key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN,
-                        getHeight() - SPRITE_SIZE_MAX - CELL_Y_MARGIN, SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-        }
+        // TODO Fix bounding box for nonstandard sprite sizes (cf. CustomMethods.selectedSprite)
+        if(selection.key() !=-1 && selection.value() != -1)
+            drawBox(gr, player.getAlternativeColor(), selection);
+    }
+
+    private void drawBox(Graphics2D gr, Color c, Pair<Integer, Integer> pos) {
+        Color oldColor = gr.getColor();
+        gr.setColor(c);
+        gr.drawRect(pos.key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pos.value() + CELL_Y_MARGIN,  SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
+        gr.setColor(oldColor);
     }
 
     private void drawArrow(Graphics2D gr, int x1, int y1, int x2, int y2) {

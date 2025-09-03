@@ -22,7 +22,7 @@ public class ChoicePanel extends JPanel {
     private Dimension buttonSize;
     private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
 
-    public ChoicePanel(OperationsPanel operationsPanel, int cellWidth, int cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources) {
+    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources) {
         this.operationsPanel = operationsPanel;
         this.hideListener = hide;
         hideThisListener = _ -> setVisible(false);
@@ -62,7 +62,7 @@ public class ChoicePanel extends JPanel {
         }
 
         setVisible(false);
-        setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+        setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         setOpaque(false);
     }
 
@@ -94,8 +94,8 @@ public class ChoicePanel extends JPanel {
         setVisible(true);
     }
 
-    public void resizePanel(int cellWidth, int cellHeight) {
-        setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+    public void resizePanel(float cellWidth, float cellHeight) {
+        setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         for(RoundedButton button : buttons)
             button.resize(buttonSize);

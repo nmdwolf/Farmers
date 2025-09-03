@@ -20,7 +20,7 @@ public class OperationsPanel extends JPanel {
     private final ActionListener hide;
     private int actionPage;
 
-    public OperationsPanel(int cellWidth, int cellHeight) {
+    public OperationsPanel(float cellWidth, float cellHeight) {
         buttons = new RoundedButton[16];
         actionPage = 0;
         hide = _ -> setVisible(false);
@@ -33,7 +33,7 @@ public class OperationsPanel extends JPanel {
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
 
-        buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
+        buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2) + 2);
 
         for(int i = 0; i < buttons.length; i++) {
             switch(i) {
@@ -58,7 +58,7 @@ public class OperationsPanel extends JPanel {
             add(buttons[i], c);
         }
 
-        setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+        setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         setOpaque(false);
     }
 
@@ -88,8 +88,8 @@ public class OperationsPanel extends JPanel {
         setVisible(true);
     }
 
-    public void resizePanel(int cellWidth, int cellHeight) {
-        setPreferredSize(new Dimension(3 * cellWidth, 2 * cellHeight));
+    public void resizePanel(float cellWidth, float cellHeight) {
+        setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         for(RoundedButton button : buttons)
             button.resize(buttonSize);

@@ -30,9 +30,9 @@ public class InfoPanel extends JPanel {
         this.mode = mode;
     }
 
-    public void resizePanel(int cellWidth, int cellHeight) {
-        width = 2 * cellWidth;
-        height = 5 * cellHeight;
+    public void resizePanel(float cellWidth, float cellHeight) {
+        width = (int)(2 * cellWidth);
+        height = (int)(5 * cellHeight);
         setPreferredSize(new Dimension(width, height));
     }
 
