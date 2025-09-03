@@ -33,7 +33,7 @@ public class Hero extends Unit implements Aggressive {
 
     public Hero(Player p, Cell cell, int cycle, String name) {
         super(p, cell, cycle, HERO_ANIMATION_DELAY, HERO_SPACE, HERO_SIGHT, HERO_HEALTH,
-                0, 0, 1, HERO_ENERGY, HERO_COST);
+                0, 0, 16, HERO_ENERGY, HERO_COST);
         this.name = name;
 
         addLoadout(new Fighter<>(this, HERO_ATTACK, HERO_ATTACK_COST));
@@ -78,4 +78,5 @@ public class Hero extends Unit implements Aggressive {
     public void changeAttack(int amount) {
         getLoadout(Fighter.class).ifPresent(l -> l.changeAttack(amount));
     }
+
 }

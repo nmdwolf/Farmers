@@ -22,7 +22,6 @@ public class ConstructContract<T extends Construction> extends Contract{
         if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())) {
             getEmployee().getPlayer().changeResources(constructable.getCost().negative());
             getEmployee().getPlayer().addObject(foundation);
-            ((Worker)getEmployee()).setTarget(foundation);
             super.initialize();
         }
     }
@@ -36,11 +35,6 @@ public class ConstructContract<T extends Construction> extends Contract{
         if (constructable instanceof Unit)
             getEmployee().getPlayer().changePopCap(constructable.getSpace());
         constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
-    }
-
-    @Override
-    public void abandon() {
-        ((Worker)getEmployee()).setTarget(null);
     }
 
     @Override
@@ -63,5 +57,9 @@ public class ConstructContract<T extends Construction> extends Contract{
     @Override
     public int getEnergyCost() {
         return constructable.getEnergyCost();
+    }
+
+    public Foundation<T> getFoundation() {
+        return foundation;
     }
 }

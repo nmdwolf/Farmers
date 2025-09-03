@@ -12,7 +12,7 @@ public abstract class Contract {
         this.employee = employee;
         cost = energy;
         isStarted = false;
-        idle = false;
+        idle = true;
     }
 
     public GameObject getEmployee() {
@@ -33,6 +33,7 @@ public abstract class Contract {
      */
     public void initialize() {
         isStarted = true;
+        idle = false;
     }
 
     public boolean isStarted() { return isStarted; }
@@ -45,7 +46,7 @@ public abstract class Contract {
     /**
      * Terminates the contract in case it was not completed.
      */
-    public abstract void abandon();
+    public void abandon() { idle = true; }
 
     /**
      * Work on the contract.

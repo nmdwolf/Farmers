@@ -1,6 +1,7 @@
 package UI;
 
 import core.*;
+import core.contracts.ConstructContract;
 import core.player.Player;
 import objects.GameObject;
 import core.Status;
@@ -47,9 +48,9 @@ public class CellPanel extends JPanel {
                 super.mouseClicked(e);
                 GameObject obj = objectMap.get(selection);
 
-                if(target.get().map(Pair::value).orElse(false))
+                if(target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
                     target.set(new Pair<>(obj, false));
-                else
+                else if(SwingUtilities.isLeftMouseButton(e))
                     selected.set(obj);
             }
 
@@ -204,10 +205,12 @@ public class CellPanel extends JPanel {
 
             // Draws animation around working Units
             if(object instanceof Unit u && u.getStatus() == Status.WORKING) {
-                if(cellArrowProperty.getUnsafe() && (u.getTarget() instanceof Building || u.getTarget() instanceof Foundation)) {
-                    Pair<Integer, Integer> targetPair = objectMap.get(u.getTarget());
-                    if(targetPair != null)
-                        drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                if(cellArrowProperty.getUnsafe()) {
+                    u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
+                        Pair<Integer, Integer> targetPair = objectMap.get(c.getFoundation());
+                        if(targetPair != null)
+                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                    });
                 }
 
                 double pieces = u.getCycleLength() / 4f;

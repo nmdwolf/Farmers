@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 public abstract class Worker extends Unit {
 
-
     private HashSet<Booster> boosters;
     private final ResourceContainer production;
 
@@ -27,13 +26,6 @@ public abstract class Worker extends Unit {
 
         boosters = new HashSet<>();
         this.production = production;
-    }
-
-    @Override
-    public void cycle(int cycle) {
-        super.cycle(cycle);
-        if(getStatus() != Status.WALKING)
-            work();
     }
 
     @Override
@@ -74,17 +66,8 @@ public abstract class Worker extends Unit {
         OperationsList operations = new OperationsList();
         if(code == OperationCode.RESOURCE) {
             for (Resource res : getPlayer().getResources().keySet()) {
-                if(production.get(res) > 0) {
-//                    for (GameObject obj : getCell().getContent()) {
-//                        if (obj instanceof Source source && source.getResourceType() == res) {
-//                            operations.put(res.name, () -> {
-//                                addContract(new LaborContract(Worker.this, res, getCell(), 1));
-//                                //changeValue(Option.OLD_STATUS, GameConstants.WORKING_STATUS);
-//                            });
-//                        }
-//                    }
+                if(production.get(res) > 0)
                     operations.put(res.getName(), _ -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
-                }
             }
         }
         return operations;

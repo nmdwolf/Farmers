@@ -13,11 +13,12 @@ import java.util.ArrayList;
  */
 public interface Operational {
 
-    void setTarget(GameObject newTarget);
-
-    GameObject getTarget();
-
     OperationsList getOperations(int cycle, OperationCode code);
+
+    /**
+     * Performs work on the list of active contracts if this Unit has sufficient energy.
+     */
+    void work();
 
     void addContract(Contract c);
 

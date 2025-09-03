@@ -6,7 +6,6 @@ import core.player.Player;
 import objects.Animated;
 import objects.Construction;
 import core.resources.ResourceContainer;
-import objects.GameObject;
 import core.Status;
 
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ public abstract class Unit extends Construction implements Animated {
     private final int animationDelay;
     private Status status, oldStatus;
     private final int cycleLength;
-    private GameObject target;
     private final ArrayList<Contract> contracts;
 
     public Unit(Player p, Cell cell, int cycle, int animationDelay, int size, int sight, int health,
@@ -39,7 +37,6 @@ public abstract class Unit extends Construction implements Animated {
 
         this.status = IDLE;
         this.oldStatus = IDLE;
-        this.target = null;
 
         contracts = new ArrayList<>();
 
@@ -54,6 +51,9 @@ public abstract class Unit extends Construction implements Animated {
         super.cycle(cycle);
         energy = maxEnergy;
         changeHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
+
+        if(getStatus() != Status.WALKING)
+            work();
     }
 
     public int getEnergy() {
@@ -129,20 +129,11 @@ public abstract class Unit extends Construction implements Animated {
         status = newStatus;
     }
 
-    @Override
-    public void setTarget(GameObject newTarget) {
-        target = newTarget;
-    }
-
-    @Override
-    public GameObject getTarget() {
-        return target;
-    }
-
     /**
-     * Performs work on the list of active contracts if sufficient this Worker has sufficient energy.
+     * Performs work on the list of active contracts if this Unit has sufficient energy.
      * TODO implement prioritization of contracts
      */
+    @Override
     public void work() {
         if(!contracts.isEmpty()) {
             setStatus(Status.WORKING);
@@ -159,6 +150,14 @@ public abstract class Unit extends Construction implements Animated {
 
         if(contracts.isEmpty())
             setStatus(Status.IDLE);
+    }
+
+    @Override
+    public void setCell(Cell cell) {
+        super.setCell(cell);
+
+        if(getOldStatus() != Status.WALKING)
+            seizeActions();
     }
 
     /**

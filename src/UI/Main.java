@@ -296,6 +296,7 @@ public class Main extends JFrame{
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
 
+        // TODO Rephrase through getType()?
         if(!(obj instanceof Unit unit))
             throw new IllegalArgumentException("GameObject should be of type Unit.");
 
@@ -305,6 +306,8 @@ public class Main extends JFrame{
         if(target.distanceTo(unit.getCell()) > unit.getEnergy() || !unit.getPlayer().hasSpotted(target))
             return null;
 
+        // Complexity becomes cumbersome for units with high energy (noticeable lag).
+        // TODO Might need to use heuristics.
         int maxDist = unit.getEnergy();
 
         ArrayList<Location> toDo = new ArrayList<>();

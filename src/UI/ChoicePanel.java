@@ -3,10 +3,7 @@ package UI;
 import core.OperationCode;
 import core.Pair;
 import core.Property;
-import objects.Constructor;
-import objects.Evolvable;
-import objects.GameObject;
-import objects.Upgrader;
+import objects.*;
 import objects.units.Unit;
 import objects.units.Worker;
 
@@ -80,22 +77,29 @@ public class ChoicePanel extends JPanel {
                     button.removeActionListener(listener);
         }
 
-        buttons.get(1).addActionListener(_ -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
-        buttons.get(2).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
-        buttons.get(3).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
-        buttons.get(4).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
-        buttons.get(5).addActionListener(_ -> target.set(new Pair<>(null, true)));
-
         if(selected instanceof Unit)
             buttons.get(0).setVisible(true);
-        if(selected instanceof Worker)
+
+        if(selected instanceof Worker) {
+            buttons.get(1).addActionListener(_ -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
             buttons.get(1).setVisible(true);
-        if(selected instanceof Constructor)
+        }
+        if(selected instanceof Constructor) {
+            buttons.get(2).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
             buttons.get(2).setVisible(true);
-        if(selected instanceof Upgrader)
+        }
+        if(selected instanceof Upgrader) {
+            buttons.get(3).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
             buttons.get(3).setVisible(true);
-        if(selected instanceof Evolvable)
+        }
+        if(selected instanceof Evolvable) {
+            buttons.get(4).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
             buttons.get(4).setVisible(true);
+        }
+        if(selected instanceof Aggressive) {
+            buttons.get(5).addActionListener(_ -> target.set(new Pair<>(null, true)));
+            buttons.get(5).setVisible(true);
+        }
 
         setVisible(true);
     }

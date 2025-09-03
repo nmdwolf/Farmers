@@ -1,6 +1,7 @@
 package UI;
 
 import core.*;
+import core.contracts.AttackContract;
 import core.player.Player;
 import objects.Aggressive;
 import objects.GameObject;
@@ -78,7 +79,7 @@ public class GameFrame extends JFrame {
         clicked = new Property<>(false);
         cursorFlag = new Property<>(true);
         selected = new Property<>();
-        target = new Property<>();
+        target = new Property<>(new Pair<>(null, false));
         Property<Boolean> cellArrowProperty = new Property<>(SHOW_CELL_ARROWS);
         clickPos = new Location(0, 0, 0);
         hoverPath = new Property<>();
@@ -120,11 +121,10 @@ public class GameFrame extends JFrame {
             });
             refreshWindow();
         });
-        target.bind(pair ->
-            selected.ifPresent(fighter ->
-                ((Aggressive)fighter).attack(pair.key())
-            )
-        );
+        target.bind(pair -> {
+            if (!pair.value())
+                selected.ifPresent(fighter -> ((Unit) fighter).addContract(new AttackContract((Aggressive)fighter, ((Aggressive) fighter).getEnergyCost(), pair.key())));
+        });
     }
 
     /**
@@ -397,6 +397,7 @@ public class GameFrame extends JFrame {
                     } else if (SwingUtilities.isRightMouseButton(e)) {
 
                         selected.get().ifPresent(obj -> {
+
                             if(obj instanceof Unit unit) {
                                 Pair<Motion, Location> motion =
                                         parent.getShortestAdmissiblePath(unit, cells.get(clickPos));

@@ -1,5 +1,6 @@
 package core.contracts;
 
+import objects.Aggressive;
 import objects.GameObject;
 import objects.loadouts.Fighter;
 
@@ -7,8 +8,8 @@ public class AttackContract extends Contract {
 
     private final GameObject target;
 
-    public AttackContract(GameObject aggr, int energyCost, GameObject target) {
-        super(aggr, energyCost);
+    public AttackContract(Aggressive aggr, int energyCost, GameObject target) {
+        super((GameObject)aggr, energyCost);
         this.target = target;
     }
 

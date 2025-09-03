@@ -16,7 +16,7 @@ public interface GameConstants {
     int BUILDING_TYPE = 1;
     int OTHER_TYPE = 2;
 
-    int INITIAL_CELL_UNIT_SPACE = 2;
+    int INITIAL_CELL_UNIT_SPACE = 5;
     int INITIAL_CELL_BUILDING_SPACE = 5;
     int INITIAL_TRAVEL_COST = 1;
     int BOOSTER_DISTANCE = 2;
