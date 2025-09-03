@@ -2,8 +2,9 @@ package UI;
 
 import core.*;
 import core.player.Player;
+import objects.Aggressive;
 import objects.GameObject;
-import objects.Status;
+import core.Status;
 import objects.buildings.TownHall;
 import core.resources.Resource;
 import objects.units.Unit;
@@ -49,6 +50,7 @@ public class GameFrame extends JFrame {
     @NotNull private final Property<Boolean> clicked, cursorFlag;
     @NotNull private final Property<InfoPanel.Mode> showResources;
     @NotNull private final Property<GameObject> selected;
+    @NotNull private final Property<Pair<GameObject, Boolean>> target;
     private int travelDistance;
     private Location clickPos, destination;
     @NotNull private final Property<Location[]> hoverPath;
@@ -76,6 +78,7 @@ public class GameFrame extends JFrame {
         clicked = new Property<>(false);
         cursorFlag = new Property<>(true);
         selected = new Property<>();
+        target = new Property<>();
         Property<Boolean> cellArrowProperty = new Property<>(SHOW_CELL_ARROWS);
         clickPos = new Location(0, 0, 0);
         hoverPath = new Property<>();
@@ -91,9 +94,9 @@ public class GameFrame extends JFrame {
         }
 
         operationsPanel = new OperationsPanel(cellWidth, cellHeight);
-        choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources);
+        choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources, target);
         infoPanel = new InfoPanel(selected);
-        cellPanel = new CellPanel(selected, cellArrowProperty);
+        cellPanel = new CellPanel(selected, target, cellArrowProperty);
         settingsPanel = new SettingsPanel(cursorFlag, audioSource, playMusic, shuffleMusic, cellArrowProperty);
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
@@ -117,6 +120,11 @@ public class GameFrame extends JFrame {
             });
             refreshWindow();
         });
+        target.bind(pair ->
+            selected.ifPresent(fighter ->
+                ((Aggressive)fighter).attack(pair.key())
+            )
+        );
     }
 
     /**
@@ -883,7 +891,6 @@ public class GameFrame extends JFrame {
      * @param motion path to complete
      */
     public void motionToThread(Motion motion) {
-
         motions.add(motion);
 
         motion.getObject().setStatus(Status.WALKING);

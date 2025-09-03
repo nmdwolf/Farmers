@@ -3,7 +3,7 @@ package core.player;
 import core.Cell;
 import core.Location;
 import core.Pair;
-import objects.Status;
+import core.Status;
 import core.contracts.LaborContract;
 import UI.Main;
 import UI.Motion;

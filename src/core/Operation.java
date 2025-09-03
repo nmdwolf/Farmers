@@ -1,8 +1,10 @@
 package core;
 
+import objects.GameObject;
+
 @FunctionalInterface
 public interface Operation {
 
-    void perform();
+    void perform(GameObject target);
 
 }

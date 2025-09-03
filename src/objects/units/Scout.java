@@ -1,7 +1,7 @@
 package objects.units;
 
 import core.*;
-import UI.OperationsList;
+import core.OperationsList;
 import core.player.Award;
 import core.player.Player;
 import core.resources.Resource;
@@ -40,9 +40,12 @@ public class Scout extends Unit implements Evolvable {
 
     public final static int SCOUT_CYCLE_LENGTH = 12;
 
+    private int level;
+
     public Scout(Player p, Cell cell, int cycle) {
         super(p, cell, cycle, SCOUT_ANIMATION, SCOUT_SPACE, SCOUT_SIGHT, SCOUT_HEALTH,
                 SCOUT_DEGRADATION_TIME, SCOUT_DEGRADATION_AMOUNT, SCOUT_CYCLE_LENGTH, SCOUT_ENERGY, SCOUT_COST);
+        level = 1;
     }
 
     @Override
@@ -60,14 +63,14 @@ public class Scout extends Unit implements Evolvable {
         if(getLevel() == 2)
             return Optional.of(EVOLVE_AWARD);
         else
-            return super.getEvolveAward();
+            return Optional.empty();
     }
 
     @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList list = new OperationsList();
         if(code == OperationCode.EVOLVE) {
-            list.putUpgrade("Evolve", new EvolveUpgrade<>(this, LEVEL1_COST, 0, () -> {
+            list.putUpgrade("Evolve", new EvolveUpgrade<>(this, LEVEL1_COST, 0, _ -> {
                 changeSight(1);
                 changeMaxEnergy(5);
                 changeMaxHealth(20);
@@ -82,7 +85,12 @@ public class Scout extends Unit implements Evolvable {
     }
 
     @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        return Optional.empty();
+    public int getLevel() {
+        return level;
+    }
+
+    @Override
+    public void increaseLevel() {
+        level++;
     }
 }

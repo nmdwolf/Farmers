@@ -1,12 +1,12 @@
 package core.contracts;
 
-import objects.Constructable;
+import objects.Construction;
 import objects.buildings.Foundation;
 import objects.Spacer;
 import objects.units.Unit;
 import objects.units.Worker;
 
-public class ConstructContract<T extends Constructable> extends Contract{
+public class ConstructContract<T extends Construction> extends Contract{
 
     private final T constructable;
     private final Foundation<T> foundation;
@@ -22,7 +22,7 @@ public class ConstructContract<T extends Constructable> extends Contract{
         if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())) {
             getEmployee().getPlayer().changeResources(constructable.getCost().negative());
             getEmployee().getPlayer().addObject(foundation);
-            getEmployee().setTarget(foundation);
+            ((Worker)getEmployee()).setTarget(foundation);
             super.initialize();
         }
     }
@@ -40,17 +40,16 @@ public class ConstructContract<T extends Constructable> extends Contract{
 
     @Override
     public void abandon() {
-        getEmployee().setTarget(null);
+        ((Worker)getEmployee()).setTarget(null);
     }
 
     @Override
     public boolean work() {
         super.work();
-
         if(isStarted()) {
-            if (getEmployee().getEnergy() >= constructable.getDifficulty()) {
+            if (((Worker)getEmployee()).getEnergy() >= constructable.getEnergyCost()) {
                 constructable.construct();
-                getEmployee().changeEnergy(constructable.getDifficulty());
+                ((Worker)getEmployee()).changeEnergy(constructable.getEnergyCost());
             }
         }
 
@@ -63,6 +62,6 @@ public class ConstructContract<T extends Constructable> extends Contract{
 
     @Override
     public int getEnergyCost() {
-        return constructable.getDifficulty();
+        return constructable.getEnergyCost();
     }
 }

@@ -1,11 +1,12 @@
-package UI;
+package core;
 
-import core.Operation;
 import core.upgrade.Upgrade;
 
 import java.util.ArrayList;
 
 public class OperationsList extends ArrayList<Operation> {
+
+    public static OperationsList EMPTY_LIST = new OperationsList();
 
     private final ArrayList<String> descriptions;
 
@@ -22,6 +23,11 @@ public class OperationsList extends ArrayList<Operation> {
             }
         } else
             descriptions = new ArrayList<>();
+    }
+
+    public OperationsList(String s, Operation c) {
+        this();
+        put(s, c);
     }
 
     public void put(String s, Operation c) {
@@ -41,7 +47,7 @@ public class OperationsList extends ArrayList<Operation> {
      */
     public void putUpgrade(String s, Upgrade u) {
         if(u != null && u.isVisible())
-            put(s, () -> {
+            put(s, _ -> {
                 if(u.isPossible())
                     u.upgrade();
             });

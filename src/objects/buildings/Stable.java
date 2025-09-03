@@ -1,7 +1,7 @@
 package objects.buildings;
 
 import core.*;
-import UI.OperationsList;
+import core.OperationsList;
 import core.player.Award;
 import core.player.Player;
 import core.resources.Resource;

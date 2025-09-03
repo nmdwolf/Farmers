@@ -2,7 +2,7 @@ package objects.buildings;
 
 import core.*;
 import UI.CustomMethods;
-import UI.OperationsList;
+import core.OperationsList;
 import core.player.Award;
 import core.player.Player;
 import core.resources.Resource;
@@ -66,12 +66,14 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     public final static String TOKEN = "Base";
 
     private int space;
+    private int level;
 
     public TownHall(Player p, Cell cell, int cycle) {
         super(p, cell, cycle, BASE_SIZE, BASE_SIGHT, BASE_HEALTH,
                 BASE_DEGRADATION_TIME, BASE_DEGRADATION_AMOUNT, BUILD_RESOURCES, BASE_DIFFICULTY,
                 BASE_X, BASE_Y);
         this.space = BASE_SPACE;
+        level = 1;
     }
 
     @Override
@@ -81,6 +83,16 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
             case 1 -> "Town Center";
             default -> "Castle";
         };
+    }
+
+    @Override
+    public int getLevel() {
+        return level;
+    }
+
+    @Override
+    public void increaseLevel() {
+        level++;
     }
 
     @Override
@@ -100,7 +112,7 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     @Override
     public OperationsList getConstructions(int cycle) {
         OperationsList operations = new OperationsList();
-        operations.put("Villager", () -> {
+        operations.put("Villager", _ -> {
             Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
             if (getPlayer().hasResources(v.getCost())) {
                 getPlayer().addObject(v);
@@ -108,7 +120,7 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
                 getPlayer().changeResources(v.getCost().negative());
             }
         });
-        operations.put("Scout", () -> { // Construct scout
+        operations.put("Scout", _ -> { // Construct scout
             Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
             if (getPlayer().hasResources(sc.getCost())) {
                 getPlayer().addObject(sc);
@@ -130,11 +142,11 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
         } else if(code == OperationCode.EVOLVE) {
             operations.putUpgrade("Evolve",
                     switch (getLevel()) {
-                        case 1 -> new EvolveUpgrade<>(TownHall.this, LEVEL1_RESOURCES, 0, () -> {
+                        case 1 -> new EvolveUpgrade<>(TownHall.this, LEVEL1_RESOURCES, 0, _ -> {
                             changeMaxHealth(200);
                             changeSpaceBoost(2);
                         });
-                        case 2 -> new EvolveUpgrade<>(TownHall.this, LEVEL2_RESOURCES, 0, () -> {
+                        case 2 -> new EvolveUpgrade<>(TownHall.this, LEVEL2_RESOURCES, 0, _ -> {
                             changeMaxHealth(300);
                             changeSpaceBoost(3);
                         });

@@ -1,26 +1,25 @@
 package core.contracts;
 
-
-import objects.units.Worker;
+import objects.GameObject;
 
 public abstract class Contract {
 
-    private Worker employee;
+    private GameObject employee;
     private final int cost;
     private boolean isStarted, idle;
 
-    public Contract(Worker employee, int energy) {
+    public Contract(GameObject employee, int energy) {
         this.employee = employee;
         cost = energy;
         isStarted = false;
         idle = false;
     }
 
-    public Worker getEmployee() {
+    public GameObject getEmployee() {
         return employee;
     }
 
-    public void setEmployee(Worker worker) {
+    public void setEmployee(GameObject worker) {
         employee = worker;
         idle = (worker == null);
     }

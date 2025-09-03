@@ -4,9 +4,11 @@ import core.*;
 
 import core.player.Player;
 import core.resources.ResourceContainer;
-import objects.Constructable;
+import objects.Construction;
 
-public abstract class Building extends Constructable {
+import static core.GameConstants.BUILDING_TYPE;
+
+public abstract class Building extends Construction {
 
     public Building(Player p, Cell cell, int cycle, int space, int sight,
                     int health, int degradeTime, int degradeAmount, ResourceContainer cost, int difficulty) {
@@ -17,5 +19,10 @@ public abstract class Building extends Constructable {
     public String toString() {
         return "Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
                 "\nHealth: " + getHealth() + "/" + getMaxHealth();
+    }
+
+    @Override
+    public int getType() {
+        return BUILDING_TYPE;
     }
 }

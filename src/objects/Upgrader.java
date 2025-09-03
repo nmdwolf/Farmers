@@ -1,6 +1,6 @@
 package objects;
 
-import UI.OperationsList;
+import core.OperationsList;
 
 public interface Upgrader {
 

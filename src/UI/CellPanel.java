@@ -3,7 +3,7 @@ package UI;
 import core.*;
 import core.player.Player;
 import objects.GameObject;
-import objects.Status;
+import core.Status;
 import objects.buildings.Building;
 import objects.buildings.Foundation;
 import objects.buildings.Wall;
@@ -27,16 +27,18 @@ public class CellPanel extends JPanel {
     private int poolSize, unitRow, buildingRow, enemyRow;
 
     private final Property<GameObject> selected;
+    private final Property<Pair<GameObject, Boolean>> target;
     private final Property<Boolean> cellArrowProperty;
     private Player player;
     private BiMap objectMap;
     private Cell cell;
 
-    public CellPanel(Property<GameObject> selected, Property<Boolean> cellArrowProperty) {
+    public CellPanel(Property<GameObject> selected, Property<Pair<GameObject, Boolean>> target, Property<Boolean> cellArrowProperty) {
         selection = new Pair<>(-1, -1);
         objectMap = new BiMap();
         buildingRow = 1;
         this.selected = selected;
+        this.target = target;
         this.cellArrowProperty = cellArrowProperty;
 
         MouseAdapter adapter = new MouseAdapter() {
@@ -44,7 +46,11 @@ public class CellPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 super.mouseClicked(e);
                 GameObject obj = objectMap.get(selection);
-                selected.set(obj);
+
+                if(target.get().map(Pair::value).orElse(false))
+                    target.set(new Pair<>(obj, false));
+                else
+                    selected.set(obj);
             }
 
             @Override

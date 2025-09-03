@@ -1,8 +1,10 @@
 package UI;
 
 import core.OperationCode;
+import core.OperationsList;
 import core.Pair;
 import objects.GameObject;
+import objects.Operational;
 import objects.buildings.Foundation;
 import objects.units.Worker;
 
@@ -64,28 +66,30 @@ public class OperationsPanel extends JPanel {
 
     public void update(GameObject selected, OperationCode code, int cycle) {
 
-        for(int i = 0; i < 16; i++) {
-            RoundedButton button = buttons[i];
-            button.setColor(selected.getPlayer().getAlternativeColor());
-            if(i != 7 && i != 15) {
-                button.enableGhost(true);
-                for (ActionListener listener : button.getActionListeners())
-                    if (listener != hide)
-                        button.removeActionListener(listener);
+        if(selected instanceof Operational operator) {
+            for (int i = 0; i < 16; i++) {
+                RoundedButton button = buttons[i];
+                button.setColor(selected.getPlayer().getAlternativeColor());
+                if (i != 7 && i != 15) {
+                    button.enableGhost(true);
+                    for (ActionListener listener : button.getActionListeners())
+                        if (listener != hide)
+                            button.removeActionListener(listener);
+                }
             }
+
+            OperationsList operations = operator.getOperations(cycle, code);
+            selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> operator.transferContract(pair.value())));
+
+            for (int i = 0; i < operations.size(); i++) {
+                final int step = (i >= 7) ? i + 1 : i;
+                buttons[step].updateText(operations.getDescription(i));
+                buttons[step].enableGhost(false);
+                buttons[step].addActionListener(_ -> operations.get(step).perform(operator.getTarget()));
+            }
+
+            setVisible(true);
         }
-
-        OperationsList operations = selected.getOperations(cycle, code);
-        selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), () -> ((Worker)selected).transferContract(pair.value())));
-
-        for(int i = 0; i < operations.size(); i++) {
-            final int step = (i >= 7) ? i + 1 : i;
-            buttons[step].updateText(operations.getDescription(i));
-            buttons[step].enableGhost(false);
-            buttons[step].addActionListener(_ -> operations.get(step).perform());
-        }
-
-        setVisible(true);
     }
 
     public void resizePanel(float cellWidth, float cellHeight) {

@@ -1,6 +1,6 @@
 package objects.buildings;
 
-import UI.OperationsList;
+import core.OperationsList;
 import core.*;
 import core.player.Player;
 import objects.Constructor;

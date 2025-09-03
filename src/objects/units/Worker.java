@@ -1,12 +1,11 @@
 package objects.units;
 
 import core.*;
-import core.contracts.ConstructContract;
 import core.contracts.Contract;
 import core.contracts.LaborContract;
-import UI.OperationsList;
+import core.OperationsList;
 import core.player.Player;
-import objects.Status;
+import core.Status;
 import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.Booster;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 
 public abstract class Worker extends Unit {
 
-    private ArrayList<Contract> contracts;
+
     private HashSet<Booster> boosters;
     private final ResourceContainer production;
 
@@ -26,7 +25,6 @@ public abstract class Worker extends Unit {
         super(p, cell, cycle, animationDelay, space, sight, health,
                 degradeTime, degradeAmount, cycleLength, energy, cost);
 
-        contracts = new ArrayList<>();
         boosters = new HashSet<>();
         this.production = production;
     }
@@ -36,17 +34,6 @@ public abstract class Worker extends Unit {
         super.cycle(cycle);
         if(getStatus() != Status.WALKING)
             work();
-    }
-
-    /**
-     * Handles contract removal on move, fight, ...
-     * Abandons {@code LaborContracts} and unsets employee of {@code ConstructContracts}.
-     */
-    private void seizeActions() {
-        contracts.stream().filter(obj -> obj instanceof LaborContract).forEach(Contract::abandon);
-        contracts.stream().filter(obj -> obj instanceof ConstructContract<?>).forEach(contract -> contract.setEmployee(null));
-        contracts = new ArrayList<>();
-        setStatus(Status.IDLE);
     }
 
     @Override
@@ -60,53 +47,6 @@ public abstract class Worker extends Unit {
                 obj -> obj instanceof Booster &&
                         getCell().distanceTo(obj.getCell()) <= ((Booster)obj).getBoostRadius()
         ).map(Booster.class::cast).collect(Collectors.toCollection(HashSet::new));
-    }
-
-    /**
-     * Performs work on the list of active contracts if sufficient this Worker has sufficient energy.
-     * TODO implement prioritization of contracts
-     */
-    public void work() {
-        if(!contracts.isEmpty()) {
-            setStatus(Status.WORKING);
-
-            for (Iterator<Contract> iterator = contracts.iterator(); iterator.hasNext(); ) {
-                Contract c = iterator.next();
-                if (getEnergy() >= c.getEnergyCost()) {
-                    changeEnergy(-c.getEnergyCost());
-                    if (c.work())
-                        iterator.remove();
-                }
-            }
-        }
-
-        if(contracts.isEmpty())
-            setStatus(Status.IDLE);
-    }
-
-    /**
-     * Adds a contract to this Worker's active contracts.
-     * This also abandons the current LaborContract(s) if there are any.
-     * @param c new contract
-     * @throws IllegalArgumentException If the given contract does not have this Worker as assigned employee, an exception is thrown. For existing contracts, the {@code transferContract(Contract c) } method should be used.
-     */
-    public void addContract(Contract c) throws IllegalArgumentException {
-        if(!c.getEmployee().equals(this))
-            throw new IllegalArgumentException("Contract is required to have this Worker as assigned employee.");
-
-        contracts.add(c);
-        c.initialize(); // If this fails (e.g. insufficient resources), it will be called again in work() until it succeeds.
-        setStatus(Status.WORKING);
-    }
-
-    /**
-     * Intended to be used in the same way as {@code addContract(Contract c)} with the sole difference that this
-     * method first sets the employee of the given contract to be this Worker.
-     * @param c new contract
-     */
-    public void transferContract(Contract c) {
-        c.setEmployee(this);
-        addContract(c);
     }
 
     /**
@@ -124,6 +64,12 @@ public abstract class Worker extends Unit {
     }
 
     @Override
+    public void addContract(Contract c) throws IllegalArgumentException {
+        super.addContract(c);
+        setStatus(Status.WORKING);
+    }
+
+    @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
         if(code == OperationCode.RESOURCE) {
@@ -137,12 +83,10 @@ public abstract class Worker extends Unit {
 //                            });
 //                        }
 //                    }
-                    operations.put(res.getName(), () -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
+                    operations.put(res.getName(), _ -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
                 }
             }
         }
         return operations;
     }
-
-    protected ArrayList<Contract> getContracts() { return contracts; }
 }

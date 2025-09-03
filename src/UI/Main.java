@@ -81,8 +81,8 @@ public class Main extends JFrame{
                     if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                         p.removeObject(obj);
 
-                    if(obj instanceof Operational o)
-                        o.step();
+                    if(obj instanceof Animated a)
+                        a.step();
                 }
 
                 for(GameObject obj : p.getRemovableObjects())

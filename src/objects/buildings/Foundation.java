@@ -2,10 +2,10 @@ package objects.buildings;
 
 import core.*;
 import UI.CustomMethods;
-import UI.OperationsList;
+import core.OperationsList;
 import core.contracts.ConstructContract;
 import core.player.Player;
-import objects.Constructable;
+import objects.Construction;
 import objects.GameObject;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,11 +16,10 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-import static core.GameConstants.SPRITE_SIZE;
-import static core.GameConstants.SPRITE_SIZE_MAX;
+import static core.GameConstants.*;
 
 // MERGE WITH BUILDINGS?
-public class Foundation<T extends Constructable> extends GameObject {
+public class Foundation<T extends Construction> extends GameObject {
 
     public final static BufferedImage FOUNDATION_SPRITE = CustomMethods.getSprite("src/img/foundation.png", SPRITE_SIZE, SPRITE_SIZE);
     public final static BufferedImage FOUNDATION_SPRITE_MAX = CustomMethods.getSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
@@ -28,7 +27,6 @@ public class Foundation<T extends Constructable> extends GameObject {
     public final static int FOUNDATION_HEALTH = 1;
 
     private final boolean visible;
-    private final OperationsList operations;
     private final T constructable;
     private final ConstructContract<T> contract;
 
@@ -37,7 +35,6 @@ public class Foundation<T extends Constructable> extends GameObject {
         this.contract = contract;
         this.constructable = constructable;
         this.visible = visible;
-        this.operations = new OperationsList();
     }
 
     public ConstructContract<T> getContract() {
@@ -82,11 +79,6 @@ public class Foundation<T extends Constructable> extends GameObject {
     }
 
     @Override
-    public OperationsList getOperations(int cycle, OperationCode code) {
-        return operations;
-    }
-
-    @Override
     public void cycle(int cycle) {}
 
     @Override
@@ -95,5 +87,10 @@ public class Foundation<T extends Constructable> extends GameObject {
     @Override
     public String toString() {
         return  "Foundation of [\n    " + constructable.toString().replace("\n", "\n    ") + "\n]";
+    }
+
+    @Override
+    public int getType() {
+        return BUILDING_TYPE;
     }
 }

@@ -25,9 +25,9 @@ public class LaborContract extends Contract {
 
     @Override
     public boolean work() {
-        int gain = -cell.changeResource(resource, -getEmployee().getYield(resource));
+        int gain = -cell.changeResource(resource, -((Worker)getEmployee()).getYield(resource));
         getEmployee().getPlayer().changeResource(resource, gain);
-        getEmployee().step();
+        ((Worker)getEmployee()).step();
 
         return (cell.getResource(resource) == 0);
     }

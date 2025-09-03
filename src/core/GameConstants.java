@@ -12,6 +12,10 @@ public interface GameConstants {
     int NUMBER_OF_CELLS_IN_VIEW = 8;
     int INITIAL_SCREEN_SIZE = 500;
 
+    int UNIT_TYPE = 0;
+    int BUILDING_TYPE = 1;
+    int OTHER_TYPE = 2;
+
     int INITIAL_CELL_UNIT_SPACE = 2;
     int INITIAL_CELL_BUILDING_SPACE = 5;
     int INITIAL_TRAVEL_COST = 1;

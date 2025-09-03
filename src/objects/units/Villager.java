@@ -3,12 +3,12 @@ package objects.units;
 import core.*;
 import core.contracts.ConstructContract;
 import UI.CustomMethods;
-import UI.OperationsList;
+import core.OperationsList;
 import core.contracts.Contract;
 import core.player.Award;
 import core.player.Player;
 import objects.Constructor;
-import objects.Status;
+import core.Status;
 import objects.buildings.Wall;
 import core.resources.Resource;
 import core.resources.ResourceContainer;
@@ -63,7 +63,6 @@ public class Villager extends Worker implements Constructor {
         return "v";
     }
 
-    @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations =  super.getOperations(cycle, code);
 
@@ -76,11 +75,11 @@ public class Villager extends Worker implements Constructor {
     @Override
     public OperationsList getConstructions(int cycle) {
         OperationsList constructions = new OperationsList();
-        constructions.put("House", () -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(),
+        constructions.put("House", _ -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(),
                 getCell(), cycle))));
-        constructions.put("Lumberjack", () -> addContract(new ConstructContract<>(Villager.this,
+        constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this,
                 new Lumberjack(getPlayer(), getCell(), cycle))));
-        constructions.put("Wall", () -> addContract(new ConstructContract<>(Villager.this,
+        constructions.put("Wall", _ -> addContract(new ConstructContract<>(Villager.this,
                 new Wall(getPlayer(), getCell(), cycle))));
         return constructions;
     }

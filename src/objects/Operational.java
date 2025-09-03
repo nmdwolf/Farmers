@@ -1,81 +1,59 @@
 package objects;
 
-import core.Cell;
-import core.player.Player;
-import core.resources.ResourceContainer;
+import core.OperationsList;
+import core.OperationCode;
+import core.Status;
+import core.contracts.Contract;
 
-import static objects.Status.IDLE;
+import java.util.ArrayList;
 
 /**
- * Signals that a GameObject can have a "Working" status.
- * This is used for the graphics to generate a working animation.
+ * Signals that a GameObject can "work" or perform operations.
+ * This is also used for the graphics modules to generate a working animation (if applicable).
  */
-public abstract class Operational extends Constructable {
+public interface Operational {
 
-    private Status status, oldStatus;
-    private int step;
-    private final int cycleLength;
-    private GameObject target;
+    void setTarget(GameObject newTarget);
 
-    public Operational(Player player, Cell cell, int cycle, int space, int sight, int health,
-                       int degradeTime, int degradeAmount, int cycleLength,
-                       ResourceContainer cost, int difficulty, boolean hasVisibileFoundation) {
-        super(player, cell, cycle, space, sight, health, degradeTime, degradeAmount,
-                cost, difficulty, hasVisibileFoundation);
+    GameObject getTarget();
 
-        this.status = IDLE;
-        this.oldStatus = IDLE;
-        this.target = null;
+    OperationsList getOperations(int cycle, OperationCode code);
 
-        this.step = 0;
-
-        if(cycleLength == 0)
-            throw new IllegalArgumentException("Cycle length has to be nonzero.");
-        else
-            this.cycleLength = cycleLength;
-    }
+    void addContract(Contract c);
 
     /**
-     * Current step in the working cycle.
-     * @return current working stage
+     * Transfers a contract from an existing owner to this GameObject.
+     * @param c contract to transfer
      */
-    public int getCurrentStep() { return step; }
+    void transferContract(Contract c);
 
-    /**
-     * The total number of steps in a working cycle.
-     * (Should be a multiple of 4.)
-     * @return working cycle length
-     */
-    public int getCycleLength() { return cycleLength; }
+    ArrayList<Contract> getContracts();
 
-    public void step() { step = (++step) % cycleLength; }
+    void seizeActions();
+
+    int getEnergy();
+
+    int getMaxEnergy();
+
+    void changeEnergy(int amount);
+
+    void changeMaxEnergy(int amount);
 
     /**
      * Returns the current status of the GameObject.
      * @return current status
      */
-    public Status getStatus() { return status; }
+    Status getStatus();
 
     /**
      * Returns the old status of the GameObject.
      * @return old status
      */
-    public Status getOldStatus() { return oldStatus; }
+    Status getOldStatus();
 
     /**
      * Changes the current status of the GameObject.
      * @param newStatus new status
      */
-    public void setStatus(Status newStatus) {
-        oldStatus = status;
-        status = newStatus;
-    }
-
-    public void setTarget(GameObject newTarget) {
-        target = newTarget;
-    }
-
-    public GameObject getTarget() {
-        return target;
-    }
+    void setStatus(Status newStatus);
 }

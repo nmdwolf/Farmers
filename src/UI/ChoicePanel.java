@@ -1,6 +1,7 @@
 package UI;
 
 import core.OperationCode;
+import core.Pair;
 import core.Property;
 import objects.Constructor;
 import objects.Evolvable;
@@ -21,10 +22,12 @@ public class ChoicePanel extends JPanel {
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
+    private final Property<Pair<GameObject, Boolean>> target;
 
-    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources) {
+    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, Property<Pair<GameObject, Boolean>> target) {
         this.operationsPanel = operationsPanel;
         this.hideListener = hide;
+        this.target = target;
         hideThisListener = _ -> setVisible(false);
         showCellResources = _ -> showResources.set(InfoPanel.Mode.CELL);
         showPlayerResources = _ -> showResources.set(InfoPanel.Mode.PLAYER);
@@ -37,6 +40,7 @@ public class ChoicePanel extends JPanel {
         buttons.add(new RoundedButton("Construct", buttonSize, Color.gray));
         buttons.add(new RoundedButton("Upgrade", buttonSize, Color.gray));
         buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray));
+        buttons.add(new RoundedButton("Attack", buttonSize, Color.gray));
 
         for(JButton button : buttons)
             button.addActionListener(hideThisListener);
@@ -44,6 +48,7 @@ public class ChoicePanel extends JPanel {
         buttons.get(1).addActionListener(showCellResources);
         for(JButton buttons : buttons.subList(2, buttons.size()))
             buttons.addActionListener(showPlayerResources);
+
 
         // Intercepts mouse events
         addMouseListener(new MouseAdapter() {});
@@ -79,6 +84,7 @@ public class ChoicePanel extends JPanel {
         buttons.get(2).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
         buttons.get(3).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
         buttons.get(4).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
+        buttons.get(5).addActionListener(_ -> target.set(new Pair<>(null, true)));
 
         if(selected instanceof Unit)
             buttons.get(0).setVisible(true);

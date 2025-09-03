@@ -1,5 +1,5 @@
 package core;
 
 public enum OperationCode {
-    RESOURCE, EVOLVE, CONSTRUCTION, UPGRADE, MOVE;
+    RESOURCE, EVOLVE, CONSTRUCTION, UPGRADE, MOVE, ATTACK;
 }
