@@ -24,4 +24,8 @@ public class AttackContract extends Contract {
 
     @Override
     public void abandon() {}
+
+    public GameObject getTarget() {
+        return target;
+    }
 }

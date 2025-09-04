@@ -36,7 +36,8 @@ public class Hero extends Unit implements Aggressive {
                 0, 0, 16, HERO_ENERGY, HERO_COST);
         this.name = name;
 
-        addLoadout(new Fighter<>(this, HERO_ATTACK, HERO_ATTACK_COST));
+//        addLoadout(new Fighter<>("Hero", HERO_ATTACK, HERO_ATTACK_COST));
+        addLoadout(Fighter.createFighter("Clubman"));
     }
 
     @Override

@@ -12,6 +12,7 @@ import objects.buildings.TownHall;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
+import objects.units.Warrior;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

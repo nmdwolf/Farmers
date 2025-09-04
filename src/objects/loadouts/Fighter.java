@@ -1,20 +1,23 @@
 package objects.loadouts;
 
-import core.OperationCode;
-import core.OperationsList;
-import core.contracts.AttackContract;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import objects.Aggressive;
 import objects.GameObject;
 import objects.Operational;
 
-import static core.OperationsList.EMPTY_LIST;
+import java.io.File;
+import java.io.IOException;
 
 public class Fighter<T extends GameObject & Aggressive & Operational> extends Loadout<T> implements Aggressive {
 
     private int attack, attackCost;
 
-    public Fighter(T object, int attack, int attackCost) {
-        super(object);
+    @JsonCreator
+    public Fighter(@JsonProperty("name") String name, @JsonProperty("attack") int attack, @JsonProperty("attackCost") int attackCost) {
+        super(name);
         this.attack = attack;
         this.attackCost = attackCost;
     }
@@ -28,15 +31,24 @@ public class Fighter<T extends GameObject & Aggressive & Operational> extends Lo
     @Override
     public void changeAttack(int amount) { attack += amount; }
 
-    // TODO add target (maybe through Property?)
-    public OperationsList getOperations(OperationCode code) {
-        if(code == OperationCode.ATTACK)
-            return new OperationsList("Attack", target -> getOwner().addContract(new AttackContract(getOwner(), getEnergyCost(), target)));
-        return EMPTY_LIST;
-    }
-
     @Override
     public int getEnergyCost() {
         return attackCost;
+    }
+
+    public static Fighter<?> createFighter(String className) {
+        ObjectMapper mapper = new ObjectMapper();
+        File file = new File("src/data/" + className + ".json");
+        try {
+            return (Fighter<?>)mapper.readValue(file, Fighter.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Attack: " + attack +
+                "\nAttack cost: " + attackCost;
     }
 }

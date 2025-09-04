@@ -32,9 +32,6 @@ public abstract class Worker extends Unit {
     public void setCell(Cell cell) {
         super.setCell(cell);
 
-        if(getOldStatus() != Status.WALKING)
-            seizeActions();
-
         boosters = getPlayer().getObjects().stream().filter(
                 obj -> obj instanceof Booster &&
                         getCell().distanceTo(obj.getCell()) <= ((Booster)obj).getBoostRadius()
@@ -53,12 +50,6 @@ public abstract class Worker extends Unit {
                 yield += booster.getBoostAmount(this, resource);
 
         return yield;
-    }
-
-    @Override
-    public void addContract(Contract c) throws IllegalArgumentException {
-        super.addContract(c);
-        setStatus(Status.WORKING);
     }
 
     @Override

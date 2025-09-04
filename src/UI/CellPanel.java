@@ -1,6 +1,7 @@
 package UI;
 
 import core.*;
+import core.contracts.AttackContract;
 import core.contracts.ConstructContract;
 import core.player.Player;
 import objects.GameObject;
@@ -14,6 +15,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -130,6 +134,14 @@ public class CellPanel extends JPanel {
             drawRiver(gr);
             drawObjects(gr);
 
+            if(target.getUnsafe().value()) {
+                Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+                cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
+
+                gr.setColor(new Color(0, 0, 0, 128));
+                gr.fill(cover);
+            }
+
             gr.dispose();
         }
     }
@@ -209,7 +221,13 @@ public class CellPanel extends JPanel {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
                         Pair<Integer, Integer> targetPair = objectMap.get(c.getFoundation());
                         if(targetPair != null)
-                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), 10,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                    });
+
+                    u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract)c).forEach(c -> {
+                        Pair<Integer, Integer> targetPair = objectMap.get(c.getTarget());
+                        if(targetPair != null)
+                            drawWavyArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), pair.value() * (CELL_Y_MARGIN + SPRITE_SIZE_MAX), (CELL_X_MARGIN + SPRITE_SIZE_MAX) * targetPair.key(),targetPair.value() * (CELL_Y_MARGIN + SPRITE_SIZE_MAX));
                     });
                 }
 
@@ -280,11 +298,53 @@ public class CellPanel extends JPanel {
 
         BufferedImage rotated = CustomMethods.rotateImage(ARROWHEAD, angle);
         gr.drawLine(x1 + CELL_X_MARGIN + (SPRITE_SIZE_MAX / 2),
-                y1 + (SPRITE_SIZE_MAX / 2), x2 +  (SPRITE_SIZE_MAX / 2) + CELL_X_MARGIN, y2);
+                y1 + (SPRITE_SIZE_MAX / 2), x2 + CELL_X_MARGIN + (SPRITE_SIZE_MAX / 2), y2);
         gr.setStroke(oldStroke);
-        gr.drawImage(rotated, x2 +  (SPRITE_SIZE_MAX / 2) + CELL_X_MARGIN - rotated.getWidth() / 2,
+        gr.drawImage(rotated, x2 + (SPRITE_SIZE_MAX / 2) + CELL_X_MARGIN - rotated.getWidth() / 2,
                 y2 - rotated.getHeight() / 2,
                 null);
+    }
+
+    private void drawWavyArrow(Graphics2D gr, int x1, int y1, int x2, int y2) {
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+
+        double angle = -Math.atan2(dy, dx) - Math.PI / 2;
+        BufferedImage rotated = CustomMethods.rotateImage(ARROWHEAD, angle);
+
+        x1 = x1 + CELL_X_MARGIN + (SPRITE_SIZE_MAX / 2);
+        y1 = y1 + CELL_Y_MARGIN + (SPRITE_SIZE_MAX / 2);
+        x2 = x2 + CELL_X_MARGIN + (SPRITE_SIZE_MAX / 2);
+        y2 = y2 - rotated.getHeight() / 2;
+
+        dx = x2 - x1;
+        dy = y2 - y1;
+        double length = Math.sqrt(dx * dx + dy * dy);
+
+        // Normalize direction
+        double ux = dx / length;
+        double uy = dy / length;
+
+        // Perpendicular vector (for offsetting)
+        double px = -uy;
+        double py = ux;
+
+        Path2D.Double path = new Path2D.Double();
+        path.moveTo(x1, y1);
+
+        // Step along the line in small increments
+        for (double t = 0; t <= length; t += 2) { // step of 2 pixels
+            double baseX = x1 + ux * t;
+            double baseY = y1 + uy * t;
+            double offset = 5 * Math.sin((2 * Math.PI / (length / 3)) * t);
+            double wx = baseX + px * offset;
+            double wy = baseY + py * offset;
+            path.lineTo(wx, wy);
+        }
+
+        gr.draw(path);
+        gr.drawImage(rotated, x2  - rotated.getWidth() / 2, y2 - rotated.getHeight() / 2,null);
     }
 
     public static class BiMap {

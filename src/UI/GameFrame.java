@@ -122,8 +122,10 @@ public class GameFrame extends JFrame {
             refreshWindow();
         });
         target.bind(pair -> {
-            if (!pair.value())
-                selected.ifPresent(fighter -> ((Unit) fighter).addContract(new AttackContract((Aggressive)fighter, ((Aggressive) fighter).getEnergyCost(), pair.key())));
+            if (!pair.value()) {
+                selected.ifPresent(fighter -> ((Unit) fighter).addContract(new AttackContract((Aggressive) fighter, ((Aggressive) fighter).getEnergyCost(), pair.key())));
+                selected.set(null);
+            }
         });
     }
 

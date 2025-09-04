@@ -7,6 +7,7 @@ import objects.Animated;
 import objects.Construction;
 import core.resources.ResourceContainer;
 import core.Status;
+import objects.loadouts.Fighter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -74,13 +75,6 @@ public abstract class Unit extends Construction implements Animated {
     }
 
     public int getAnimationDelay() { return animationDelay; }
-
-    @Override
-    public String toString() {
-        return "Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
-                "\nHealth: " + getHealth() + "/" + getMaxHealth() +
-                "\nEnergy: " + energy + "/" + maxEnergy;
-    }
 
     @Override
     public int getType() {
@@ -200,4 +194,15 @@ public abstract class Unit extends Construction implements Animated {
 
     @Override
     public ArrayList<Contract> getContracts() { return contracts; }
+
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder("Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
+                "\nHealth: " + getHealth() + "/" + getMaxHealth() +
+                "\nEnergy: " + energy + "/" + maxEnergy + "\n\n");
+
+        getLoadout(Fighter.class).ifPresent(s::append);
+
+        return s.toString();
+    }
 }

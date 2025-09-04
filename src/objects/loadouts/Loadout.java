@@ -4,14 +4,14 @@ import objects.GameObject;
 
 public abstract class Loadout<T extends GameObject> {
 
-    private final T owner;
+    private final String name;
 
-    public Loadout(T owner) {
-        this.owner = owner;
+    public Loadout(String name) {
+        this.name = name;
     }
 
-    public T getOwner() {
-        return owner;
+    public String getName() {
+        return name;
     }
 
 }
