@@ -47,8 +47,8 @@ public class Villager extends Worker implements Constructor {
 
     public final static int VILLAGER_CYCLE_LENGTH = 12;
 
-    public Villager(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, VILLAGER_ANIMATION, VILLAGER_SIZE, VILLAGER_SIGHT, VILLAGER_HEALTH,
+    public Villager() {
+        super(VILLAGER_ANIMATION, VILLAGER_SIZE, VILLAGER_SIGHT, VILLAGER_HEALTH,
                 VILLAGER_DEGRADATION_TIME, VILLAGER_DEGRADATION_AMOUNT, VILLAGER_CYCLE_LENGTH, VILLAGER_ENERGY,
                 VILLAGER_COST, VILLAGER_PRODUCTION);
     }
@@ -75,12 +75,18 @@ public class Villager extends Worker implements Constructor {
     @Override
     public OperationsList getConstructions(int cycle) {
         OperationsList constructions = new OperationsList();
-        constructions.put("House", _ -> addContract(new ConstructContract<>(Villager.this, new House(getPlayer(),
-                getCell(), cycle))));
-        constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this,
-                new Lumberjack(getPlayer(), getCell(), cycle))));
-        constructions.put("Wall", _ -> addContract(new ConstructContract<>(Villager.this,
-                new Wall(getPlayer(), getCell(), cycle))));
+        constructions.put("House", _ -> {
+            House h = new House();
+            addContract(new ConstructContract<>(Villager.this, h));
+        });
+        constructions.put("Lumberjack", _ -> {
+            Lumberjack l = new Lumberjack();
+            addContract(new ConstructContract<>(Villager.this, l));
+        });
+        constructions.put("Wall", _ -> {
+            Wall w = new Wall();
+            addContract(new ConstructContract<>(Villager.this, w));
+        });
         return constructions;
     }
 

@@ -28,8 +28,8 @@ public class Lumberjack extends IdleBuilding implements Booster {
     public final static int LUMBERJACK_DEGRADATION_TIME = 30;
     public final static int LUMBERJACK_DEGRADATION_AMOUNT = 2;
 
-    public Lumberjack(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, LUMBERJACK_SPACE, LUMBERJACK_SIGHT, LUMBERJACK_HEALTH,
+    public Lumberjack() {
+        super(LUMBERJACK_SPACE, LUMBERJACK_SIGHT, LUMBERJACK_HEALTH,
                 LUMBERJACK_DEGRADATION_TIME, LUMBERJACK_DEGRADATION_AMOUNT, LUMBERJACK_COST, 1);
     }
 

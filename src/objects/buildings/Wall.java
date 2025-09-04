@@ -35,8 +35,8 @@ public class Wall extends IdleBuilding implements Obstruction, Directional {
     public final static int WALL_DEGRADATION_TIME = 50;
     public final static int WALL_DEGRADATION_AMOUNT = 5;
 
-    public Wall(Player player, Cell cell, int cycle) {
-        super(player, cell, cycle, WALL_SPACE, WALL_SIGHT, WALL_HEALTH,
+    public Wall() {
+        super(WALL_SPACE, WALL_SIGHT, WALL_HEALTH,
                 WALL_DEGRADATION_TIME, WALL_DEGRADATION_AMOUNT,
                 WALL_COST, WALL_DIFFICULTY);
     }

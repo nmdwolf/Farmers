@@ -10,9 +10,9 @@ import static core.GameConstants.BUILDING_TYPE;
 
 public abstract class Building extends Construction {
 
-    public Building(Player p, Cell cell, int cycle, int space, int sight,
+    public Building(int space, int sight,
                     int health, int degradeTime, int degradeAmount, ResourceContainer cost, int difficulty) {
-        super(p, cell, cycle, space, sight, health, degradeTime, degradeAmount, cost, difficulty, true);
+        super(space, sight, health, degradeTime, degradeAmount, cost, difficulty, true);
     }
 
     @Override

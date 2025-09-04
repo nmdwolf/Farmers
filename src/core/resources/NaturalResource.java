@@ -8,8 +8,8 @@ public abstract class NaturalResource extends GameObject implements Source {
 
     private final ResourceContainer yield;
 
-    public NaturalResource(Player player, Cell cell, int cycle, int space, ResourceContainer yield) {
-        super(player, cell, cycle, space, 0, 999, 0, 0);
+    public NaturalResource(int space, ResourceContainer yield) {
+        super(space, 0, 999, 0, 0);
         this.yield = yield;
     }
 

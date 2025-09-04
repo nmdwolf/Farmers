@@ -26,10 +26,10 @@ public abstract class Unit extends Construction implements Animated {
     private final int cycleLength;
     private final ArrayList<Contract> contracts;
 
-    public Unit(Player p, Cell cell, int cycle, int animationDelay, int size, int sight, int health,
+    public Unit(int animationDelay, int size, int sight, int health,
                 int degradeTime, int degradeAmount, int cycleLength,
                 int energy, ResourceContainer cost) {
-        super(p, cell, cycle, size, sight, health, degradeTime, degradeAmount, cost, UNIT_DIFFICULTY, false);
+        super(size, sight, health, degradeTime, degradeAmount, cost, UNIT_DIFFICULTY, false);
 
         this.animationDelay = animationDelay;
         this.energy = energy;

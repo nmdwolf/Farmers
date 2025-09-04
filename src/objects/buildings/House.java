@@ -40,8 +40,8 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
 
     private int space;
 
-    public House(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, HOUSE_SIZE, HOUSE_SIGHT, HOUSE_HEALTH,
+    public House() {
+        super(HOUSE_SIZE, HOUSE_SIGHT, HOUSE_HEALTH,
                 HOUSE_DEGRADATION_TIME, HOUSE_DEGRADATION_AMOUNT, HOUSE_COST, 1);
 
         this.space = HOUSE_SPACE;

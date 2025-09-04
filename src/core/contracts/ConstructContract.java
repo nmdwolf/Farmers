@@ -14,7 +14,8 @@ public class ConstructContract<T extends Construction> extends Contract{
     public ConstructContract(Worker employee, T constructable) {
         super(employee, constructable.getCompletion());
         this.constructable = constructable;
-        foundation = new Foundation<>(employee.getPlayer(), constructable, this, constructable.hasVisibleFoundation(), constructable.getStartCycle());
+        foundation = new Foundation<>(constructable, this, constructable.hasVisibleFoundation());
+        foundation.initialize(employee.getPlayer(), employee.getCell(), constructable.getStartCycle());
     }
 
     @Override
@@ -30,6 +31,7 @@ public class ConstructContract<T extends Construction> extends Contract{
     public void terminate() {
         getEmployee().getPlayer().removeObject(foundation);
         getEmployee().getPlayer().addObject(constructable);
+        constructable.initialize(getFoundation().getPlayer(), getFoundation().getCell(), getFoundation().getStartCycle());
         if (constructable instanceof Spacer)
             getEmployee().getPlayer().changePopCap(((Spacer) constructable).getSpaceBoost());
         if (constructable instanceof Unit)

@@ -27,8 +27,8 @@ public class Farm extends ResourceBuilding {
 
     public final static Award BUILT_AWARD = Award.createFreeAward("Food is ours.");
 
-    public Farm(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, FARM_SIZE, FARM_SIGHT, FARM_HEALTH, FARM_COST, FARM_DIFFICULTY,
+    public Farm() {
+        super(FARM_SIZE, FARM_SIGHT, FARM_HEALTH, FARM_COST, FARM_DIFFICULTY,
                 FARM_GAINS, FARM_DEGRADATION_TIME, FARM_DEGRADATION_AMOUNT);
     }
 

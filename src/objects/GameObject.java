@@ -18,26 +18,20 @@ import java.util.Optional;
 
 public abstract class GameObject {
 
-    private final int id, startCycle;
+    private final int id;
     private Cell cell;
     private Player player;
-    private int space, sight, health, maxHealth, level, degradeTime, degradeAmount;
+    private int space, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
     private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
 
-    public GameObject(Player player, Cell cell, int cycle, int space, int sight, int health, int degradeTime, int degradeAmount) {
+    public GameObject(int space, int sight, int health, int degradeTime, int degradeAmount) {
         id = CustomMethods.getNewIdentifier();
-
-        this.cell = cell;
-
-        this.player = player;
-        this.startCycle = cycle;
 
         this.degradeTime = degradeTime;
         this.degradeAmount = degradeAmount;
 
         this.space = space;
         this.sight = sight;
-        this.level = 1;
 
         this.health = health;
         maxHealth = health;
@@ -45,14 +39,25 @@ public abstract class GameObject {
         loadouts = new HashMap<>();
     }
 
+    public void initialize(Player player, Cell cell, int cycle) {
+        setPlayer(player);
+        setCell(cell);
+        startCycle = cycle;
+    }
+
     public int getObjectIdentifier() { return id; }
 
     public Player getPlayer() { return player; }
-    public void setPlayer(Player newPlayer) { player = newPlayer; }
+    public void setPlayer(Player newPlayer) {
+        if(player != null)
+            throw new IllegalStateException("Player has already been set.");
+        player = newPlayer;
+    }
 
     public Cell getCell() { return cell; }
     public void setCell(Cell cell) {
-        this.cell.removeContent(this);
+        if(this.cell != null)
+            this.cell.removeContent(this);
         this.cell = cell;
         this.cell.addContent(this);
     }

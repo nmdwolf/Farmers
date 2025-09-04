@@ -42,8 +42,8 @@ public class Scout extends Unit implements Evolvable {
 
     private int level;
 
-    public Scout(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, SCOUT_ANIMATION, SCOUT_SPACE, SCOUT_SIGHT, SCOUT_HEALTH,
+    public Scout() {
+        super(SCOUT_ANIMATION, SCOUT_SPACE, SCOUT_SIGHT, SCOUT_HEALTH,
                 SCOUT_DEGRADATION_TIME, SCOUT_DEGRADATION_AMOUNT, SCOUT_CYCLE_LENGTH, SCOUT_ENERGY, SCOUT_COST);
         level = 1;
     }

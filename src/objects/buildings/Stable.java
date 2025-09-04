@@ -31,8 +31,8 @@ public class Stable extends ConstructiveBuilding {
 
     public final static String TOKEN = "S";
 
-    public Stable(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, STABLE_SPACE, STABLE_SIGHT, STABLE_HEALTH,
+    public Stable() {
+        super(STABLE_SPACE, STABLE_SIGHT, STABLE_HEALTH,
                 STABLE_DEGRADATION_TIME, STABLE_DEGRADATION_AMOUNT, STABLE_COST, STABLE_DIFFICULTY,
                 STABLE_X, STABLE_Y);
     }

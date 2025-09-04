@@ -42,7 +42,8 @@ public class AI extends Player {
                     base = (TownHall) obj;
 
         if(getObjects().stream().filter(obj -> obj.getToken().equals("v")).count() < 5 && base != null) {
-            Villager v = new Villager(this, base.getCell().fetch(1, 0, 0), cycle);
+            Villager v = new Villager();
+            v.initialize(this, base.getCell().fetch(1, 0, 0), cycle);
             if(main.addObject(v))
                 v.construct();
         }

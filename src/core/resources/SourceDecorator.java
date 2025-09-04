@@ -16,7 +16,7 @@ public class SourceDecorator extends Construction implements Source {
     private final Resource type;
 
     public SourceDecorator(Construction obj, Resource type, int amount) {
-        super(obj.getPlayer(), obj.getCell(), obj.getStartCycle(), obj.getSpace(), obj.getSight(),
+        super(obj.getSpace(), obj.getSight(),
                 obj.getMaxHealth(), obj.getDegradeTime(), obj.getDegradeAmount(),
                 obj.getCost(), obj.getEnergyCost(), obj.hasVisibleFoundation());
 

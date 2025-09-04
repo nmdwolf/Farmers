@@ -168,6 +168,8 @@ public class Main extends JFrame{
 
         for (int i = 0; i < playerCount; i++) {
             String name = JOptionPane.showInputDialog("What is the name of the Hero?");
+            if(name == null || name.isEmpty())
+                name = "Player " + (i + 1);
             String col = (String)JOptionPane.showInputDialog(null, "Choose the player color.", "Choose the player color.", JOptionPane.QUESTION_MESSAGE, null, PLAYER_COLORS, "Blue");
             Color color = switch(col) {
                 case "Green" -> Color.green;
@@ -203,14 +205,19 @@ public class Main extends JFrame{
 //        else
         players.add(p);
 
-        GameObject base = new TownHall(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
-        GameObject lumber = new Lumberjack(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
-        GameObject v1 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
-        GameObject v2 = new Villager(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
-        GameObject hero = new Hero(p, p.getViewPoint(), cycle.getUnsafe(), p.getName());
+        GameObject base = new TownHall();
+        base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
+        GameObject lumberjack = new Lumberjack();
+        lumberjack.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
+        GameObject v1 = new Villager();
+        v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
+        GameObject v2 = new Villager();
+        v2.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
+        GameObject hero = new Hero(p.getName());
+        hero.initialize(p, p.getViewPoint(), cycle.getUnsafe());
 
         p.addObject(base);
-        p.addObject(lumber);
+        p.addObject(lumberjack);
         p.addObject(v1);
         p.addObject(v2);
         p.addObject(hero);

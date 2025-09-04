@@ -16,10 +16,10 @@ public abstract class Construction extends GameObject {
     private final boolean hasVisibleFoundation;
     private final ResourceContainer cost;
 
-    public Construction(Player player, Cell cell, int cycle, int space, int sight, int health,
+    public Construction(int space, int sight, int health,
                         int degradeTime, int degradeAmount, ResourceContainer cost,
                         int energyCost, boolean hasVisibleFoundation) {
-        super(player, cell, cycle, space, sight, health, degradeTime, degradeAmount);
+        super(space, sight, health, degradeTime, degradeAmount);
 
         this.cost = cost;
 

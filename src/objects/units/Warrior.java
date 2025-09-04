@@ -10,8 +10,8 @@ import objects.GameObject;
 
 public class Warrior extends Unit implements Aggressive {
 
-    public Warrior(Player p, Cell cell, int cycle, int animationDelay, int size, int sight, int health, int degradeTime, int degradeAmount, int cycleLength, int energy, ResourceContainer cost) {
-        super(p, cell, cycle, animationDelay, size, sight, health, degradeTime, degradeAmount, cycleLength, energy, cost);
+    public Warrior(int animationDelay, int size, int sight, int health, int degradeTime, int degradeAmount, int cycleLength, int energy, ResourceContainer cost) {
+        super(animationDelay, size, sight, health, degradeTime, degradeAmount, cycleLength, energy, cost);
     }
 
     @Override

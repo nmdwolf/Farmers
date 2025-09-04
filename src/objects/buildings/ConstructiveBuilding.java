@@ -9,10 +9,10 @@ import core.resources.ResourceContainer;
 public abstract class ConstructiveBuilding extends Building implements Constructor {
 
     private int x, y;
-    public ConstructiveBuilding(Player p, Cell cell, int cycle, int space, int sight, int health,
+    public ConstructiveBuilding(int space, int sight, int health,
                                 int degradeTime, int degradeAmount,
                                 ResourceContainer cost, int difficulty, int x, int y) {
-        super(p, cell, cycle, space, sight, health, degradeTime, degradeAmount, cost, difficulty);
+        super(space, sight, health, degradeTime, degradeAmount, cost, difficulty);
         this.x = x;
         this.y = y;
     }

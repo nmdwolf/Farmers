@@ -31,8 +31,8 @@ public class Hero extends Unit implements Aggressive {
 
     private final String name;
 
-    public Hero(Player p, Cell cell, int cycle, String name) {
-        super(p, cell, cycle, HERO_ANIMATION_DELAY, HERO_SPACE, HERO_SIGHT, HERO_HEALTH,
+    public Hero(String name) {
+        super(HERO_ANIMATION_DELAY, HERO_SPACE, HERO_SIGHT, HERO_HEALTH,
                 0, 0, 16, HERO_ENERGY, HERO_COST);
         this.name = name;
 

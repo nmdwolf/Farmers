@@ -18,10 +18,10 @@ public abstract class Worker extends Unit {
     private HashSet<Booster> boosters;
     private final ResourceContainer production;
 
-    public Worker(Player p, Cell cell, int cycle, int animationDelay, int space, int sight, int health,
+    public Worker(int animationDelay, int space, int sight, int health,
                   int degradeTime, int degradeAmount, int cycleLength, int energy,
                   ResourceContainer cost, ResourceContainer production) {
-        super(p, cell, cycle, animationDelay, space, sight, health,
+        super(animationDelay, space, sight, health,
                 degradeTime, degradeAmount, cycleLength, energy, cost);
 
         boosters = new HashSet<>();

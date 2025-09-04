@@ -68,8 +68,8 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     private int space;
     private int level;
 
-    public TownHall(Player p, Cell cell, int cycle) {
-        super(p, cell, cycle, BASE_SIZE, BASE_SIGHT, BASE_HEALTH,
+    public TownHall() {
+        super(BASE_SIZE, BASE_SIGHT, BASE_HEALTH,
                 BASE_DEGRADATION_TIME, BASE_DEGRADATION_AMOUNT, BUILD_RESOURCES, BASE_DIFFICULTY,
                 BASE_X, BASE_Y);
         this.space = BASE_SPACE;
@@ -113,15 +113,17 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     public OperationsList getConstructions(int cycle) {
         OperationsList operations = new OperationsList();
         operations.put("Villager", _ -> {
-            Villager v = new Villager(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+            Villager v = new Villager();
             if (getPlayer().hasResources(v.getCost())) {
+                v.initialize(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
                 getPlayer().addObject(v);
                 v.construct();
                 getPlayer().changeResources(v.getCost().negative());
             }
         });
         operations.put("Scout", _ -> { // Construct scout
-            Scout sc = new Scout(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
+            Scout sc = new Scout();
+            sc.initialize(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
             if (getPlayer().hasResources(sc.getCost())) {
                 getPlayer().addObject(sc);
                 sc.construct();
