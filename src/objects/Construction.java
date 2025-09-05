@@ -1,13 +1,9 @@
 package objects;
 
 import core.player.Award;
-import core.Cell;
-import core.player.Player;
 import core.resources.ResourceContainer;
 
 import java.util.Optional;
-
-import static core.resources.Resource.TIME;
 
 public abstract class Construction extends GameObject {
 
@@ -24,7 +20,7 @@ public abstract class Construction extends GameObject {
         this.cost = cost;
 
         completed = 0;
-        buildingTime = cost.get(TIME);
+        buildingTime = cost.get("Time");
 
         this.energyCost = energyCost;
         this.hasVisibleFoundation = hasVisibleFoundation;

@@ -1,7 +1,5 @@
 package core.player;
 
-import core.resources.Resource;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,7 +31,7 @@ public class AwardArchive {
     }
 
     private void initialize() {
-        obtainable.add(Award.createAward("You have mined stones for the very first time.", () -> player.getGainedAmount(Resource.STONE) > 0));
+        obtainable.add(Award.createAward("You have mined stones for the very first time.", () -> player.getGainedAmount("Stone") > 0));
     }
 
     public Set<String> getNewAwards() {

@@ -1,11 +1,8 @@
 package objects.buildings;
 
-import core.*;
 import UI.CustomMethods;
 import core.player.Award;
-import core.player.Player;
 import objects.Spacer;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import core.upgrade.*;
 import org.jetbrains.annotations.NotNull;
@@ -19,12 +16,9 @@ import static core.GameConstants.SPRITE_SIZE_MAX;
 
 public class House extends IdleBuilding implements Upgradable, Spacer {
 
-    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/hut.png", SPRITE_SIZE, SPRITE_SIZE);
-    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/hut.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-    public final static ResourceContainer HOUSE_COST = new ResourceContainer() {{
-        put(Resource.WOOD, 50);
-        put(Resource.TIME, 5);
-    }};
+    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hut.png", SPRITE_SIZE, SPRITE_SIZE).get();
+    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hut.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
+    public final static ResourceContainer HOUSE_COST = new ResourceContainer(new String[]{"Wood", "Time"}, new int[]{50, 5});
     public final static Award BUILT_AWARD = Award.createFreeAward("You finally gave your people some shelter.");
 
     public final static int HOUSE_HEALTH = 150;

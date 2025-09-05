@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import objects.Aggressive;
 import objects.GameObject;
+import objects.units.Warrior;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,14 +44,27 @@ public class Fighter extends Loadout implements Aggressive {
                 "\nAttack cost: " + attackCost;
     }
 
-    public static Fighter createFighter(String className) {
+    public static Fighter createFighter(String className, String group) throws IllegalArgumentException {
         ObjectMapper mapper = new ObjectMapper();
-        File file = new File("src/data/" + className + ".json");
-        try {
-            return mapper.readValue(file, Fighter.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if("Warrior".equals(group)) {
+            File file = new File("src/data/Warriors.json");
+            try {
+                Fighter[] warriors = mapper.readValue(file, Fighter[].class);
+                for(Fighter f : warriors)
+                    if(f.getName().equals(className))
+                        return f;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            File file = new File("src/data/" + className + ".json");
+            try {
+                return mapper.readValue(file, Fighter.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+        throw new IllegalArgumentException("The provided class " + className + "is unknown.");
     }
 
 }

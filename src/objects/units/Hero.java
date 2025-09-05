@@ -4,7 +4,6 @@ import UI.CustomMethods;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import core.*;
 import core.OperationsList;
-import core.player.Player;
 import core.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 import objects.Aggressive;
@@ -17,8 +16,8 @@ import java.util.Optional;
 
 public class Hero extends Unit implements Aggressive {
 
-    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6));
-    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6));
+    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6)).get();
+    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6)).get();
 
     public final static ResourceContainer HERO_COST = ResourceContainer.EMPTY_CONTAINER;
 
@@ -39,7 +38,7 @@ public class Hero extends Unit implements Aggressive {
         this.name = name;
 
 //        addLoadout(new Fighter<>("Hero", HERO_ATTACK, HERO_ATTACK_COST));
-        addLoadout(Fighter.createFighter("Hero"));
+        addLoadout(Fighter.createFighter("Hero", null));
     }
 
     public void setName(String name) {

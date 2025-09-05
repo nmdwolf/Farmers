@@ -1,6 +1,5 @@
 package core;
 
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 
 import static core.GameConstants.*;
-import static core.resources.Resource.*;
 
 public class Cell {
 
@@ -37,7 +35,7 @@ public class Cell {
             seasonalCycle((cycle % (4 * SEASON_LENGTH)) / SEASON_LENGTH);
 
         if(heatLevel >= HOT_LEVEL)
-            resources.put(WATER, Math.max(resources.get(WATER) - 2, 0));
+            resources.put("Water", Math.max(resources.get("Water") - 2, 0));
     }
 
     public int getUnitSpace() {
@@ -82,7 +80,7 @@ public class Cell {
 
     public int getTravelCost() {
         int cost = travelCost;
-        if(resources.get(WATER) >= WATER_THRESHOLD)
+        if(resources.get("Water") >= WATER_THRESHOLD)
             cost += 2;
         cost += Math.max(0, heatLevel - HOT_LEVEL);
         return cost;
@@ -92,16 +90,16 @@ public class Cell {
         travelCost += amount;
     }
 
-    public int getResource(Resource type) {
+    public int getResource(String type) {
         return resources.get(type);
     }
 
-    public int changeResource(Resource type, int amount) {
+    public int changeResource(String type, int amount) {
 
         if(amount < 0)
             amount = -Math.min(resources.get(type), -amount);
 
-        if(type == WATER)
+        if(type.equals("Water"))
             if(heatLevel >= 50 || heatLevel <= COLD_LEVEL)
                 amount = 0;
 
@@ -110,7 +108,7 @@ public class Cell {
     }
 
     public void changeResources(ResourceContainer res) {
-        for(Resource resource : res.keySet())
+        for(String resource : res.keySet())
             changeResource(resource, res.get(resource));
     }
 
@@ -118,11 +116,11 @@ public class Cell {
 
     public void changeHeatLevel(int amount) { heatLevel += amount; }
 
-    public boolean isRiver() { return resources.get(WATER) >= WATER_THRESHOLD; }
+    public boolean isRiver() { return resources.get("Water") >= WATER_THRESHOLD; }
 
-    public boolean isForest() { return resources.get(WOOD) >= WOOD_THRESHOLD; }
+    public boolean isForest() { return resources.get("Wood") >= WOOD_THRESHOLD; }
 
-    public boolean isField() { return resources.get(FOOD) >= FOOD_THRESHOLD; }
+    public boolean isField() { return resources.get("Food") >= FOOD_THRESHOLD; }
 
     public void addContent(GameObject obj) { content.add(obj); }
 
@@ -141,35 +139,15 @@ public class Cell {
         else if(season == 1) {
             heatLevel += rand.nextInt(3) - 1;
             if (rand.nextInt(5) >= 3)
-                resources.put(WATER, resources.get(WATER) + rand.nextInt(30));
+                resources.put("Water", resources.get("Water") + rand.nextInt(30));
         }
         else if(season == 2)
             heatLevel += rand.nextInt(5) + 1;
         else if(season == 3) {
             heatLevel += rand.nextInt(3) - 1;
             if(rand.nextInt(5) >= 2)
-                resources.put(WATER, resources.get(WATER) + rand.nextInt(50));
+                resources.put("Water", resources.get("Water") + rand.nextInt(50));
         }
-    }
-
-    /**
-     * Generates a random amount of {@code Resource}s to initialize a cell
-     * @return HashMap with random amount of resources
-     */
-    private static ResourceContainer generateResources() {
-        ResourceContainer resources = new ResourceContainer();
-        resources.put(FOOD, rand.nextInt(200));
-        resources.put(WOOD, rand.nextInt(250));
-        resources.put(STONE, rand.nextInt(100));
-        resources.put(IRON, rand.nextInt(50));
-        resources.put(COAL, rand.nextInt(50));
-        resources.put(TIME, 0);
-
-        resources.put(WATER, rand.nextInt(200));
-        if(resources.get(WATER) > GameConstants.WATER_THRESHOLD)
-            resources.put(WATER, 300 + rand.nextInt(100));
-
-        return resources;
     }
 
     public int getX() {
@@ -265,9 +243,9 @@ public class Cell {
 
     public String getDescription() {
         StringBuilder description = new StringBuilder();
-        for(Resource res : resources.keySet())
-            if(!res.equals(TIME))
-                description.append(res.getName()).append(": ").append(resources.get(res)).append("\n");
+        for(String res : resources.keySet())
+            if(!res.equals("Time"))
+                description.append(res).append(": ").append(resources.get(res)).append("\n");
 
         return description.toString();
     }
@@ -277,5 +255,25 @@ public class Cell {
         if(obj instanceof Cell cell)
             return (cellX == cell.cellX) && (cellY == cell.cellY) && (cellZ == cell.cellZ);
         return false;
+    }
+
+    /**
+     * Generates a random amount of {@code Resource}s to initialize a cell
+     * @return HashMap with random amount of resources
+     */
+    private static ResourceContainer generateResources() {
+        ResourceContainer resources = new ResourceContainer();
+        resources.put("Food", rand.nextInt(200));
+        resources.put("Wood", rand.nextInt(250));
+        resources.put("Stone", rand.nextInt(100));
+        resources.put("Iron", rand.nextInt(50));
+        resources.put("Coal", rand.nextInt(50));
+        resources.put("Time", 0);
+
+        resources.put("Water", rand.nextInt(200));
+        if(resources.get("Water") > GameConstants.WATER_THRESHOLD)
+            resources.put("Water", 300 + rand.nextInt(100));
+
+        return resources;
     }
 }

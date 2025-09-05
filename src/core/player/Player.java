@@ -1,7 +1,6 @@
 package core.player;
 
 import core.Cell;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 import core.upgrade.Nomads;
@@ -12,7 +11,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static core.GameConstants.*;
-import static core.resources.Resource.*;
 
 public class Player {
 
@@ -50,12 +48,12 @@ public class Player {
         spotted = new HashSet<>();
 
         resources = new ResourceContainer();
-        resources.put(FOOD, START_FOOD);
-        resources.put(WATER, START_WATER);
-        resources.put(WOOD, START_WOOD);
-        resources.put(STONE, START_STONE);
-        resources.put(COAL, START_COAL);
-        resources.put(IRON, START_IRON);
+        resources.put("Food", START_FOOD);
+        resources.put("Water", START_WATER);
+        resources.put("Wood", START_WOOD);
+        resources.put("Stone", START_STONE);
+        resources.put("Coal", START_COAL);
+        resources.put("Iron", START_IRON);
 
         totalResources = new ResourceContainer(resources); // TODO What is this variable used for?
         spent = new ResourceContainer();
@@ -88,6 +86,9 @@ public class Player {
         object = civ.initObject(object);
         newObjects.add(object);
 
+        if(object.getType() == UNIT_TYPE)
+            changePop(object.getSize());
+
         //awards.enable(object.getAward(Option.CONSTRUCT));
 
         Cell loc = object.getCell();
@@ -105,6 +106,8 @@ public class Player {
 
     public void removeObject(GameObject object) {
         removableObjects.add(object);
+        if(object.getType() == UNIT_TYPE)
+            changePop(-object.getSize());
     }
 
     public String getName() {
@@ -123,29 +126,29 @@ public class Player {
 
     public void changeViewpoint(Cell loc) { viewpoint = loc; }
 
-    public int getResource(Resource type) {
+    public int getResource(String type) {
         return resources.get(type);
     }
 
-    public int getTotalResource(Resource type) {
+    public int getTotalResource(String type) {
         return totalResources.get(type);
     }
 
     public ResourceContainer getResources() { return resources; }
 
     /**
-     * Checks if the Player has the required amount of core.resources.
-     * @param res Map with Resource-value pairs.
-     * @return true if Player has the requested core.resources
+     * Checks if the Player has the required amount of resources.
+     * @param res Map with resource-value pairs.
+     * @return true if Player has the requested resources
      */
     public boolean hasResources(ResourceContainer res) {
-        for(Resource resource : res.keySet())
-            if(resource != TIME && resources.get(resource) < res.get(resource))
+        for(String resource : res.keySet())
+            if(!resource.equals("Time") && resources.get(resource) < res.get(resource))
                 return false;
         return true;
     }
 
-    public void changeResource(Resource type, int amount) {
+    public void changeResource(String type, int amount) {
         resources.add(type, amount);
         totalResources.add(type, amount);
 
@@ -158,16 +161,16 @@ public class Player {
     }
 
     public void changeResources(ResourceContainer res) {
-        for(Resource resource : res.keySet())
-            if(resource != TIME && res.get(resource) != 0)
+        for(String resource : res.keySet())
+            if(!resource.equals("Time") && res.get(resource) != 0)
                 changeResource(resource, res.get(resource));
     }
 
-    public int getGainedAmount(Resource type) {
+    public int getGainedAmount(String type) {
         return gained.get(type);
     }
 
-    public int getSpentAmount(Resource type) {
+    public int getSpentAmount(String type) {
         return spent.get(type);
     }
 

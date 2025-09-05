@@ -1,7 +1,6 @@
 package core.contracts;
 
 import core.Cell;
-import core.resources.Resource;
 import objects.units.Worker;
 
 /**
@@ -9,10 +8,10 @@ import objects.units.Worker;
  */
 public class LaborContract extends Contract {
 
-    private final Resource resource;
+    private final String resource;
     private final Cell cell;
 
-    public LaborContract(Worker employee, Resource r, Cell cell, int cost) throws IllegalArgumentException {
+    public LaborContract(Worker employee, String r, Cell cell, int cost) throws IllegalArgumentException {
         super(employee, cost);
         if(cell == null)
             throw new IllegalArgumentException("No cell has been assigned.");
@@ -21,7 +20,7 @@ public class LaborContract extends Contract {
         resource = r;
     }
 
-    public Resource getResource() { return resource; }
+    public String getResource() { return resource; }
 
     @Override
     public boolean work() {

@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Clubman",
+    "attack": 5,
+    "attackCost": 1,
+    "animationDelay": 1000,
+    "size": 1,
+    "sight": 1,
+    "health": 50,
+    "degradeTime": 0,
+    "degradeAmount": 0,
+    "cycleLength": 8,
+    "energy": 2,
+    "cost": {
+      "resources": ["Food", "Water"],
+      "amounts": [50, 50]
+    }
+  },
+  {
+    "name": "Archer",
+    "range": 2,
+    "attack": 5,
+    "attackCost": 2,
+    "animationDelay": 1000,
+    "size": 1,
+    "sight": 2,
+    "health": 50,
+    "degradeTime": 0,
+    "degradeAmount": 0,
+    "cycleLength": 8,
+    "energy": 2,
+    "cost": {
+      "resources": ["Food", "Water", "Wood"],
+      "amounts": [50, 50, 50]
+    }
+  }
+]

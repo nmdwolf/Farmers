@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static core.GameConstants.*;
 import static core.GameConstants.CELL_Y_MARGIN;
@@ -73,18 +74,17 @@ public class CustomMethods {
         return gr;
     }
 
-    public static BufferedImage getSprite(String path, int width, int height) {
-        BufferedImage sprite = null;
+    public static Optional<BufferedImage> loadSprite(String path, int width, int height) {
         try {
             Image img = ImageIO.read(new File(path)).getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            sprite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage sprite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D gr = optimizeGraphics(sprite.createGraphics());
             gr.drawImage(img, 0, 0, null);
             gr.dispose();
+            return Optional.of(sprite);
         } catch (IOException e) {
-            e.printStackTrace();
+            return Optional.empty();
         }
-        return sprite;
     }
 
     public static BufferedImage selectedSprite(BufferedImage sprite, Color color) {

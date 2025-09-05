@@ -1,9 +1,6 @@
 package objects.buildings;
 
-import core.*;
 import core.player.Award;
-import core.player.Player;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 
 import java.util.Optional;
@@ -18,12 +15,8 @@ public class Farm extends ResourceBuilding {
     public final static int FARM_DEGRADATION_TIME = 1;
     public final static int FARM_DEGRADATION_AMOUNT = 1;
 
-    public final static ResourceContainer FARM_COST = new ResourceContainer() {{
-        put(Resource.WOOD, 100);
-        put(Resource.WATER, 100);
-        put(Resource.TIME, 5);
-    }};
-    public final static ResourceContainer FARM_GAINS = new ResourceContainer(Resource.FOOD, 10);
+    public final static ResourceContainer FARM_COST = new ResourceContainer(new String[]{"Wood", "Water", "Time"}, new int[]{100, 100, 1});
+    public final static ResourceContainer FARM_GAINS = new ResourceContainer("Food", 10);
 
     public final static Award BUILT_AWARD = Award.createFreeAward("Food is ours.");
 
@@ -38,8 +31,8 @@ public class Farm extends ResourceBuilding {
     }
 
     @Override
-    public Resource getResourceType() {
-        return Resource.FOOD;
+    public String getResourceType() {
+        return "Food";
     }
 
     @Override

@@ -6,11 +6,9 @@ import UI.CustomMethods;
 import core.OperationsList;
 import core.contracts.Contract;
 import core.player.Award;
-import core.player.Player;
 import objects.Constructor;
 import core.Status;
 import objects.buildings.Wall;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.buildings.House;
 import objects.buildings.Lumberjack;
@@ -19,14 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-import static core.resources.Resource.*;
-
 public class Villager extends Worker implements Constructor {
 
-    public final static BufferedImage SPRITE = CustomMethods.getSprite("src/img/villager.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
-    public final static BufferedImage WORKING_SPRITE = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE);
-    public final static BufferedImage SPRITE_MAX = CustomMethods.getSprite("src/img/villager.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX);
-    public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.getSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX);
+    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/villager.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).get();
+    public final static BufferedImage WORKING_SPRITE = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).get();
+    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/villager.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
+    public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
     public final static Award BUILT_AWARD = Award.createFreeAward("A baby was born.");
 
     public final static int VILLAGER_HEALTH = 100;
@@ -35,12 +31,8 @@ public class Villager extends Worker implements Constructor {
     public final static int VILLAGER_SIGHT = 1;
     public final static int VILLAGER_ANIMATION = 1000;
 
-    public final static ResourceContainer VILLAGER_COST = new ResourceContainer() {{
-        put(FOOD, 100);
-        put(Resource.WATER, 50);
-        put(Resource.TIME, 1);
-    }};
-    public final static ResourceContainer VILLAGER_PRODUCTION = new ResourceContainer(new Resource[]{FOOD, WATER, WOOD, STONE}, new int[]{5, 5, 5, 5});
+    public final static ResourceContainer VILLAGER_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{100, 50, 1});
+    public final static ResourceContainer VILLAGER_PRODUCTION = new ResourceContainer(new String[]{"Food", "Water", "Wood", "Stone"}, new int[]{5, 5, 5, 5});
 
     public final static int VILLAGER_DEGRADATION_TIME = 50;
     public final static int VILLAGER_DEGRADATION_AMOUNT = 2;

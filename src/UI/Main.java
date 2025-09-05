@@ -12,6 +12,7 @@ import objects.buildings.TownHall;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
+import objects.units.Warrior;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -221,6 +222,10 @@ public class Main extends JFrame{
         p.addObject(v1);
         p.addObject(v2);
         p.addObject(hero);
+
+        Warrior w = Warrior.createWarrior("Clubman");
+        w.initialize(p, p.getViewPoint(), cycle.getUnsafe());
+        p.addObject(w);
     }
 
     /**

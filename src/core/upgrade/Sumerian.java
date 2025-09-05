@@ -2,7 +2,6 @@ package core.upgrade;
 
 import core.player.Civilization;
 import core.player.Player;
-import core.resources.Resource;
 import UI.CustomMethods;
 import core.resources.ResourceContainer;
 import objects.GameObject;
@@ -41,10 +40,7 @@ public class Sumerian implements Civilization {
         public final static int WRITING_ID = CustomMethods.getNewUpgradeIdentifier();
 
         public final static int CYCLE_THRESHOLD = 10;
-
-        public final static ResourceContainer WRITING_COST = new ResourceContainer() {{
-            put(Resource.WOOD, -100);
-        }};
+        public final static ResourceContainer WRITING_COST = new ResourceContainer("Wood", 100);
 
         public WritingUpgrade() {
             super(player, WRITING_COST, CYCLE_THRESHOLD);

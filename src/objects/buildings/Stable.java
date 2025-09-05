@@ -3,20 +3,14 @@ package objects.buildings;
 import core.*;
 import core.OperationsList;
 import core.player.Award;
-import core.player.Player;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 
 import java.util.Optional;
 
 public class Stable extends ConstructiveBuilding {
 
-    public final static ResourceContainer STABLE_COST = new ResourceContainer() {{
-        put(Resource.FOOD, -100);
-        put(Resource.WATER, -200);
-        put(Resource.WOOD, -200);
-        put(Resource.TIME, 10);
-    }};
+
+    public final static ResourceContainer STABLE_COST = new ResourceContainer(new String[]{"Food", "Wood", "Water", "Time"}, new int[]{100, 200, 100, 10});
     public final static Award BUILT_AWARD = Award.createFreeAward("Yee-haw!");
 
     public final static int STABLE_HEALTH = 500;

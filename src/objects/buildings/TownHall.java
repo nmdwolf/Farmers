@@ -4,8 +4,6 @@ import core.*;
 import UI.CustomMethods;
 import core.OperationsList;
 import core.player.Award;
-import core.player.Player;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
 import objects.Spacer;
@@ -24,31 +22,17 @@ import static core.GameConstants.SPRITE_SIZE_MAX;
 
 public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable {
 
-    public final static BufferedImage BONFIRE_SPRITE = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE, SPRITE_SIZE);
-    public final static BufferedImage TOWN_SPRITE = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE, SPRITE_SIZE);
-    public final static BufferedImage CASTLE_SPRITE = CustomMethods.getSprite("src/img/castle.png", SPRITE_SIZE, SPRITE_SIZE);
-    public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.getSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-    public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.getSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
-    public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.getSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX);
+    public final static BufferedImage BONFIRE_SPRITE = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE, SPRITE_SIZE).get();
+    public final static BufferedImage TOWN_SPRITE = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE, SPRITE_SIZE).get();
+    public final static BufferedImage CASTLE_SPRITE = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE, SPRITE_SIZE).get();
+    public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
+    public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
+    public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
     public final static Award BUILT_AWARD = Award.createFreeAward("A new city has been founded.");
 
-    public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer() {{
-        put(Resource.WOOD, -200);
-        put(Resource.TIME, 20);
-    }};
-    public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer() {{
-        put(Resource.WOOD, -300);
-        put(Resource.STONE, -100);
-        put(Resource.WATER, -100);
-        put(Resource.TIME, 10);
-    }};
-    public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer() {{
-        put(Resource.WOOD, -300);
-        put(Resource.STONE, -300);
-        put(Resource.WATER, -200);
-        put(Resource.IRON, -50);
-        put(Resource.TIME, 20);
-    }};
+    public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer(new String[]{"Wood", "Time"}, new int[]{200, 20});
+    public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
+    public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});
 
     public final static int BASE_HEALTH = 1000;
     public final static int BASE_SPACE = 5;

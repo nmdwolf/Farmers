@@ -4,5 +4,5 @@ public interface Source {
     
     ResourceContainer getYield();
 
-    Resource getResourceType();
+    String getResourceType();
 }

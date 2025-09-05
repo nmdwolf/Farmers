@@ -11,13 +11,11 @@ import objects.GameObject;
 import objects.buildings.TownHall;
 import objects.units.Villager;
 import objects.units.Worker;
-import core.resources.Resource;
 
 import java.awt.*;
 import java.util.*;
 
 import static core.GameConstants.rand;
-import static core.resources.Resource.*;
 
 public class AI extends Player {
 
@@ -26,7 +24,7 @@ public class AI extends Player {
     private final Main main;
 
     private TownHall base;
-    private final HashMap<Cell, ArrayList<Resource>> harvested;
+    private final HashMap<Cell, ArrayList<String>> harvested;
 
     public AI(String name, Color color, Color alternativeColor, Cell start, Main game) {
         super(name, color, alternativeColor, start);
@@ -55,9 +53,9 @@ public class AI extends Player {
 
                 boolean needsToMove = true;
                 if (harvested.containsKey(newLoc)) {
-                    ArrayList<Resource> resources = new ArrayList<>(getResources().keySet());
+                    ArrayList<String> resources = new ArrayList<>(getResources().keySet());
                     Collections.shuffle(resources, rand);
-                    for (Resource res : resources) {
+                    for (String res : resources) {
                         if (!harvested.get(newLoc).contains(res) && obj.getYield(res) > 0) {
                             harvested.get(newLoc).add(res);
                             LaborContract contract = new LaborContract(obj, res, newLoc, 1);
@@ -90,15 +88,13 @@ public class AI extends Player {
                         main.moveObject(motion.key().getObject(), motion.key().getPath()[motion.key().getPath().length - 1]);
 
                         harvested.put(newLoc, new ArrayList<>());
-                        harvested.get(newLoc).add(FOOD);
-                        LaborContract contract = new LaborContract(obj, FOOD, newLoc, 1);
+                        harvested.get(newLoc).add("Food");
+                        LaborContract contract = new LaborContract(obj, "Food", newLoc, 1);
                         obj.addContract(contract);
                         obj.setStatus(Status.WORKING);
                     }
                 }
             }
         }
-
-//        main.cyclePlayers();
     }
 }

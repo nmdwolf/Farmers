@@ -10,9 +10,9 @@ public class SourceDecorator extends Construction implements Source {
 
     private final Construction obj;
     private ResourceContainer yield;
-    private final Resource type;
+    private final String type;
 
-    public SourceDecorator(Construction obj, Resource type, int amount) {
+    public SourceDecorator(Construction obj, String type, int amount) {
         super(obj.getSize(), obj.getSight(),
                 obj.getMaxHealth(), obj.getDegradeTime(), obj.getDegradeAmount(),
                 obj.getCost(), obj.getEnergyCost(), obj.hasVisibleFoundation());
@@ -35,7 +35,7 @@ public class SourceDecorator extends Construction implements Source {
     }
 
     @Override
-    public Resource getResourceType() {
+    public String getResourceType() {
         return type;
     }
 

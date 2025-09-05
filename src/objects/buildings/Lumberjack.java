@@ -1,9 +1,6 @@
 package objects.buildings;
 
-import core.*;
 import core.player.Award;
-import core.player.Player;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.Booster;
 import objects.GameObject;
@@ -14,11 +11,7 @@ import java.util.Optional;
 
 public class Lumberjack extends IdleBuilding implements Booster {
 
-    public final static ResourceContainer LUMBERJACK_COST = new ResourceContainer() {{
-        put(Resource.WOOD, 100);
-        put(Resource.WATER, 50);
-        put(Resource.TIME, 5);
-    }};
+    public final static ResourceContainer LUMBERJACK_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{100, 50, 1});
     public final static Award BUILT_AWARD = Award.createFreeAward("You figured out how to chop wood.");
 
     public final static int LUMBERJACK_HEALTH = 250;
@@ -52,8 +45,8 @@ public class Lumberjack extends IdleBuilding implements Booster {
     public int getBoostRadius() { return 2; }
 
     @Override
-    public int getBoostAmount(GameObject obj, Resource res) {
-        if(res == Resource.WOOD)
+    public int getBoostAmount(GameObject obj, String res) {
+        if(res.equals("Wood"))
             return 2;
         else
             return 0;

@@ -3,14 +3,11 @@ package objects.units;
 import core.*;
 import core.OperationsList;
 import core.player.Award;
-import core.player.Player;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
 import core.upgrade.EvolveUpgrade;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 public class Scout extends Unit implements Evolvable {
@@ -24,16 +21,8 @@ public class Scout extends Unit implements Evolvable {
     public final static int SCOUT_SIGHT = 2;
     public final static int SCOUT_ANIMATION = 300;
 
-    public final static ResourceContainer SCOUT_COST = new ResourceContainer(){{
-        put(Resource.FOOD, -100);
-        put(Resource.WATER, -200);
-        put(Resource.TIME, 0);
-    }};
-    public final static ResourceContainer LEVEL1_COST = new ResourceContainer(){{
-        put(Resource.FOOD, -200);
-        put(Resource.WATER, -200);
-        put(Resource.TIME, 10);
-    }};
+    public final static ResourceContainer SCOUT_COST = new ResourceContainer(new String[]{"Food", "Water"}, new int[]{100, 200});
+    public final static ResourceContainer LEVEL1_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{200, 200, 10});
 
     public final static int SCOUT_DEGRADATION_TIME = 50;
     public final static int SCOUT_DEGRADATION_AMOUNT = 2;

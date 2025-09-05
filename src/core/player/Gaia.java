@@ -1,7 +1,6 @@
 package core.player;
 
 import core.Cell;
-import core.resources.Resource;
 
 import java.awt.*;
 import java.util.Map;
@@ -12,9 +11,9 @@ public class Gaia extends Player {
         super("Gaia", Color.green, new Color(130, 70, 20), origin);
     }
 
-    public int getResource(Resource type) {
+    public int getResource(String type) {
         return 50_000;
     }
 
-    public boolean hasResources(Map<Resource,Integer> res) { return true; }
+    public boolean hasResources(Map<String,Integer> res) { return true; }
 }

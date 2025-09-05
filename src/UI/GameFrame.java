@@ -7,7 +7,6 @@ import objects.Aggressive;
 import objects.GameObject;
 import core.Status;
 import objects.buildings.TownHall;
-import core.resources.Resource;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -512,7 +511,7 @@ public class GameFrame extends JFrame {
         getContentPane().addMouseListener(menuLeft);
 
         // Initializes resource labels for player and cell menus
-        Resource[] resources = player.getUnsafe().getResources().keySet().toArray(Resource[]::new);
+        String[] resources = player.getUnsafe().getResources().keySet().toArray(String[]::new);
         playerLabels = new JMenuItem[resources.length];
         for(int i = 0; i < resources.length; i++) {
             JMenuItem label =
@@ -840,13 +839,13 @@ public class GameFrame extends JFrame {
 
         popLabel.setText("Population: " + player.getUnsafe().getPop() + "/" + player.getUnsafe().getPopCap());
 
-        Resource[] resources = player.getUnsafe().getResources().keySet().toArray(Resource[]::new);
+        String[] resources = player.getUnsafe().getResources().keySet().toArray(String[]::new);
         for(int i = 0; i < resources.length; i++)
-            playerLabels[i].setText(resources[i].getName() + ": " + player.getUnsafe().getResource(resources[i]));
+            playerLabels[i].setText(resources[i] + ": " + player.getUnsafe().getResource(resources[i]));
 
         Cell cell = cells.get(clickPos);
         for(int i = 0; i < resources.length; i++)
-            resourceLabels[i].setText(resources[i].getName() + ": " + cell.getResource(resources[i]));
+            resourceLabels[i].setText(resources[i] + ": " + cell.getResource(resources[i]));
 
         cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
                 " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());

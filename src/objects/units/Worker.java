@@ -1,12 +1,8 @@
 package objects.units;
 
 import core.*;
-import core.contracts.Contract;
 import core.contracts.LaborContract;
 import core.OperationsList;
-import core.player.Player;
-import core.Status;
-import core.resources.Resource;
 import core.resources.ResourceContainer;
 import objects.Booster;
 
@@ -43,7 +39,7 @@ public abstract class Worker extends Unit {
      * @param resource Resource for which the production yield is calculated.
      * @return production yield
      */
-    public int getYield(Resource resource) {
+    public int getYield(String resource) {
         int yield = production.get(resource);
         if(yield > 0)
             for(Booster booster : boosters)
@@ -56,9 +52,9 @@ public abstract class Worker extends Unit {
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
         if(code == OperationCode.RESOURCE) {
-            for (Resource res : getPlayer().getResources().keySet()) {
+            for (String res : getPlayer().getResources().keySet()) {
                 if(production.get(res) > 0)
-                    operations.put(res.getName(), _ -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
+                    operations.put(res, _ -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
             }
         }
         return operations;
