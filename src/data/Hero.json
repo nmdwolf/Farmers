@@ -10,5 +10,8 @@
   "degradeAmount": 0,
   "cycleLength": 16,
   "energy": 5,
-  "cost": {}
+  "cost": {
+    "resources": [],
+    "amounts": []
+  }
 }

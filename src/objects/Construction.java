@@ -34,7 +34,7 @@ public abstract class Construction extends GameObject {
 
     public void construct() { completed++; }
 
-    public int getEnergyCost() {
+    public int getAttackCost() {
         return energyCost;
     }
 

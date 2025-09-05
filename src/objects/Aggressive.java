@@ -4,7 +4,9 @@ public interface Aggressive {
 
     int getAttack();
 
-    int getEnergyCost();
+    int getAttackCost();
+
+    int getRange();
 
     void attack(GameObject obj);
 

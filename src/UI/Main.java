@@ -213,7 +213,7 @@ public class Main extends JFrame{
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         GameObject v2 = new Villager();
         v2.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
-        Hero hero = new Hero();
+        Hero hero = Hero.createHero();
         hero.setName(p.getName());
         hero.initialize(p, p.getViewPoint(), cycle.getUnsafe());
 
@@ -223,7 +223,7 @@ public class Main extends JFrame{
         p.addObject(v2);
         p.addObject(hero);
 
-        Warrior w = Warrior.createWarrior("Clubman");
+        Warrior w = Warrior.createWarrior("Archer");
         w.initialize(p, p.getViewPoint(), cycle.getUnsafe());
         p.addObject(w);
     }

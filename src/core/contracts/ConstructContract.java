@@ -43,9 +43,9 @@ public class ConstructContract<T extends Construction> extends Contract{
     public boolean work() {
         super.work();
         if(isStarted()) {
-            if (((Worker)getEmployee()).getEnergy() >= constructable.getEnergyCost()) {
+            if (((Worker)getEmployee()).getEnergy() >= constructable.getAttackCost()) {
                 constructable.construct();
-                ((Worker)getEmployee()).changeEnergy(constructable.getEnergyCost());
+                ((Worker)getEmployee()).changeEnergy(constructable.getAttackCost());
             }
         }
 
@@ -58,7 +58,7 @@ public class ConstructContract<T extends Construction> extends Contract{
 
     @Override
     public int getEnergyCost() {
-        return constructable.getEnergyCost();
+        return constructable.getAttackCost();
     }
 
     public Foundation<T> getFoundation() {

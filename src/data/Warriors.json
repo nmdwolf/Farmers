@@ -1,6 +1,6 @@
 [
   {
-    "name": "Clubman",
+    "type": "Clubman",
     "attack": 5,
     "attackCost": 1,
     "animationDelay": 1000,
@@ -17,7 +17,7 @@
     }
   },
   {
-    "name": "Archer",
+    "type": "Archer",
     "range": 2,
     "attack": 5,
     "attackCost": 2,

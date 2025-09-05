@@ -1,13 +1,11 @@
 package objects.loadouts;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import objects.Aggressive;
 import objects.GameObject;
-import objects.units.Warrior;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,15 +15,28 @@ public class Fighter extends Loadout implements Aggressive {
 
     private int attack, attackCost;
 
-    @JsonCreator
-    public Fighter(@JsonProperty("name") String name, @JsonProperty("attack") int attack, @JsonProperty("attackCost") int attackCost) {
-        super(name);
+    @JsonSetter(nulls = Nulls.SKIP)
+    private int range = 0;
+
+    private Fighter(String type, int attack, int attackCost, int range) {
+        super(type);
         this.attack = attack;
         this.attackCost = attackCost;
+        this.range = range;
+    }
+
+    @Override
+    public int getRange() {
+        return range;
     }
 
     @Override
     public int getAttack() { return attack; }
+
+    @Override
+    public int getAttackCost() {
+        return attackCost;
+    }
 
     @Override
     public void attack(GameObject object) { object.changeHealth(attack); }
@@ -34,18 +45,16 @@ public class Fighter extends Loadout implements Aggressive {
     public void changeAttack(int amount) { attack += amount; }
 
     @Override
-    public int getEnergyCost() {
-        return attackCost;
-    }
-
-    @Override
     public String toString() {
         return "Attack: " + attack +
-                "\nAttack cost: " + attackCost;
+                "\nAttack cost: " + attackCost +
+                ((range > 0) ? "\nRange: " + range : "");
     }
 
     public static Fighter createFighter(String className, String group) throws IllegalArgumentException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
+
         if("Warrior".equals(group)) {
             File file = new File("src/data/Warriors.json");
             try {
@@ -64,7 +73,7 @@ public class Fighter extends Loadout implements Aggressive {
                 throw new RuntimeException(e);
             }
         }
-        throw new IllegalArgumentException("The provided class " + className + "is unknown.");
+        throw new IllegalArgumentException("The provided class " + className + " is unknown.");
     }
 
 }

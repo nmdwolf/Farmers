@@ -10,8 +10,8 @@
         <module name="age-of-farmers" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="FarmersMaven" target="24" />
-    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
   </component>
 </project>

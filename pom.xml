@@ -11,6 +11,12 @@
         <maven.compiler.release>24</maven.compiler.release>
     </properties>
 
+    <parent>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>2.20.0</version>
+    </parent>
+
     <dependencies>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -22,7 +28,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.17.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-parameter-names</artifactId>
         </dependency>
     </dependencies>
 </project>

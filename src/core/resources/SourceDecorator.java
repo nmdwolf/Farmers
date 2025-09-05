@@ -15,7 +15,7 @@ public class SourceDecorator extends Construction implements Source {
     public SourceDecorator(Construction obj, String type, int amount) {
         super(obj.getSize(), obj.getSight(),
                 obj.getMaxHealth(), obj.getDegradeTime(), obj.getDegradeAmount(),
-                obj.getCost(), obj.getEnergyCost(), obj.hasVisibleFoundation());
+                obj.getCost(), obj.getAttackCost(), obj.hasVisibleFoundation());
 
         if(obj instanceof Source)
             throw new IllegalArgumentException("GameObject is already of type Source.");

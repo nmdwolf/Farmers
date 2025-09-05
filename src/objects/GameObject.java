@@ -1,7 +1,5 @@
 package objects;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import core.*;
 
 import UI.*;
@@ -21,8 +19,7 @@ public abstract class GameObject {
     private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
     private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
 
-    @JsonCreator
-    public GameObject(@JsonProperty("size") int size, @JsonProperty("sight") int sight, @JsonProperty("health") int health, @JsonProperty("degradeTime") int degradeTime, @JsonProperty("degradeAmount") int degradeAmount) {
+    public GameObject(int size, int sight, int health, int degradeTime,int degradeAmount) {
         id = CustomMethods.getNewIdentifier();
 
         this.degradeTime = degradeTime;
