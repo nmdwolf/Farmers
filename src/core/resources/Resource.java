@@ -1,5 +1,8 @@
 package core.resources;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class Resource {
@@ -17,7 +20,8 @@ public class Resource {
     private final int id;
     private final String name;
 
-    public Resource(String name) {
+    @JsonCreator
+    public Resource(@JsonProperty("name") String name) {
         id = ID_COUNTER++;
         this.name = name;
     }

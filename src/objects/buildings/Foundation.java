@@ -1,10 +1,7 @@
 package objects.buildings;
 
-import core.*;
 import UI.CustomMethods;
-import core.OperationsList;
 import core.contracts.ConstructContract;
-import core.player.Player;
 import objects.Construction;
 import objects.GameObject;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +28,7 @@ public class Foundation<T extends Construction> extends GameObject {
     private final ConstructContract<T> contract;
 
     public Foundation(T constructable, ConstructContract<T> contract, boolean visible) {
-        super(constructable.getSpace(), constructable.getSight(), FOUNDATION_HEALTH, 0, 0);
+        super(constructable.getSize(), constructable.getSight(), FOUNDATION_HEALTH, 0, 0);
         this.contract = contract;
         this.constructable = constructable;
         this.visible = visible;

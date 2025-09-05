@@ -1,19 +1,16 @@
 package objects;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import core.*;
 
 import UI.*;
-import core.contracts.ConstructContract;
-import core.contracts.Contract;
-import core.contracts.LaborContract;
 import core.player.Player;
 import objects.loadouts.Loadout;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Optional;
 
 public abstract class GameObject {
@@ -21,16 +18,17 @@ public abstract class GameObject {
     private final int id;
     private Cell cell;
     private Player player;
-    private int space, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
+    private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
     private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
 
-    public GameObject(int space, int sight, int health, int degradeTime, int degradeAmount) {
+    @JsonCreator
+    public GameObject(@JsonProperty("size") int size, @JsonProperty("sight") int sight, @JsonProperty("health") int health, @JsonProperty("degradeTime") int degradeTime, @JsonProperty("degradeAmount") int degradeAmount) {
         id = CustomMethods.getNewIdentifier();
 
         this.degradeTime = degradeTime;
         this.degradeAmount = degradeAmount;
 
-        this.space = space;
+        this.size = size;
         this.sight = sight;
 
         this.health = health;
@@ -69,8 +67,8 @@ public abstract class GameObject {
     @NotNull
     public Optional<BufferedImage> getSprite(boolean max) { return Optional.empty(); }
 
-    public int getSpace() { return space; }
-    public void changeSpace(int amount) { space += amount; }
+    public int getSize() { return size; }
+    public void changeSpace(int amount) { size += amount; }
 
     public int getHealth() { return health; }
     public void changeHealth(int amount) { health += amount; }
@@ -99,7 +97,7 @@ public abstract class GameObject {
      * @return the required Loadout if present
      * @param <T> Class of the required Loadout
      */
-    public <T extends Loadout<?>> Optional<T> getLoadout(Class<T> loadoutClass) {
+    public <T extends Loadout> Optional<T> getLoadout(Class<T> loadoutClass) {
         return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass)));
     }
 
@@ -107,7 +105,7 @@ public abstract class GameObject {
      * Adds a Loadout to this Unit.
      * @param l new Loadout to be added
      */
-    public void addLoadout(@NotNull Loadout<?> l) {
+    public void addLoadout(@NotNull Loadout l) {
         loadouts.put(l.getClass(), l);
     }
 

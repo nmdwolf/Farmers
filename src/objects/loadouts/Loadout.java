@@ -1,8 +1,6 @@
 package objects.loadouts;
 
-import objects.GameObject;
-
-public abstract class Loadout<T extends GameObject> {
+public abstract class Loadout {
 
     private final String name;
 

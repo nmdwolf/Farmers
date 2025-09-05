@@ -76,7 +76,7 @@ public class AI extends Player {
                     Pair<Motion, Location> motion = main.getShortestAdmissiblePath(obj, newLoc);
 
                     int counter = 0;
-                    while ((newLoc.getUnitSpace() - newLoc.getUnitOccupied() < obj.getSpace()
+                    while ((newLoc.getUnitSpace() - newLoc.getUnitOccupied() < obj.getSize()
                             || motion == null || harvested.containsKey(newLoc)) && counter++ <= SEARCH_LIMIT) {
                         x = rand.nextInt(obj.getEnergy());
                         y = rand.nextInt(obj.getEnergy() - x);

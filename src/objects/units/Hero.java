@@ -1,6 +1,7 @@
 package objects.units;
 
 import UI.CustomMethods;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import core.*;
 import core.OperationsList;
 import core.player.Player;
@@ -29,15 +30,20 @@ public class Hero extends Unit implements Aggressive {
     public final static int HERO_ATTACK = 10;
     public final static int HERO_ATTACK_COST = 1;
 
-    private final String name;
+    private String name;
 
-    public Hero(String name) {
+    @JsonCreator
+    public Hero() {
         super(HERO_ANIMATION_DELAY, HERO_SPACE, HERO_SIGHT, HERO_HEALTH,
                 0, 0, 16, HERO_ENERGY, HERO_COST);
         this.name = name;
 
 //        addLoadout(new Fighter<>("Hero", HERO_ATTACK, HERO_ATTACK_COST));
-        addLoadout(Fighter.createFighter("Clubman"));
+        addLoadout(Fighter.createFighter("Hero"));
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

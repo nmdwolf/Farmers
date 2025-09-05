@@ -35,7 +35,7 @@ public class ConstructContract<T extends Construction> extends Contract{
         if (constructable instanceof Spacer)
             getEmployee().getPlayer().changePopCap(((Spacer) constructable).getSpaceBoost());
         if (constructable instanceof Unit)
-            getEmployee().getPlayer().changePopCap(constructable.getSpace());
+            getEmployee().getPlayer().changePopCap(constructable.getSize());
         constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
     }
 

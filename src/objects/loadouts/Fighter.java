@@ -1,17 +1,18 @@
 package objects.loadouts;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import objects.Aggressive;
 import objects.GameObject;
-import objects.Operational;
 
 import java.io.File;
 import java.io.IOException;
 
-public class Fighter<T extends GameObject & Aggressive & Operational> extends Loadout<T> implements Aggressive {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Fighter extends Loadout implements Aggressive {
 
     private int attack, attackCost;
 
@@ -36,19 +37,20 @@ public class Fighter<T extends GameObject & Aggressive & Operational> extends Lo
         return attackCost;
     }
 
-    public static Fighter<?> createFighter(String className) {
-        ObjectMapper mapper = new ObjectMapper();
-        File file = new File("src/data/" + className + ".json");
-        try {
-            return (Fighter<?>)mapper.readValue(file, Fighter.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public String toString() {
         return "Attack: " + attack +
                 "\nAttack cost: " + attackCost;
     }
+
+    public static Fighter createFighter(String className) {
+        ObjectMapper mapper = new ObjectMapper();
+        File file = new File("src/data/" + className + ".json");
+        try {
+            return mapper.readValue(file, Fighter.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

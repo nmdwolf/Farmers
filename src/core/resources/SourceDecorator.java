@@ -1,8 +1,5 @@
 package core.resources;
 
-import core.player.Award;
-import core.OperationCode;
-import core.OperationsList;
 import objects.Construction;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +13,7 @@ public class SourceDecorator extends Construction implements Source {
     private final Resource type;
 
     public SourceDecorator(Construction obj, Resource type, int amount) {
-        super(obj.getSpace(), obj.getSight(),
+        super(obj.getSize(), obj.getSight(),
                 obj.getMaxHealth(), obj.getDegradeTime(), obj.getDegradeAmount(),
                 obj.getCost(), obj.getEnergyCost(), obj.hasVisibleFoundation());
 

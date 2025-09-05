@@ -1,5 +1,8 @@
 package core.resources;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,7 +20,8 @@ public class ResourceContainer extends HashMap<Resource, Integer> {
         put(type, amount);
     }
 
-    public ResourceContainer(Resource[] resources, int[] amounts) {
+    @JsonCreator
+    public ResourceContainer(@JsonProperty("resources") Resource[] resources, @JsonProperty("amounts") int[] amounts) {
         if(resources.length != amounts.length)
             throw new IllegalArgumentException("Both arguments should be of equal size: " + resources.length + " vs. " + amounts.length);
 

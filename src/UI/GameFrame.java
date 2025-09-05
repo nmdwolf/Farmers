@@ -407,7 +407,7 @@ public class GameFrame extends JFrame {
                                 if(motion != null) {
                                     hoverPath.set(null);
                                     destination = null;
-                                    if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= unit.getSpace()
+                                    if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= unit.getSize()
                                             && motion.key().length() != 0) {
                                         unit.changeEnergy(-motion.key().length());
                                         motionToThread(motion.key());

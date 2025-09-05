@@ -3,7 +3,6 @@ package objects.units;
 import core.Cell;
 import core.OperationCode;
 import core.OperationsList;
-import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.Aggressive;
 import objects.GameObject;

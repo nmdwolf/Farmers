@@ -12,7 +12,6 @@ import objects.buildings.TownHall;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
-import objects.units.Warrior;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -213,7 +212,8 @@ public class Main extends JFrame{
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         GameObject v2 = new Villager();
         v2.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
-        GameObject hero = new Hero(p.getName());
+        Hero hero = new Hero();
+        hero.setName(p.getName());
         hero.initialize(p, p.getViewPoint(), cycle.getUnsafe());
 
         p.addObject(base);
@@ -232,12 +232,12 @@ public class Main extends JFrame{
 
         boolean added = false;
 
-        if((obj instanceof Unit) && (obj.getCell().getUnitAvailable() >= obj.getSpace())) {
-            obj.getCell().changeUnitOccupied(obj.getSpace());
+        if((obj instanceof Unit) && (obj.getCell().getUnitAvailable() >= obj.getSize())) {
+            obj.getCell().changeUnitOccupied(obj.getSize());
             added = true;
         }
-        if((obj instanceof Building) && (obj.getCell().getBuildingAvailable() >= obj.getSpace())) {
-            obj.getCell().changeBuildingOccupied(obj.getSpace());
+        if((obj instanceof Building) && (obj.getCell().getBuildingAvailable() >= obj.getSize())) {
+            obj.getCell().changeBuildingOccupied(obj.getSize());
             added = true;
         }
 
@@ -257,9 +257,9 @@ public class Main extends JFrame{
      */
     public void removeObject(GameObject obj) {
         if(obj instanceof Unit)
-            obj.getCell().changeUnitOccupied(-obj.getSpace());
+            obj.getCell().changeUnitOccupied(-obj.getSize());
         if(obj instanceof Building)
-            obj.getCell().changeBuildingOccupied(-obj.getSpace());
+            obj.getCell().changeBuildingOccupied(-obj.getSize());
         if(obj instanceof Spacer)
             obj.getCell().changeUnitSpace(-((Spacer)obj).getSpaceBoost());
         if(obj instanceof Obstruction)
@@ -276,16 +276,16 @@ public class Main extends JFrame{
         Cell target = cells.get(loc);
         if (!obj.getCell().equals(target)) {
             if(obj instanceof Unit) {
-                obj.getCell().changeUnitOccupied(-obj.getSpace());
-                target.changeUnitOccupied(obj.getSpace());
+                obj.getCell().changeUnitOccupied(-obj.getSize());
+                target.changeUnitOccupied(obj.getSize());
             }
             if(obj instanceof Building) {
-                obj.getCell().changeBuildingOccupied(-obj.getSpace());
-                target.changeBuildingOccupied(obj.getSpace());
+                obj.getCell().changeBuildingOccupied(-obj.getSize());
+                target.changeBuildingOccupied(obj.getSize());
             }
             if(obj instanceof Spacer) {
-                obj.getCell().changeUnitSpace(-obj.getSpace());
-                target.changeUnitSpace(obj.getSpace());
+                obj.getCell().changeUnitSpace(-obj.getSize());
+                target.changeUnitSpace(obj.getSize());
                 // NEED TO CHECK IF SPACE REDUCTION PROHIBITS MOVE
             }
 

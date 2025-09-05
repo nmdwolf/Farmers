@@ -1,0 +1,14 @@
+{
+  "name": "Hero",
+  "attack": 10,
+  "attackCost": 1,
+  "animationDelay": 1000,
+  "size": 1,
+  "sight": 2,
+  "health": 300,
+  "degradeTime": 0,
+  "degradeAmount": 0,
+  "cycleLength": 16,
+  "energy": 5,
+  "cost": {}
+}
