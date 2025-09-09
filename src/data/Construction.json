@@ -1,20 +1,20 @@
 [
   {
     "type": "House",
+    "sprite": "hut",
     "health": 150,
     "space": 3,
     "size": 1,
     "sight": 1,
-    "healer": {
-      "heal": 2
-    },
+    "heal": 2,
     "energyCost": 1,
-    "degradationTime": 20,
-    "degradationAmount": 2,
+    "degradeTime": 20,
+    "degradeAmount": 2,
     "cost": {
       "resources": ["Wood", "Time"],
       "amounts": [50, 5]
-    }
+    },
+    "award": "You finally gave your people some shelter."
   },
 
   {
@@ -23,16 +23,15 @@
     "space": 5,
     "size": 5,
     "sight": 1,
-    "healer": {
-      "heal": 5
-    },
+    "heal": 5,
     "energyCost": 1,
-    "degradationTime": 50,
-    "degradationAmount": 1,
+    "degradeTime": 50,
+    "degradeAmount": 1,
     "cost": {
       "resources": ["Wood", "Time"],
       "amounts": [200, 20]
-    }
+    },
+    "sprite": "town"
   },
 
   {
@@ -41,8 +40,8 @@
     "size": 3,
     "sight": 1,
     "energyCost": 1,
-    "degradationTime": 50,
-    "degradationAmount": 2,
+    "degradeTime": 50,
+    "degradeAmount": 2,
     "cost": {
       "resources": ["Wood", "Time", "Food", "Water"],
       "amounts": [200, 10, 100, 100]
@@ -55,8 +54,8 @@
     "size": 1,
     "sight": 1,
     "energyCost": 1,
-    "degradationTime": 30,
-    "degradationAmount": 2,
+    "degradeTime": 30,
+    "degradeAmount": 2,
     "cost": {
       "resources": ["Time", "Food", "Water"],
       "amounts": [1, 100, 50]
@@ -69,15 +68,17 @@
     "size": 1,
     "sight": 1,
     "energyCost": 1,
-    "degradationTime": 1,
-    "degradationAmount": 1,
+    "degradeTime": 1,
+    "degradeAmount": 1,
     "cost": {
       "resources": ["Time", "Wood", "Water"],
       "amounts": [1, 100, 100]
     },
     "source": {
-      "resources": ["Food"],
-      "amounts": [10]
+      "source": {
+        "resources": ["Food"],
+        "amounts": [10]
+      }
     }
   },
 
@@ -87,11 +88,12 @@
     "size": 5,
     "sight": 1,
     "energyCost": 1,
-    "degradationTime": 50,
-    "degradationAmount": 5,
+    "degradeTime": 50,
+    "degradeAmount": 5,
     "cost": {
       "resources": ["Time", "Wood"],
       "amounts": [1, 10]
-    }
+    },
+    "sprite": "wall"
   }
 ]

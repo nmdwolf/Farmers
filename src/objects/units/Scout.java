@@ -6,7 +6,6 @@ import core.player.Award;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
 import core.upgrade.EvolveUpgrade;
-import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;

@@ -3,8 +3,6 @@ package core.contracts;
 import objects.Construction;
 import objects.buildings.Foundation;
 import objects.Spacer;
-import objects.templates.ConstructionTemplate;
-import objects.units.Unit;
 import objects.units.Worker;
 
 public class ConstructContract<T extends Construction> extends Contract{
@@ -35,8 +33,6 @@ public class ConstructContract<T extends Construction> extends Contract{
         getEmployee().getPlayer().addObject(constructable);
         if (constructable instanceof Spacer)
             getEmployee().getPlayer().changePopCap(((Spacer) constructable).getSpaceBoost());
-        if (constructable instanceof Unit)
-            getEmployee().getPlayer().changePopCap(constructable.getSize());
         constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
     }
 
@@ -46,6 +42,7 @@ public class ConstructContract<T extends Construction> extends Contract{
         if(isStarted()) {
             if (((Worker)getEmployee()).getEnergy() >= constructable.getEnergyCost()) {
                 constructable.construct();
+                foundation.changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
                 ((Worker)getEmployee()).changeEnergy(constructable.getEnergyCost());
             }
         }

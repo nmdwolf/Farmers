@@ -6,16 +6,16 @@ import objects.templates.ConstructionTemplate;
 
 public abstract class ResourceBuilding extends IdleBuilding implements Source {
 
-    private ResourceContainer gains;
-
     public ResourceBuilding(ConstructionTemplate temp) {
         super(temp);
-        this.gains = gains; // TODO
+
+        if(getLoadout(objects.loadouts.Source.class).isEmpty())
+            throw new IllegalArgumentException("Template does not contain a source attribute.");
     }
 
     @Override
-    public ResourceContainer getYield() {
-        return gains;
+    public ResourceContainer getSources() {
+        return getLoadout(objects.loadouts.Source.class).get().getSources();
     }
 
 }

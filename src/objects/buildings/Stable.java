@@ -3,7 +3,6 @@ package objects.buildings;
 import core.*;
 import core.OperationsList;
 import core.player.Award;
-import core.resources.ResourceContainer;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 

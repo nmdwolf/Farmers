@@ -192,13 +192,9 @@ public abstract class Unit extends Construction implements Animated {
 
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder("Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
+        return "Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
                 "\nHealth: " + getHealth() + "/" + getMaxHealth() +
-                "\nEnergy: " + energy + "/" + maxEnergy + "\n\n");
-
-        getLoadout(Fighter.class).ifPresent(s::append);
-
-        return s.toString();
+                "\nEnergy: " + energy + "/" + maxEnergy + super.toString();
     }
 
 }

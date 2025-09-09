@@ -1,6 +1,6 @@
 package objects.templates;
 
-public class UnitTemplate extends ConstructionTemplate{
+public class UnitTemplate extends ConstructionTemplate {
 
     public final static int UNIT_DIFFICULTY = 1;
 

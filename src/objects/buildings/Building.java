@@ -14,7 +14,7 @@ public abstract class Building extends Construction {
     @Override
     public String toString() {
         return "Type: " + getClassLabel() + "\nPlayer: " + getPlayer().getName() +
-                "\nHealth: " + getHealth() + "/" + getMaxHealth();
+                "\nHealth: " + getHealth() + "/" + getMaxHealth() + super.toString();
     }
 
     @Override

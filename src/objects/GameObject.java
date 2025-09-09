@@ -4,25 +4,31 @@ import core.*;
 
 import UI.*;
 import core.player.Player;
+import objects.loadouts.Fighter;
 import objects.loadouts.Loadout;
-import objects.templates.ObjectTemplate;
+import objects.templates.Template;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Optional;
 
+import static core.GameConstants.SPRITE_SIZE;
+import static core.GameConstants.SPRITE_SIZE_MAX;
+
 public abstract class GameObject {
+
+    private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>(), maxiSprites = new HashMap<>();
 
     private final int id;
     private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
     private Cell cell;
     private Player player;
-    private final ObjectTemplate template;
+    private final Template template;
 
     private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
 
-    public GameObject(ObjectTemplate temp) {
+    public GameObject(Template temp) {
         id = CustomMethods.getNewIdentifier();
 
         this.degradeTime = temp.degradeTime;
@@ -38,7 +44,7 @@ public abstract class GameObject {
         template = temp;
     }
 
-    public ObjectTemplate getTemplate() {
+    public Template getTemplate() {
         return template;
     }
 
@@ -74,14 +80,15 @@ public abstract class GameObject {
     public abstract int getType();
 
     @NotNull
-    public Optional<BufferedImage> getSprite(boolean max) { return Optional.empty(); }
+    public Optional<BufferedImage> getSprite(boolean max) { return GameObject.getSprite(getClassLabel(), max); }
 
     public int getSize() { return size; }
     public void changeSpace(int amount) { size += amount; }
 
     public int getHealth() { return health; }
     public void changeHealth(int amount) {
-        health += amount; }
+        health = Math.min(health + amount, maxHealth);
+    }
     public int getMaxHealth() { return maxHealth;}
     public void changeMaxHealth(int amount) {
         health += amount;
@@ -107,7 +114,7 @@ public abstract class GameObject {
      * @return the required Loadout if present
      * @param <T> Class of the required Loadout
      */
-    public <T extends Loadout<?>> Optional<T> getLoadout(Class<T> loadoutClass) {
+    public <T extends Loadout> Optional<T> getLoadout(Class<T> loadoutClass) {
         return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass)));
     }
 
@@ -115,7 +122,7 @@ public abstract class GameObject {
      * Adds a Loadout to this Unit.
      * @param l new Loadout to be added
      */
-    public void addLoadout(@NotNull Loadout<?> l) {
+    public void addLoadout(@NotNull Loadout l) {
         loadouts.put(l.getClass(), l);
     }
 
@@ -128,5 +135,26 @@ public abstract class GameObject {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof GameObject go) && (id == go.getObjectIdentifier());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder();
+        for(Loadout loadout : loadouts.values())
+            s.append("\n\n").append(loadout);
+
+        return s.toString();
+    }
+
+    public static void registerSprite(String name, String fileName) {
+        sprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE, SPRITE_SIZE));
+        maxiSprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX));
+    }
+
+    public static Optional<BufferedImage> getSprite(String name, boolean max) {
+        if(max)
+            return maxiSprites.get(name);
+        else
+            return sprites.get(name);
     }
 }

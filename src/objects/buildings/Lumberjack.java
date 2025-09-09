@@ -1,14 +1,11 @@
 package objects.buildings;
 
 import core.player.Award;
-import core.resources.ResourceContainer;
 import objects.Booster;
 import objects.GameObject;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
-import org.jetbrains.annotations.NotNull;
 
-import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 public class Lumberjack extends IdleBuilding implements Booster {

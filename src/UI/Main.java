@@ -1,8 +1,5 @@
 package UI;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import core.*;
 
 import core.Action;
@@ -12,10 +9,8 @@ import objects.*;
 import objects.buildings.Building;
 import objects.buildings.Lumberjack;
 import objects.buildings.TownHall;
-import objects.loadouts.Fighter;
-import objects.loadouts.Gatherer;
-import objects.loadouts.LoadoutFactory;
-import objects.loadouts.Medic;
+import objects.loadouts.*;
+import objects.loadouts.Spacer;
 import objects.templates.*;
 import objects.units.Hero;
 import objects.units.Unit;
@@ -54,9 +49,12 @@ public class Main extends JFrame{
     private final Grid cells;
 
     public static void main(String[] args) {
-        LoadoutFactory.registerLoadout("fighter", Fighter.class, FighterTemplate.class);
-        LoadoutFactory.registerLoadout("gatherer", Gatherer.class, GathererTemplate.class);
-        LoadoutFactory.registerLoadout("healer", Medic.class, HealerTemplate.class);
+
+        LoadoutFactory.registerLoadout("fighter", Fighter.class);
+        LoadoutFactory.registerLoadout("gatherer", Gatherer.class);
+        LoadoutFactory.registerLoadout("heal", Medic.class);
+        LoadoutFactory.registerLoadout("source", Source.class);
+        LoadoutFactory.registerLoadout("space", Spacer.class);
 
         TemplateFactory.loadTemplates(ConstructionTemplate.class);
         TemplateFactory.loadTemplates(UnitTemplate.class);
@@ -262,8 +260,7 @@ public class Main extends JFrame{
         }
 
         if(added) {
-            if(obj instanceof Spacer)
-                obj.getCell().changeUnitSpace(((Spacer)obj).getSpaceBoost());
+            obj.getLoadout(Spacer.class).ifPresent(spacer -> obj.getCell().changeUnitSpace(spacer.getSpaceBoost()));
             if(obj instanceof Obstruction)
                 obj.getCell().changeTravelCost(100);
         }
@@ -276,14 +273,24 @@ public class Main extends JFrame{
      * @param obj object to remove
      */
     public void removeObject(GameObject obj) {
-        if(obj instanceof Unit)
+
+        boolean removed = false;
+
+        if(obj instanceof Unit) {
             obj.getCell().changeUnitOccupied(-obj.getSize());
-        if(obj instanceof Building)
+            removed = true;
+        }
+        if(obj instanceof Building) {
             obj.getCell().changeBuildingOccupied(-obj.getSize());
-        if(obj instanceof Spacer)
-            obj.getCell().changeUnitSpace(-((Spacer)obj).getSpaceBoost());
-        if(obj instanceof Obstruction)
-            obj.getCell().changeTravelCost(-100);
+            removed = true;
+        }
+
+        if(removed) {
+            obj.getLoadout(Spacer.class).ifPresent(spacer -> obj.getCell().changeUnitSpace(-spacer.getSpaceBoost()));
+            if(obj instanceof Obstruction)
+                obj.getCell().changeTravelCost(-100);
+        }
+
         obj.getCell().removeContent(obj);
     }
 
@@ -303,11 +310,10 @@ public class Main extends JFrame{
                 obj.getCell().changeBuildingOccupied(-obj.getSize());
                 target.changeBuildingOccupied(obj.getSize());
             }
-            if(obj instanceof Spacer) {
-                obj.getCell().changeUnitSpace(-obj.getSize());
-                target.changeUnitSpace(obj.getSize());
-                // NEED TO CHECK IF SPACE REDUCTION PROHIBITS MOVE
-            }
+            obj.getLoadout(Spacer.class).ifPresent(spacer -> {
+                obj.getCell().changeUnitSpace(-spacer.getSpaceBoost());
+                target.changeUnitSpace(spacer.getSpaceBoost());
+            });
 
             obj.getPlayer().discover(target);
             int sight = obj.getSight();

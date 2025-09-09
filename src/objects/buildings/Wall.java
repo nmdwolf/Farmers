@@ -2,7 +2,6 @@ package objects.buildings;
 
 import UI.CustomMethods;
 import core.player.Award;
-import core.resources.ResourceContainer;
 import objects.Obstruction;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;

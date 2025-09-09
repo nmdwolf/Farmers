@@ -3,17 +3,17 @@ package objects.loadouts;
 import com.fasterxml.jackson.annotation.*;
 import objects.Aggressive;
 import objects.GameObject;
-import objects.templates.FighterTemplate;
 
-public class Fighter extends Loadout<FighterTemplate> implements Aggressive {
+public class Fighter extends Loadout implements Aggressive {
 
     private int attack, attackCost, range;
 
-    public Fighter(FighterTemplate temp) {
-        super(temp);
-        this.attack = temp.attack;
-        this.attackCost = temp.attackCost;
-        this.range = temp.range;
+    @JsonCreator
+    public Fighter(int attack, int attackCost, @JsonProperty(defaultValue = "0") int range) {
+        super("fighter");
+        this.attack = attack;
+        this.attackCost = attackCost;
+        this.range = range;
     }
 
     @Override

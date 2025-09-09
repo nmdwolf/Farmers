@@ -16,7 +16,8 @@
     "cost": {
       "resources": [],
       "amounts": []
-    }
+    },
+    "sprite": "Hero"
   },
 
   {
@@ -30,13 +31,16 @@
       "resources": ["Food", "Water", "Time"],
       "amounts": [100, 50, 1]
     },
-    "degradationTime": 50,
-    "degradationAmount": 2,
+    "degradeTime": 50,
+    "degradeAmount": 2,
     "cycleLength": 12,
-    "yield": {
-      "resources": ["Food", "Water", "Wood", "Stone"],
-      "amounts": [5, 5, 5, 5]
-    }
+    "gatherer": {
+      "yield": {
+        "resources": ["Food", "Water", "Wood", "Stone"],
+        "amounts": [5, 5, 5, 5]
+      }
+    },
+    "sprite": "villager"
   },
 
   {
@@ -50,8 +54,8 @@
       "resources": ["Food", "Water"],
       "amounts": [100, 200]
     },
-    "degradationTime": 50,
-    "degradationAmount": 2,
+    "degradeTime": 50,
+    "degradeAmount": 2,
     "cycleLength": 12
   },
 

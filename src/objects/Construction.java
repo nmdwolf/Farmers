@@ -9,7 +9,7 @@ import java.util.Optional;
 public abstract class Construction extends GameObject {
 
     private int completed;
-    private final int energyCost, buildingTime;
+    private final int energyCost, constructionTime;
     private final boolean hasVisibleFoundation;
     private final ResourceContainer cost;
 
@@ -19,7 +19,7 @@ public abstract class Construction extends GameObject {
         this.cost = template.cost;
 
         completed = 0;
-        buildingTime = cost.get("Time");
+        constructionTime = cost.get("Time");
 
         this.energyCost = template.energyCost;
         this.hasVisibleFoundation = template.hasVisibleFoundation;
@@ -28,9 +28,8 @@ public abstract class Construction extends GameObject {
     public int getCompletion() {
         return completed;
     }
-    public int getRequirement() { return buildingTime; }
-    public boolean isCompleted() { return completed >= buildingTime; }
-
+    public int getConstructionTime() { return constructionTime; }
+    public boolean isCompleted() { return completed >= constructionTime; }
     public void construct() { completed++; }
 
     public ResourceContainer getCost() { return cost; }
@@ -41,5 +40,5 @@ public abstract class Construction extends GameObject {
 
     public boolean hasVisibleFoundation() { return hasVisibleFoundation; }
 
-    public Optional<Award> getConstructionAward() { return Optional.empty(); }
+    public Optional<Award> getConstructionAward() { return Optional.of(Award.createFreeAward(((ConstructionTemplate)getTemplate()).award)); }
 }

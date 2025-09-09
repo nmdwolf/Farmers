@@ -1,7 +1,5 @@
 package objects.units;
 
-import UI.CustomMethods;
-import core.GameConstants;
 import core.OperationCode;
 import core.OperationsList;
 import objects.Aggressive;
@@ -9,10 +7,6 @@ import objects.GameObject;
 import objects.loadouts.Fighter;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.image.BufferedImage;
-import java.util.Optional;
 
 public class Warrior extends Unit implements Aggressive {
 
@@ -48,12 +42,6 @@ public class Warrior extends Unit implements Aggressive {
     @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         return OperationsList.EMPTY_LIST;
-    }
-
-    @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        int size = max ? GameConstants.SPRITE_SIZE_MAX : GameConstants.SPRITE_SIZE;
-        return CustomMethods.loadSprite(getClassLabel(), size, size);
     }
 
     public static Warrior createWarrior(String className) throws IllegalArgumentException {

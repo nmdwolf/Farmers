@@ -2,9 +2,7 @@ package objects.buildings;
 
 import core.OperationsList;
 import core.*;
-import core.player.Player;
 import objects.Constructor;
-import core.resources.ResourceContainer;
 import objects.templates.ConstructionTemplate;
 
 public abstract class ConstructiveBuilding extends Building implements Constructor {

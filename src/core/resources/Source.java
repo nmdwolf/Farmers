@@ -2,7 +2,6 @@ package core.resources;
 
 public interface Source {
     
-    ResourceContainer getYield();
+    ResourceContainer getSources();
 
-    String getResourceType();
 }

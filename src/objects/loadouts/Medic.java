@@ -1,16 +1,17 @@
 package objects.loadouts;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import objects.GameObject;
 import objects.Healer;
-import objects.templates.HealerTemplate;
 
-public class Medic extends Loadout<HealerTemplate> implements Healer {
+public class Medic extends Loadout implements Healer {
 
     private int heal;
 
-    public Medic(HealerTemplate temp) {
-        super(temp);
-        this.heal = temp.heal;
+    @JsonCreator
+    public Medic(int heal) {
+        super("medic");
+        this.heal = heal;
     }
 
     public int getHeal() {
@@ -24,5 +25,10 @@ public class Medic extends Loadout<HealerTemplate> implements Healer {
     @Override
     public void heal(GameObject obj) {
         obj.changeHealth(heal);
+    }
+
+    @Override
+    public String toString() {
+        return "Heal: " + heal;
     }
 }

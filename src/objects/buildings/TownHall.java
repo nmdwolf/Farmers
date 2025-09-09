@@ -9,7 +9,6 @@ import objects.Evolvable;
 import objects.Spacer;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
-import objects.templates.UnitTemplate;
 import objects.units.Scout;
 import objects.units.Villager;
 import core.upgrade.EvolveUpgrade;
