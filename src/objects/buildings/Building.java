@@ -1,18 +1,14 @@
 package objects.buildings;
 
-import core.*;
-
-import core.player.Player;
-import core.resources.ResourceContainer;
 import objects.Construction;
+import objects.templates.ConstructionTemplate;
 
 import static core.GameConstants.BUILDING_TYPE;
 
 public abstract class Building extends Construction {
 
-    public Building(int space, int sight,
-                    int health, int degradeTime, int degradeAmount, ResourceContainer cost, int difficulty) {
-        super(space, sight, health, degradeTime, degradeAmount, cost, difficulty, true);
+    public Building(ConstructionTemplate temp) {
+        super(temp);
     }
 
     @Override

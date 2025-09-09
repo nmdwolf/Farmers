@@ -7,6 +7,9 @@ import core.player.Award;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
 import objects.Spacer;
+import objects.templates.ConstructionTemplate;
+import objects.templates.TemplateFactory;
+import objects.templates.UnitTemplate;
 import objects.units.Scout;
 import objects.units.Villager;
 import core.upgrade.EvolveUpgrade;
@@ -30,22 +33,12 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
     public final static Award BUILT_AWARD = Award.createFreeAward("A new city has been founded.");
 
-    public final static ResourceContainer BUILD_RESOURCES = new ResourceContainer(new String[]{"Wood", "Time"}, new int[]{200, 20});
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
     public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});
 
-    public final static int BASE_HEALTH = 1000;
-    public final static int BASE_SPACE = 5;
-    public final static int BASE_SIZE = 5;
-    public final static int BASE_SIGHT = 1;
-    public final static int BASE_HEAL = 5;
-    public final static int BASE_DIFFICULTY = 1;
-
-    public final static int BASE_DEGRADATION_TIME = 50;
-    public final static int BASE_DEGRADATION_AMOUNT = 1;
-
     public final static int BASE_X = 0;
     public final static int BASE_Y = 0;
+    public final static int BASE_SPACE = 5;
 
     public final static String TOKEN = "Base";
 
@@ -53,9 +46,7 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     private int level;
 
     public TownHall() {
-        super(BASE_SIZE, BASE_SIGHT, BASE_HEALTH,
-                BASE_DEGRADATION_TIME, BASE_DEGRADATION_AMOUNT, BUILD_RESOURCES, BASE_DIFFICULTY,
-                BASE_X, BASE_Y);
+        super((ConstructionTemplate) TemplateFactory.getTemplate("Townhall"), BASE_X, BASE_Y);
         this.space = BASE_SPACE;
         level = 1;
     }

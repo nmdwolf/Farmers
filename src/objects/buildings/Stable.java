@@ -4,41 +4,22 @@ import core.*;
 import core.OperationsList;
 import core.player.Award;
 import core.resources.ResourceContainer;
+import objects.templates.ConstructionTemplate;
+import objects.templates.TemplateFactory;
 
 import java.util.Optional;
 
 public class Stable extends ConstructiveBuilding {
 
-
-    public final static ResourceContainer STABLE_COST = new ResourceContainer(new String[]{"Food", "Wood", "Water", "Time"}, new int[]{100, 200, 100, 10});
     public final static Award BUILT_AWARD = Award.createFreeAward("Yee-haw!");
 
-    public final static int STABLE_HEALTH = 500;
-    public final static int STABLE_SPACE = 3;
-    public final static int STABLE_SIGHT = 1;
-    public final static int STABLE_DIFFICULTY = 1;
-
-    public final static int STABLE_DEGRADATION_TIME = 50;
-    public final static int STABLE_DEGRADATION_AMOUNT = 2;
     public final static int STABLE_X = 0;
     public final static int STABLE_Y = 0;
 
     public final static String TOKEN = "S";
 
     public Stable() {
-        super(STABLE_SPACE, STABLE_SIGHT, STABLE_HEALTH,
-                STABLE_DEGRADATION_TIME, STABLE_DEGRADATION_AMOUNT, STABLE_COST, STABLE_DIFFICULTY,
-                STABLE_X, STABLE_Y);
-    }
-
-    @Override
-    public String getClassLabel() {
-        return "Stable";
-    }
-
-    @Override
-    public String getToken() {
-        return TOKEN;
+        super((ConstructionTemplate) TemplateFactory.getTemplate("Stable"), STABLE_X, STABLE_Y);
     }
 
     @Override

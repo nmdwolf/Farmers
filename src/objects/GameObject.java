@@ -5,6 +5,7 @@ import core.*;
 import UI.*;
 import core.player.Player;
 import objects.loadouts.Loadout;
+import objects.templates.ObjectTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -14,24 +15,31 @@ import java.util.Optional;
 public abstract class GameObject {
 
     private final int id;
+    private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
     private Cell cell;
     private Player player;
-    private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
-    private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
+    private final ObjectTemplate template;
 
-    public GameObject(int size, int sight, int health, int degradeTime,int degradeAmount) {
+    private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
+
+    public GameObject(ObjectTemplate temp) {
         id = CustomMethods.getNewIdentifier();
 
-        this.degradeTime = degradeTime;
-        this.degradeAmount = degradeAmount;
+        this.degradeTime = temp.degradeTime;
+        this.degradeAmount = temp.degradeAmount;
 
-        this.size = size;
-        this.sight = sight;
+        this.size = temp.size;
+        this.sight = temp.sight;
 
-        this.health = health;
-        maxHealth = health;
+        this.health = temp.health;
+        maxHealth = temp.health;
 
-        loadouts = new HashMap<>();
+        loadouts = new HashMap<>(temp.getLoadouts());
+        template = temp;
+    }
+
+    public ObjectTemplate getTemplate() {
+        return template;
     }
 
     public void initialize(Player player, Cell cell, int cycle) {
@@ -57,8 +65,12 @@ public abstract class GameObject {
         this.cell.addContent(this);
     }
 
-    public abstract String getClassLabel();
-    public abstract String getToken();
+    public String getClassLabel() {
+        return template.type;
+    }
+    public String getToken() {
+            return template.type.substring(0, 1);
+    }
     public abstract int getType();
 
     @NotNull
@@ -68,7 +80,8 @@ public abstract class GameObject {
     public void changeSpace(int amount) { size += amount; }
 
     public int getHealth() { return health; }
-    public void changeHealth(int amount) { health += amount; }
+    public void changeHealth(int amount) {
+        health += amount; }
     public int getMaxHealth() { return maxHealth;}
     public void changeMaxHealth(int amount) {
         health += amount;
@@ -94,7 +107,7 @@ public abstract class GameObject {
      * @return the required Loadout if present
      * @param <T> Class of the required Loadout
      */
-    public <T extends Loadout> Optional<T> getLoadout(Class<T> loadoutClass) {
+    public <T extends Loadout<?>> Optional<T> getLoadout(Class<T> loadoutClass) {
         return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass)));
     }
 
@@ -102,7 +115,7 @@ public abstract class GameObject {
      * Adds a Loadout to this Unit.
      * @param l new Loadout to be added
      */
-    public void addLoadout(@NotNull Loadout l) {
+    public void addLoadout(@NotNull Loadout<?> l) {
         loadouts.put(l.getClass(), l);
     }
 

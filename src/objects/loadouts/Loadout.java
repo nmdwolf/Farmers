@@ -1,15 +1,17 @@
 package objects.loadouts;
 
-public abstract class Loadout {
+import objects.templates.Template;
 
-    private final String name;
+public abstract class Loadout<T extends Template> {
 
-    public Loadout(String name) {
-        this.name = name;
+    private final String type;
+
+    public Loadout(T temp) {
+        this.type = temp.type;
     }
 
-    public String getName() {
-        return name;
+    public String getType() {
+        return type;
     }
 
 }

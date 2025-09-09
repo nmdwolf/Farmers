@@ -5,23 +5,21 @@ import core.contracts.LaborContract;
 import core.OperationsList;
 import core.resources.ResourceContainer;
 import objects.Booster;
+import objects.loadouts.Gatherer;
+import objects.templates.UnitTemplate;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public abstract class Worker extends Unit {
 
     private HashSet<Booster> boosters;
-    private final ResourceContainer production;
 
-    public Worker(int animationDelay, int space, int sight, int health,
-                  int degradeTime, int degradeAmount, int cycleLength, int energy,
-                  ResourceContainer cost, ResourceContainer production) {
-        super(animationDelay, space, sight, health,
-                degradeTime, degradeAmount, cycleLength, energy, cost);
+    public Worker(UnitTemplate temp) {
+        super(temp);
 
         boosters = new HashSet<>();
-        this.production = production;
     }
 
     @Override
@@ -40,12 +38,15 @@ public abstract class Worker extends Unit {
      * @return production yield
      */
     public int getYield(String resource) {
-        int yield = production.get(resource);
-        if(yield > 0)
-            for(Booster booster : boosters)
-                yield += booster.getBoostAmount(this, resource);
+        final AtomicInteger yield = new AtomicInteger(0);
+        getLoadout(Gatherer.class).ifPresent(loadout -> {
+            yield.set(loadout.getYield(resource));
+            if(yield.get() > 0)
+                for(Booster booster : boosters)
+                    yield.addAndGet(booster.getBoostAmount(this, resource));
+        });
 
-        return yield;
+        return yield.get();
     }
 
     @Override
@@ -53,7 +54,7 @@ public abstract class Worker extends Unit {
         OperationsList operations = new OperationsList();
         if(code == OperationCode.RESOURCE) {
             for (String res : getPlayer().getResources().keySet()) {
-                if(production.get(res) > 0)
+                if(getYield(res) > 0)
                     operations.put(res, _ -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
             }
         }

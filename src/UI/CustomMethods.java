@@ -49,7 +49,6 @@ public class CustomMethods {
         for(int x = 0; x < temp.length; x++)
             for(int y = 0; y < temp.length; y++)
                 temp[y][x] = grid[x][y];
-        System.out.println(Arrays.deepToString(temp).replace("], ", "]\n").replace(toReplace, replacement) + "\n\n");
     }
 
     public static void drawString(Graphics g, String text, int x, int y) {

@@ -1,0 +1,98 @@
+[
+  {
+    "type": "Hero",
+    "fighter": {
+      "attack": 10,
+      "attackCost": 1
+    },
+    "animationDelay": 1000,
+    "size": 1,
+    "sight": 2,
+    "health": 300,
+    "degradeTime": 0,
+    "degradeAmount": 0,
+    "cycleLength": 16,
+    "energy": 5,
+    "cost": {
+      "resources": [],
+      "amounts": []
+    }
+  },
+
+  {
+    "type": "Villager",
+    "health": 100,
+    "energy": 5,
+    "sight": 1,
+    "size": 1,
+    "animationDelay": 1000,
+    "cost": {
+      "resources": ["Food", "Water", "Time"],
+      "amounts": [100, 50, 1]
+    },
+    "degradationTime": 50,
+    "degradationAmount": 2,
+    "cycleLength": 12,
+    "yield": {
+      "resources": ["Food", "Water", "Wood", "Stone"],
+      "amounts": [5, 5, 5, 5]
+    }
+  },
+
+  {
+    "type": "Scout",
+    "health": 100,
+    "energy": 10,
+    "sight": 2,
+    "size": 2,
+    "animationDelay": 300,
+    "cost": {
+      "resources": ["Food", "Water"],
+      "amounts": [100, 200]
+    },
+    "degradationTime": 50,
+    "degradationAmount": 2,
+    "cycleLength": 12
+  },
+
+  {
+    "type": "Clubman",
+    "fighter": {
+      "attack": 5,
+      "attackCost": 1
+    },
+    "animationDelay": 1000,
+    "size": 1,
+    "sight": 1,
+    "health": 50,
+    "degradeTime": 0,
+    "degradeAmount": 0,
+    "cycleLength": 8,
+    "energy": 2,
+    "cost": {
+      "resources": ["Food", "Water"],
+      "amounts": [50, 50]
+    }
+  },
+
+  {
+    "type": "Archer",
+    "fighter": {
+      "range": 2,
+      "attack": 5,
+      "attackCost": 2
+    },
+    "animationDelay": 1000,
+    "size": 1,
+    "sight": 2,
+    "health": 50,
+    "degradeTime": 0,
+    "degradeAmount": 0,
+    "cycleLength": 8,
+    "energy": 2,
+    "cost": {
+      "resources": ["Food", "Water", "Wood"],
+      "amounts": [50, 50, 50]
+    }
+  }
+]

@@ -101,7 +101,8 @@ public class ChoicePanel extends JPanel {
             buttons.get(5).setVisible(true);
         }
 
-        setVisible(true);
+        if(buttons.stream().anyMatch(RoundedButton::isVisible))
+            setVisible(true);
     }
 
     public void resizePanel(float cellWidth, float cellHeight) {

@@ -12,6 +12,9 @@ import objects.buildings.Wall;
 import core.resources.ResourceContainer;
 import objects.buildings.House;
 import objects.buildings.Lumberjack;
+import objects.templates.ConstructionTemplate;
+import objects.templates.TemplateFactory;
+import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -25,29 +28,8 @@ public class Villager extends Worker implements Constructor {
     public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
     public final static Award BUILT_AWARD = Award.createFreeAward("A baby was born.");
 
-    public final static int VILLAGER_HEALTH = 100;
-    public final static int VILLAGER_ENERGY = 5;
-    public final static int VILLAGER_SIZE = 1;
-    public final static int VILLAGER_SIGHT = 1;
-    public final static int VILLAGER_ANIMATION = 1000;
-
-    public final static ResourceContainer VILLAGER_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{100, 50, 1});
-    public final static ResourceContainer VILLAGER_PRODUCTION = new ResourceContainer(new String[]{"Food", "Water", "Wood", "Stone"}, new int[]{5, 5, 5, 5});
-
-    public final static int VILLAGER_DEGRADATION_TIME = 50;
-    public final static int VILLAGER_DEGRADATION_AMOUNT = 2;
-
-    public final static int VILLAGER_CYCLE_LENGTH = 12;
-
     public Villager() {
-        super(VILLAGER_ANIMATION, VILLAGER_SIZE, VILLAGER_SIGHT, VILLAGER_HEALTH,
-                VILLAGER_DEGRADATION_TIME, VILLAGER_DEGRADATION_AMOUNT, VILLAGER_CYCLE_LENGTH, VILLAGER_ENERGY,
-                VILLAGER_COST, VILLAGER_PRODUCTION);
-    }
-
-    @Override
-    public String getClassLabel() {
-        return "Villager";
+        super((UnitTemplate) TemplateFactory.getTemplate("Villager"));
     }
 
     @Override

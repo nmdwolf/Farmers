@@ -2,12 +2,11 @@ package objects.units;
 
 import core.*;
 import core.contracts.Contract;
-import core.player.Player;
 import objects.Animated;
 import objects.Construction;
-import core.resources.ResourceContainer;
 import core.Status;
 import objects.loadouts.Fighter;
+import objects.templates.UnitTemplate;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,21 +17,17 @@ import static core.Status.IDLE;
 
 public abstract class Unit extends Construction implements Animated {
 
-    public final static int UNIT_DIFFICULTY = 1;
-
     private int energy, maxEnergy, step;
     private final int animationDelay;
     private Status status, oldStatus;
     private final int cycleLength;
     private final ArrayList<Contract> contracts;
 
-    public Unit(int animationDelay, int size, int sight, int health,
-                int degradeTime, int degradeAmount, int cycleLength,
-                int energy, ResourceContainer cost) {
-        super(size, sight, health, degradeTime, degradeAmount, cost, UNIT_DIFFICULTY, false);
+    public Unit(UnitTemplate temp) {
+        super(temp);
 
-        this.animationDelay = animationDelay;
-        this.energy = energy;
+        this.animationDelay = temp.animationDelay;
+        this.energy = temp.energy;
         maxEnergy = energy;
         step = 0;
 
@@ -41,10 +36,10 @@ public abstract class Unit extends Construction implements Animated {
 
         contracts = new ArrayList<>();
 
-        if(cycleLength == 0)
+        if(temp.cycleLength == 0)
             throw new IllegalArgumentException("Cycle length has to be nonzero.");
         else
-            this.cycleLength = cycleLength;
+            this.cycleLength = temp.cycleLength;
     }
 
     @Override
@@ -205,4 +200,5 @@ public abstract class Unit extends Construction implements Animated {
 
         return s.toString();
     }
+
 }

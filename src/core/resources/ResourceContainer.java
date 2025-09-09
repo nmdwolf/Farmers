@@ -3,6 +3,7 @@ package core.resources;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 

@@ -12,6 +12,8 @@ import core.upgrade.Upgrade;
 import objects.Aggressive;
 import objects.GameObject;
 import objects.loadouts.Fighter;
+import objects.templates.TemplateFactory;
+import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -19,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Hero extends Unit implements Aggressive {
 
     public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6)).get();
@@ -27,11 +28,8 @@ public class Hero extends Unit implements Aggressive {
 
     private String name;
 
-    @JsonCreator
-    private Hero(@JsonProperty("animationDelay") int animationDelay, @JsonProperty("size") int size, @JsonProperty("sight") int sight, @JsonProperty("health") int health, @JsonProperty("degradeTime") int degradeTime, @JsonProperty("degradeAmount") int degradeAmount, @JsonProperty("cycleLength") int cycleLength, @JsonProperty("energy") int energy, @JsonProperty("cost") ResourceContainer cost) {
-        super(animationDelay, size, sight, health,
-                degradeTime, degradeAmount, cycleLength, energy, cost);
-        addLoadout(Fighter.createFighter("Hero", null));
+    public Hero() {
+        super((UnitTemplate) TemplateFactory.getTemplate("Hero"));
     }
 
     public void setName(String name) {
@@ -69,6 +67,11 @@ public class Hero extends Unit implements Aggressive {
     }
 
     @Override
+    public int getAttackCost() {
+        return getLoadout(Fighter.class).map(Fighter::getAttackCost).orElse(0);
+    }
+
+    @Override
     public int getRange() {
         return getLoadout(Fighter.class).map(Fighter::getRange).orElse(0);
     }
@@ -81,16 +84,6 @@ public class Hero extends Unit implements Aggressive {
     @Override
     public void changeAttack(int amount) {
         getLoadout(Fighter.class).ifPresent(l -> l.changeAttack(amount));
-    }
-
-    public static Hero createHero() {
-        ObjectMapper mapper = new ObjectMapper();
-        File file = new File("src/data/Hero.json");
-        try {
-            return mapper.readValue(file, Hero.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

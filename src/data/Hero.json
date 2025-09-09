@@ -1,7 +1,9 @@
 {
   "name": "Hero",
-  "attack": 10,
-  "attackCost": 1,
+  "warrior": {
+    "attack": 10,
+    "attackCost": 1
+  },
   "animationDelay": 1000,
   "size": 1,
   "sight": 2,

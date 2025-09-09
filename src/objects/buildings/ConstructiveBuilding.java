@@ -5,14 +5,13 @@ import core.*;
 import core.player.Player;
 import objects.Constructor;
 import core.resources.ResourceContainer;
+import objects.templates.ConstructionTemplate;
 
 public abstract class ConstructiveBuilding extends Building implements Constructor {
 
     private int x, y;
-    public ConstructiveBuilding(int space, int sight, int health,
-                                int degradeTime, int degradeAmount,
-                                ResourceContainer cost, int difficulty, int x, int y) {
-        super(space, sight, health, degradeTime, degradeAmount, cost, difficulty);
+    public ConstructiveBuilding(ConstructionTemplate temp, int x, int y) {
+        super(temp);
         this.x = x;
         this.y = y;
     }

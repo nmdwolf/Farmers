@@ -1,5 +1,8 @@
 package UI;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import core.*;
 
 import core.Action;
@@ -9,6 +12,11 @@ import objects.*;
 import objects.buildings.Building;
 import objects.buildings.Lumberjack;
 import objects.buildings.TownHall;
+import objects.loadouts.Fighter;
+import objects.loadouts.Gatherer;
+import objects.loadouts.LoadoutFactory;
+import objects.loadouts.Medic;
+import objects.templates.*;
 import objects.units.Hero;
 import objects.units.Unit;
 import objects.units.Villager;
@@ -46,6 +54,13 @@ public class Main extends JFrame{
     private final Grid cells;
 
     public static void main(String[] args) {
+        LoadoutFactory.registerLoadout("fighter", Fighter.class, FighterTemplate.class);
+        LoadoutFactory.registerLoadout("gatherer", Gatherer.class, GathererTemplate.class);
+        LoadoutFactory.registerLoadout("healer", Medic.class, HealerTemplate.class);
+
+        TemplateFactory.loadTemplates(ConstructionTemplate.class);
+        TemplateFactory.loadTemplates(UnitTemplate.class);
+
         SwingUtilities.invokeLater(Main::new);
     }
 
@@ -213,7 +228,7 @@ public class Main extends JFrame{
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         GameObject v2 = new Villager();
         v2.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
-        Hero hero = Hero.createHero();
+        Hero hero = new Hero();
         hero.setName(p.getName());
         hero.initialize(p, p.getViewPoint(), cycle.getUnsafe());
 

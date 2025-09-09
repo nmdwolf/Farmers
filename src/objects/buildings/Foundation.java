@@ -22,16 +22,13 @@ public class Foundation<T extends Construction> extends GameObject {
     public final static BufferedImage FOUNDATION_SPRITE_MAX = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
 
     public final static int FOUNDATION_HEALTH = 1;
-
-    private final boolean visible;
     private final T constructable;
     private final ConstructContract<T> contract;
 
-    public Foundation(T constructable, ConstructContract<T> contract, boolean visible) {
-        super(constructable.getSize(), constructable.getSight(), FOUNDATION_HEALTH, 0, 0);
+    public Foundation(T constructable, ConstructContract<T> contract) {
+        super(constructable.getTemplate());
         this.contract = contract;
         this.constructable = constructable;
-        this.visible = visible;
     }
 
     public ConstructContract<T> getContract() {
@@ -50,7 +47,7 @@ public class Foundation<T extends Construction> extends GameObject {
 
     @Override
     public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        if(visible) {
+        if(constructable.hasVisibleFoundation()) {
             BufferedImage sprite = max ? FOUNDATION_SPRITE_MAX : FOUNDATION_SPRITE;
             BufferedImage img = new BufferedImage(sprite.getWidth(), sprite.getHeight(), sprite.getType());
 
@@ -83,7 +80,7 @@ public class Foundation<T extends Construction> extends GameObject {
 
     @Override
     public String toString() {
-        return  "Foundation of [\n    " + constructable.toString().replace("\n", "\n    ") + "\n]";
+        return  "Foundation of [" + constructable.getClassLabel() + "]";
     }
 
     @Override

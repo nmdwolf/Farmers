@@ -83,14 +83,17 @@ public class OperationsPanel extends JPanel {
                 selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> operator.transferContract(pair.value())));
             }
 
-            for (int i = 0; i < operations.size(); i++) {
-                final int step = (i >= 7) ? i + 1 : i;
-                buttons[step].updateText(operations.getDescription(i));
-                buttons[step].enableGhost(false);
-                buttons[step].addActionListener(_ -> operations.get(step).perform(null));
-            }
+            if(!operations.isEmpty()) {
 
-            setVisible(true);
+                for (int i = 0; i < operations.size(); i++) {
+                    final int step = (i >= 7) ? i + 1 : i;
+                    buttons[step].updateText(operations.getDescription(i));
+                    buttons[step].enableGhost(false);
+                    buttons[step].addActionListener(_ -> operations.get(step).perform(null));
+                }
+
+                setVisible(true);
+            }
         }
     }
 

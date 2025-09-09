@@ -3,7 +3,9 @@ package core.upgrade;
 import core.resources.ResourceContainer;
 import UI.CustomMethods;
 import objects.buildings.TownHall;
-import core.resources.SourceDecorator;
+import objects.loadouts.LoadoutFactory;
+
+import java.util.HashMap;
 
 public class WellUpgrade extends InstanceUpgrade<TownHall> {
 
@@ -18,8 +20,10 @@ public class WellUpgrade extends InstanceUpgrade<TownHall> {
 
     @Override
     public void upgrade() {
-        getPlayer().removeObject(getObject());
-        getPlayer().addObject(new SourceDecorator(getObject(), "Water", WATER_SOURCE));
+        getObject().addLoadout(LoadoutFactory.createLoadout("gatherer", new HashMap<>() {{
+            put("resources", new String[]{"Water"});
+            put("amounts", new int[]{WATER_SOURCE});
+        }}));
     }
 
     @Override

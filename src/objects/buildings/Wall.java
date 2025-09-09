@@ -4,6 +4,8 @@ import UI.CustomMethods;
 import core.player.Award;
 import core.resources.ResourceContainer;
 import objects.Obstruction;
+import objects.templates.ConstructionTemplate;
+import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -18,25 +20,9 @@ public class Wall extends IdleBuilding implements Obstruction, Directional {
     public final static Award BUILT_AWARD = Award.createFreeAward("Your people are protected.");
     public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/Wall.png", SPRITE_SIZE, SPRITE_SIZE).get();
     public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/Wall.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
-    public final static ResourceContainer WALL_COST = new ResourceContainer(new String[]{"Wood", "Time"}, new int[]{10, 1});
-
-    public final static int WALL_HEALTH = 500;
-    public final static int WALL_SPACE = 5;
-    public final static int WALL_SIGHT = 1;
-    public final static int WALL_DIFFICULTY = 1;
-
-    public final static int WALL_DEGRADATION_TIME = 50;
-    public final static int WALL_DEGRADATION_AMOUNT = 5;
 
     public Wall() {
-        super(WALL_SPACE, WALL_SIGHT, WALL_HEALTH,
-                WALL_DEGRADATION_TIME, WALL_DEGRADATION_AMOUNT,
-                WALL_COST, WALL_DIFFICULTY);
-    }
-
-    @Override
-    public String getClassLabel() {
-        return "Wall";
+        super((ConstructionTemplate) TemplateFactory.getTemplate("Wall"));
     }
 
     @Override

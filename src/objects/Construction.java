@@ -2,6 +2,7 @@ package objects;
 
 import core.player.Award;
 import core.resources.ResourceContainer;
+import objects.templates.ConstructionTemplate;
 
 import java.util.Optional;
 
@@ -12,18 +13,16 @@ public abstract class Construction extends GameObject {
     private final boolean hasVisibleFoundation;
     private final ResourceContainer cost;
 
-    public Construction(int space, int sight, int health,
-                        int degradeTime, int degradeAmount, ResourceContainer cost,
-                        int energyCost, boolean hasVisibleFoundation) {
-        super(space, sight, health, degradeTime, degradeAmount);
+    public Construction(ConstructionTemplate template) {
+        super(template);
 
-        this.cost = cost;
+        this.cost = template.cost;
 
         completed = 0;
         buildingTime = cost.get("Time");
 
-        this.energyCost = energyCost;
-        this.hasVisibleFoundation = hasVisibleFoundation;
+        this.energyCost = template.energyCost;
+        this.hasVisibleFoundation = template.hasVisibleFoundation;
     }
 
     public int getCompletion() {
@@ -34,11 +33,11 @@ public abstract class Construction extends GameObject {
 
     public void construct() { completed++; }
 
-    public int getAttackCost() {
+    public ResourceContainer getCost() { return cost; }
+
+    public int getEnergyCost() {
         return energyCost;
     }
-
-    public ResourceContainer getCost() { return cost; }
 
     public boolean hasVisibleFoundation() { return hasVisibleFoundation; }
 

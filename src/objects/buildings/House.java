@@ -5,6 +5,8 @@ import core.player.Award;
 import objects.Spacer;
 import core.resources.ResourceContainer;
 import core.upgrade.*;
+import objects.templates.ConstructionTemplate;
+import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -18,32 +20,16 @@ public class House extends IdleBuilding implements Upgradable, Spacer {
 
     public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hut.png", SPRITE_SIZE, SPRITE_SIZE).get();
     public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hut.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
-    public final static ResourceContainer HOUSE_COST = new ResourceContainer(new String[]{"Wood", "Time"}, new int[]{50, 5});
     public final static Award BUILT_AWARD = Award.createFreeAward("You finally gave your people some shelter.");
 
-    public final static int HOUSE_HEALTH = 150;
-    public final static int HOUSE_SPACE = 3;
-    public final static int HOUSE_SIZE = 1;
-    public final static int HOUSE_SIGHT = 1;
-    public final static int HOUSE_HEAL = 2;
-
-    public final static int HOUSE_DEGRADATION_TIME = 20;
-    public final static int HOUSE_DEGRADATION_AMOUNT = 2;
-
     public final static String HOUSE_TOKEN = "H";
+    public final static int HOUSE_SPACE = 3;
 
     private int space;
 
     public House() {
-        super(HOUSE_SIZE, HOUSE_SIGHT, HOUSE_HEALTH,
-                HOUSE_DEGRADATION_TIME, HOUSE_DEGRADATION_AMOUNT, HOUSE_COST, 1);
-
+        super((ConstructionTemplate) TemplateFactory.getTemplate("House"));
         this.space = HOUSE_SPACE;
-    }
-
-    @Override
-    public String getClassLabel() {
-        return "House";
     }
 
     @Override

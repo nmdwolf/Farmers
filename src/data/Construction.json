@@ -1,0 +1,97 @@
+[
+  {
+    "type": "House",
+    "health": 150,
+    "space": 3,
+    "size": 1,
+    "sight": 1,
+    "healer": {
+      "heal": 2
+    },
+    "energyCost": 1,
+    "degradationTime": 20,
+    "degradationAmount": 2,
+    "cost": {
+      "resources": ["Wood", "Time"],
+      "amounts": [50, 5]
+    }
+  },
+
+  {
+    "type": "Townhall",
+    "health": 1000,
+    "space": 5,
+    "size": 5,
+    "sight": 1,
+    "healer": {
+      "heal": 5
+    },
+    "energyCost": 1,
+    "degradationTime": 50,
+    "degradationAmount": 1,
+    "cost": {
+      "resources": ["Wood", "Time"],
+      "amounts": [200, 20]
+    }
+  },
+
+  {
+    "type": "Stable",
+    "health": 500,
+    "size": 3,
+    "sight": 1,
+    "energyCost": 1,
+    "degradationTime": 50,
+    "degradationAmount": 2,
+    "cost": {
+      "resources": ["Wood", "Time", "Food", "Water"],
+      "amounts": [200, 10, 100, 100]
+    }
+  },
+
+  {
+    "type": "Lumberjack",
+    "health": 250,
+    "size": 1,
+    "sight": 1,
+    "energyCost": 1,
+    "degradationTime": 30,
+    "degradationAmount": 2,
+    "cost": {
+      "resources": ["Time", "Food", "Water"],
+      "amounts": [1, 100, 50]
+    }
+  },
+
+  {
+    "type": "Farm",
+    "health": 200,
+    "size": 1,
+    "sight": 1,
+    "energyCost": 1,
+    "degradationTime": 1,
+    "degradationAmount": 1,
+    "cost": {
+      "resources": ["Time", "Wood", "Water"],
+      "amounts": [1, 100, 100]
+    },
+    "source": {
+      "resources": ["Food"],
+      "amounts": [10]
+    }
+  },
+
+  {
+    "type": "Wall",
+    "health": 500,
+    "size": 5,
+    "sight": 1,
+    "energyCost": 1,
+    "degradationTime": 50,
+    "degradationAmount": 5,
+    "cost": {
+      "resources": ["Time", "Wood"],
+      "amounts": [1, 10]
+    }
+  }
+]

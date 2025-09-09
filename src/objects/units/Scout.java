@@ -6,6 +6,9 @@ import core.player.Award;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
 import core.upgrade.EvolveUpgrade;
+import objects.templates.ConstructionTemplate;
+import objects.templates.TemplateFactory;
+import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -15,25 +18,12 @@ public class Scout extends Unit implements Evolvable {
     public final static Award BUILT_AWARD = Award.createFreeAward("You can look for new lands.");
     public final static Award EVOLVE_AWARD = Award.createFreeAward("Exploring will be even easier now.");
 
-    public final static int SCOUT_HEALTH = 100;
-    public final static int SCOUT_ENERGY = 10;
-    public final static int SCOUT_SPACE = 2;
-    public final static int SCOUT_SIGHT = 2;
-    public final static int SCOUT_ANIMATION = 300;
-
-    public final static ResourceContainer SCOUT_COST = new ResourceContainer(new String[]{"Food", "Water"}, new int[]{100, 200});
     public final static ResourceContainer LEVEL1_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{200, 200, 10});
-
-    public final static int SCOUT_DEGRADATION_TIME = 50;
-    public final static int SCOUT_DEGRADATION_AMOUNT = 2;
-
-    public final static int SCOUT_CYCLE_LENGTH = 12;
 
     private int level;
 
     public Scout() {
-        super(SCOUT_ANIMATION, SCOUT_SPACE, SCOUT_SIGHT, SCOUT_HEALTH,
-                SCOUT_DEGRADATION_TIME, SCOUT_DEGRADATION_AMOUNT, SCOUT_CYCLE_LENGTH, SCOUT_ENERGY, SCOUT_COST);
+        super((UnitTemplate) TemplateFactory.getTemplate("Scout"));
         level = 1;
     }
 

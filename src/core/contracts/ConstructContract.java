@@ -3,6 +3,7 @@ package core.contracts;
 import objects.Construction;
 import objects.buildings.Foundation;
 import objects.Spacer;
+import objects.templates.ConstructionTemplate;
 import objects.units.Unit;
 import objects.units.Worker;
 
@@ -14,7 +15,7 @@ public class ConstructContract<T extends Construction> extends Contract{
     public ConstructContract(Worker employee, T constructable) {
         super(employee, constructable.getCompletion());
         this.constructable = constructable;
-        foundation = new Foundation<>(constructable, this, constructable.hasVisibleFoundation());
+        foundation = new Foundation<>(constructable, this);
         foundation.initialize(employee.getPlayer(), employee.getCell(), constructable.getStartCycle());
     }
 
@@ -29,9 +30,9 @@ public class ConstructContract<T extends Construction> extends Contract{
 
     @Override
     public void terminate() {
+        constructable.initialize(foundation.getPlayer(), foundation.getCell(), foundation.getStartCycle());
         getEmployee().getPlayer().removeObject(foundation);
         getEmployee().getPlayer().addObject(constructable);
-        constructable.initialize(getFoundation().getPlayer(), getFoundation().getCell(), getFoundation().getStartCycle());
         if (constructable instanceof Spacer)
             getEmployee().getPlayer().changePopCap(((Spacer) constructable).getSpaceBoost());
         if (constructable instanceof Unit)
@@ -43,9 +44,9 @@ public class ConstructContract<T extends Construction> extends Contract{
     public boolean work() {
         super.work();
         if(isStarted()) {
-            if (((Worker)getEmployee()).getEnergy() >= constructable.getAttackCost()) {
+            if (((Worker)getEmployee()).getEnergy() >= constructable.getEnergyCost()) {
                 constructable.construct();
-                ((Worker)getEmployee()).changeEnergy(constructable.getAttackCost());
+                ((Worker)getEmployee()).changeEnergy(constructable.getEnergyCost());
             }
         }
 
@@ -58,7 +59,7 @@ public class ConstructContract<T extends Construction> extends Contract{
 
     @Override
     public int getEnergyCost() {
-        return constructable.getAttackCost();
+        return constructable.getEnergyCost();
     }
 
     public Foundation<T> getFoundation() {
