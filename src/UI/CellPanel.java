@@ -17,7 +17,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -184,9 +183,7 @@ public class CellPanel extends JPanel {
 
     /**
      * Draws forests if the current cell is a forest.
-     *
      * TODO Fix rounded corners for arcs!
-     *
      * @param gr Graphics object from panel
      */
     public void drawForest(Graphics2D gr) {
@@ -216,7 +213,7 @@ public class CellPanel extends JPanel {
                     () -> gr.setColor(object.getPlayer().getColor()));
 
             // Draws animation around working Units
-            if(object instanceof Unit u && u.getStatus() == Status.WORKING) {
+            if(object instanceof Unit<?> u && u.getStatus() == Status.WORKING) {
                 if(cellArrowProperty.getUnsafe()) {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
                         Pair<Integer, Integer> targetPair = objectMap.get(c.getFoundation());

@@ -3,37 +3,29 @@ package objects.units;
 import core.*;
 import core.contracts.LaborContract;
 import core.OperationsList;
-import core.resources.ResourceContainer;
-import objects.Booster;
+import objects.loadouts.Booster;
 import objects.loadouts.Gatherer;
 import objects.templates.UnitTemplate;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
-public abstract class Worker extends Unit {
+public abstract class Worker extends Unit<Worker> {
 
-    private HashSet<Booster> boosters;
+    private List<Booster> boosters;
 
     public Worker(UnitTemplate temp) {
         super(temp);
-
-        boosters = new HashSet<>();
     }
 
     @Override
     public void setCell(Cell cell) {
         super.setCell(cell);
-
-        boosters = getPlayer().getObjects().stream().filter(
-                obj -> obj instanceof Booster &&
-                        getCell().distanceTo(obj.getCell()) <= ((Booster)obj).getBoostRadius()
-        ).map(Booster.class::cast).collect(Collectors.toCollection(HashSet::new));
+        boosters = getPlayer().getObjects().stream().flatMap(obj -> obj.getLoadout(objects.loadouts.Booster.class).stream().filter(booster -> cell.distanceTo(obj.getCell()) <= booster.getBoostRadius())).toList();
     }
 
     /**
-     * Calculates the production yield of the provided {@code Resource}, taking into account current {@code Booster}s.
+     * Calculates the production yield of the provided resource, taking into account current {@code Booster}s.
      * @param resource Resource for which the production yield is calculated.
      * @return production yield
      */
@@ -55,9 +47,13 @@ public abstract class Worker extends Unit {
         if(code == OperationCode.RESOURCE) {
             for (String res : getPlayer().getResources().keySet()) {
                 if(getYield(res) > 0)
-                    operations.put(res, _ -> addContract(new LaborContract(Worker.this, res, getCell(), 1)));
+                    operations.put(res, _ -> addContract(new LaborContract(Worker.this, res, getCell())));
             }
         }
         return operations;
+    }
+
+    public int getGatherCost() {
+        return getLoadout(Gatherer.class).map(Gatherer::getEnergyCost).orElse(0);
     }
 }

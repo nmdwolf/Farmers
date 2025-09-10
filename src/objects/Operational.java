@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * Signals that a GameObject can "work" or perform operations.
  * This is also used for the graphics modules to generate a working animation (if applicable).
  */
-public interface Operational {
+public interface Operational<U extends GameObject & Operational<U>> {
 
     OperationsList getOperations(int cycle, OperationCode code);
 
@@ -20,15 +20,15 @@ public interface Operational {
      */
     void work();
 
-    void addContract(Contract c);
+    void addContract(Contract<U> c);
 
     /**
      * Transfers a contract from an existing owner to this GameObject.
      * @param c contract to transfer
      */
-    void transferContract(Contract c);
+    void transferContract(Contract<U> c);
 
-    ArrayList<Contract> getContracts();
+    ArrayList<Contract<U>> getContracts();
 
     void seizeActions();
 

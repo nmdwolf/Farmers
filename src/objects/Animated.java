@@ -1,6 +1,6 @@
 package objects;
 
-public interface Animated extends Operational {
+public interface Animated<U extends GameObject & Operational<U>> extends Operational<U> {
 
     void step();
 

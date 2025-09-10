@@ -6,13 +6,13 @@ import objects.units.Worker;
 /**
  * This Contract type implements the extraction of resources.
  */
-public class LaborContract extends Contract {
+public class LaborContract extends Contract<Worker> {
 
     private final String resource;
     private final Cell cell;
 
-    public LaborContract(Worker employee, String r, Cell cell, int cost) throws IllegalArgumentException {
-        super(employee, cost);
+    public LaborContract(Worker employee, String r, Cell cell) throws IllegalArgumentException {
+        super(employee, employee.getGatherCost());
         if(cell == null)
             throw new IllegalArgumentException("No cell has been assigned.");
         else
@@ -24,9 +24,10 @@ public class LaborContract extends Contract {
 
     @Override
     public boolean work() {
-        int gain = -cell.changeResource(resource, -((Worker)getEmployee()).getYield(resource));
+        int amount = getEmployee().getYield(resource);
+        int gain = -cell.changeResource(resource, -amount);
         getEmployee().getPlayer().changeResource(resource, gain);
-        ((Worker)getEmployee()).step();
+        getEmployee().step();
 
         return (cell.getResource(resource) == 0);
     }

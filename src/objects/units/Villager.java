@@ -5,12 +5,11 @@ import core.contracts.ConstructContract;
 import UI.CustomMethods;
 import core.OperationsList;
 import core.contracts.Contract;
-import core.player.Award;
 import objects.Constructor;
 import core.Status;
+import objects.buildings.Building;
 import objects.buildings.Wall;
 import objects.buildings.House;
-import objects.buildings.Lumberjack;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
@@ -24,15 +23,9 @@ public class Villager extends Worker implements Constructor {
     public final static BufferedImage WORKING_SPRITE = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).get();
     public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/villager.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
     public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
-    public final static Award BUILT_AWARD = Award.createFreeAward("A baby was born.");
 
     public Villager() {
         super((UnitTemplate) TemplateFactory.getTemplate("Villager"));
-    }
-
-    @Override
-    public String getToken() {
-        return "v";
     }
 
     public OperationsList getOperations(int cycle, OperationCode code) {
@@ -52,8 +45,7 @@ public class Villager extends Worker implements Constructor {
             addContract(new ConstructContract<>(Villager.this, h));
         });
         constructions.put("Lumberjack", _ -> {
-            Lumberjack l = new Lumberjack();
-            addContract(new ConstructContract<>(Villager.this, l));
+            addContract(new ConstructContract<>(Villager.this, Building.createBuilding("Lumberjack")));
         });
         constructions.put("Wall", _ -> {
             Wall w = new Wall();
@@ -65,15 +57,11 @@ public class Villager extends Worker implements Constructor {
     @Override
     public @NotNull Optional<BufferedImage> getSprite(boolean max) {
         if(getStatus() != Status.WORKING)
-            return Optional.of(max ? SPRITE_MAX : SPRITE);
+            return super.getSprite(max);
         else
             return Optional.of(max ? WORKING_SPRITE_MAX : WORKING_SPRITE);
     }
 
-    @Override
-    public Optional<Award> getConstructionAward() {
-        return Optional.of(BUILT_AWARD);
-    }
 
     @Override
     public void addContract(Contract c) throws IllegalArgumentException {

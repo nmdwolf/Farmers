@@ -5,7 +5,6 @@ import core.contracts.Contract;
 import objects.Animated;
 import objects.Construction;
 import core.Status;
-import objects.loadouts.Fighter;
 import objects.templates.UnitTemplate;
 
 import java.util.ArrayList;
@@ -15,13 +14,13 @@ import static core.GameConstants.COLD_LEVEL;
 import static core.GameConstants.UNIT_TYPE;
 import static core.Status.IDLE;
 
-public abstract class Unit extends Construction implements Animated {
+public abstract class Unit<U extends Unit<U>> extends Construction implements Animated<U> {
 
     private int energy, maxEnergy, step;
     private final int animationDelay;
     private Status status, oldStatus;
     private final int cycleLength;
-    private final ArrayList<Contract> contracts;
+    private final ArrayList<Contract<U>> contracts;
 
     public Unit(UnitTemplate temp) {
         super(temp);
@@ -127,13 +126,10 @@ public abstract class Unit extends Construction implements Animated {
         if(!contracts.isEmpty()) {
             setStatus(Status.WORKING);
 
-            for (Iterator<Contract> iterator = contracts.iterator(); iterator.hasNext(); ) {
-                Contract c = iterator.next();
-                if (getEnergy() >= c.getEnergyCost()) {
-                    changeEnergy(-c.getEnergyCost());
-                    if (c.work())
-                        iterator.remove();
-                }
+            for (Iterator<Contract<U>> iterator = contracts.iterator(); iterator.hasNext(); ) {
+                Contract<U> c = iterator.next();
+                if (getEnergy() >= c.getEnergyCost() && c.work())
+                    iterator.remove();
             }
         }
 
@@ -156,7 +152,7 @@ public abstract class Unit extends Construction implements Animated {
      * @throws IllegalArgumentException If the given contract does not have this Worker as assigned employee, an exception is thrown. For existing contracts, the {@code transferContract(Contract c) } method should be used.
      */
     @Override
-    public void addContract(Contract c) throws IllegalArgumentException {
+    public void addContract(Contract<U> c) throws IllegalArgumentException {
         if(!c.getEmployee().equals(this))
             throw new IllegalArgumentException("Contract is required to have this Worker as assigned employee.");
 
@@ -171,8 +167,9 @@ public abstract class Unit extends Construction implements Animated {
      * @param c new contract
      */
     @Override
-    public void transferContract(Contract c) {
-        c.setEmployee(this);
+    @SuppressWarnings("unchecked")
+    public void transferContract(Contract<U> c) {
+        c.setEmployee((U)this);
         addContract(c);
     }
 
@@ -188,7 +185,7 @@ public abstract class Unit extends Construction implements Animated {
     }
 
     @Override
-    public ArrayList<Contract> getContracts() { return contracts; }
+    public ArrayList<Contract<U>> getContracts() { return contracts; }
 
     @Override
     public String toString() {

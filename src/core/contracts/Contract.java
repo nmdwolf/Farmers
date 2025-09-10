@@ -1,25 +1,26 @@
 package core.contracts;
 
 import objects.GameObject;
+import objects.Operational;
 
-public abstract class Contract {
+public abstract class Contract<T extends GameObject & Operational<T>> {
 
-    private GameObject employee;
-    private final int cost;
+    private T employee;
+    private final int energyCost;
     private boolean isStarted, idle;
 
-    public Contract(GameObject employee, int energy) {
+    public Contract(T employee, int energyCost) {
         this.employee = employee;
-        cost = energy;
+        this.energyCost = energyCost;
         isStarted = false;
         idle = true;
     }
 
-    public GameObject getEmployee() {
+    public T getEmployee() {
         return employee;
     }
 
-    public void setEmployee(GameObject worker) {
+    public void setEmployee(T worker) {
         employee = worker;
         idle = (worker == null);
     }
@@ -55,6 +56,10 @@ public abstract class Contract {
     public boolean work() {
         if(!isStarted)
             initialize();
+
+        if(isStarted)
+            employee.changeEnergy(-energyCost);
+
         return isStarted;
     }
 
@@ -62,5 +67,5 @@ public abstract class Contract {
      * Returns the energy cost for one call of work()
      * @return energy cost
      */
-    public int getEnergyCost() { return cost; }
+    public int getEnergyCost() { return energyCost; }
 }

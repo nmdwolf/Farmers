@@ -7,9 +7,9 @@ import core.player.AI;
 import core.player.Player;
 import objects.*;
 import objects.buildings.Building;
-import objects.buildings.Lumberjack;
 import objects.buildings.TownHall;
 import objects.loadouts.*;
+import objects.loadouts.Booster;
 import objects.loadouts.Spacer;
 import objects.templates.*;
 import objects.units.Hero;
@@ -55,6 +55,7 @@ public class Main extends JFrame{
         LoadoutFactory.registerLoadout("heal", Medic.class);
         LoadoutFactory.registerLoadout("source", Source.class);
         LoadoutFactory.registerLoadout("space", Spacer.class);
+        LoadoutFactory.registerLoadout("booster", Booster.class);
 
         TemplateFactory.loadTemplates(ConstructionTemplate.class);
         TemplateFactory.loadTemplates(UnitTemplate.class);
@@ -220,7 +221,7 @@ public class Main extends JFrame{
 
         GameObject base = new TownHall();
         base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
-        GameObject lumberjack = new Lumberjack();
+        GameObject lumberjack = Building.createBuilding("Lumberjack");
         lumberjack.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
         GameObject v1 = new Villager();
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());

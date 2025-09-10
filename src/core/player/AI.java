@@ -58,7 +58,7 @@ public class AI extends Player {
                     for (String res : resources) {
                         if (!harvested.get(newLoc).contains(res) && obj.getYield(res) > 0) {
                             harvested.get(newLoc).add(res);
-                            LaborContract contract = new LaborContract(obj, res, newLoc, 1);
+                            LaborContract contract = new LaborContract(obj, res, newLoc);
                             obj.addContract(contract);
                             obj.setStatus(Status.WORKING);
                             needsToMove = false;
@@ -89,7 +89,7 @@ public class AI extends Player {
 
                         harvested.put(newLoc, new ArrayList<>());
                         harvested.get(newLoc).add("Food");
-                        LaborContract contract = new LaborContract(obj, "Food", newLoc, 1);
+                        LaborContract contract = new LaborContract(obj, "Food", newLoc);
                         obj.addContract(contract);
                         obj.setStatus(Status.WORKING);
                     }

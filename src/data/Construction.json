@@ -59,7 +59,15 @@
     "cost": {
       "resources": ["Time", "Food", "Water"],
       "amounts": [1, 100, 50]
-    }
+    },
+    "booster": {
+      "radius": 2,
+      "yield": {
+         "resources": ["Wood"],
+        "amounts": [2]
+      }
+    },
+    "award": "You figured out how to chop wood."
   },
 
   {

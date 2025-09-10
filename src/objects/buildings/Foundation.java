@@ -15,7 +15,7 @@ import java.util.Optional;
 
 import static core.GameConstants.*;
 
-// MERGE WITH BUILDINGS?
+// TODO MERGE WITH BUILDINGS?
 public class Foundation<T extends Construction> extends GameObject {
 
     public final static BufferedImage FOUNDATION_SPRITE = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE, SPRITE_SIZE).get();
@@ -29,6 +29,8 @@ public class Foundation<T extends Construction> extends GameObject {
         super(constructable.getTemplate());
         this.contract = contract;
         this.constructable = constructable;
+
+        changeHealth(-(getMaxHealth() - 1));
     }
 
     public ConstructContract<T> getContract() {
@@ -57,7 +59,7 @@ public class Foundation<T extends Construction> extends GameObject {
             gr.setColor(new Color(getPlayer().getColor().getRed(), getPlayer().getColor().getGreen(), getPlayer().getColor().getBlue(), 128));
             int minSize = Math.min(sprite.getWidth(), sprite.getHeight());
 
-            Area outerDisk = new Area(new Arc2D.Double(sprite.getWidth() == minSize ? 0 : (sprite.getWidth() - minSize) / 2f, sprite.getHeight() == minSize ? 0 : (sprite.getHeight() - minSize) / 2f, minSize, minSize, 0, -(int)(360. * constructable.getCompletion() / constructable.getRequirement()), Arc2D.PIE));
+            Area outerDisk = new Area(new Arc2D.Double(sprite.getWidth() == minSize ? 0 : (sprite.getWidth() - minSize) / 2f, sprite.getHeight() == minSize ? 0 : (sprite.getHeight() - minSize) / 2f, minSize, minSize, 0, -(int)(360. * constructable.getCompletion() / constructable.getConstructionTime()), Arc2D.PIE));
 
             int innerSize = minSize / 2;
             Area innerDisk = new Area(new Ellipse2D.Double(sprite.getWidth() == minSize ? minSize / 4f : (sprite.getWidth() - minSize) / 2f + minSize / 4f, sprite.getHeight() == minSize ? minSize / 4f : (sprite.getHeight() - minSize) / 2f + minSize / 4f, innerSize, innerSize));
@@ -80,7 +82,8 @@ public class Foundation<T extends Construction> extends GameObject {
 
     @Override
     public String toString() {
-        return  "Foundation of [" + constructable.getClassLabel() + "]";
+        return "Foundation of [" + constructable.getClassLabel() + "]" + "\n" +
+                "Health: " + getHealth() + "/" + getMaxHealth();
     }
 
     @Override

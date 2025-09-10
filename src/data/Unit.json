@@ -40,7 +40,8 @@
         "amounts": [5, 5, 5, 5]
       }
     },
-    "sprite": "villager"
+    "sprite": "villager",
+    "award": "A baby was born."
   },
 
   {

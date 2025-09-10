@@ -6,15 +6,21 @@ import core.resources.ResourceContainer;
 public class Gatherer extends Loadout {
 
     private ResourceContainer yield;
+    private int energyCost;
 
     @JsonCreator
-    private Gatherer(ResourceContainer yield) {
+    private Gatherer(ResourceContainer yield, int energyCost) {
         super("gatherer");
         this.yield = yield;
+        this.energyCost = energyCost;
     }
 
     public int getYield(String res) {
         return yield.get(res);
+    }
+
+    public int getEnergyCost() {
+        return energyCost;
     }
 
     @Override

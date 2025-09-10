@@ -26,7 +26,7 @@ public class Cell {
         buildingSpace = b;
         travelCost = INITIAL_TRAVEL_COST;
         resources = generateResources();
-        seasonalCycle(0);
+        seasonalCycle(0); // Start in Winter
     }
 
     public void cycle(int cycle) {
@@ -122,9 +122,13 @@ public class Cell {
 
     public boolean isField() { return resources.get("Food") >= FOOD_THRESHOLD; }
 
-    public void addContent(GameObject obj) { content.add(obj); }
+    public void addContent(GameObject obj) {
+        content.add(obj);
+    }
 
-    public void removeContent(GameObject obj) { content.remove(obj); }
+    public void removeContent(GameObject obj) {
+        content.remove(obj);
+    }
 
     public HashSet<GameObject> getContent() { return content; }
 

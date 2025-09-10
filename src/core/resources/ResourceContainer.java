@@ -43,7 +43,7 @@ public class ResourceContainer extends HashMap<String, Integer> {
     }
 
     /**
-     * Adds the specified amount of the given {@code Resource} to the current resource container (this is performed in place).
+     * Adds the specified amount of the given resource to the current resource container (this is performed in place).
      * @param resource resource type
      * @param amount amount to add (or subtract if negative)
      */
@@ -52,6 +52,15 @@ public class ResourceContainer extends HashMap<String, Integer> {
             put(resource, get(resource) + amount);
         else
             put(resource, amount);
+    }
+
+    /**
+     * Adds the given {@code ResourceContainer} to the current resource container (this is performed in place).
+     * @param resources resources to be added
+     */
+    public void add(ResourceContainer resources) {
+        for(String res : resources.keySet())
+            put(res, get(res) + resources.get(res));
     }
 
     public ResourceContainer negative() {
@@ -74,6 +83,6 @@ public class ResourceContainer extends HashMap<String, Integer> {
         StringBuilder output = new StringBuilder();
         for(String res : keySet())
             output.append(res).append(": ").append(get(res)).append(", ");
-        return output.toString();
+        return !output.isEmpty() ? output.substring(0, output.length() - 2) : "";
     }
 }
