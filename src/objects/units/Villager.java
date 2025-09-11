@@ -19,10 +19,8 @@ import java.util.Optional;
 
 public class Villager extends Worker implements Constructor {
 
-    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/villager.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).get();
-    public final static BufferedImage WORKING_SPRITE = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).get();
-    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/villager.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
-    public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).get();
+    public final static BufferedImage WORKING_SPRITE = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).orElseThrow();
+    public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).orElseThrow();
 
     public Villager() {
         super((UnitTemplate) TemplateFactory.getTemplate("Villager"));
@@ -44,9 +42,7 @@ public class Villager extends Worker implements Constructor {
             House h = new House();
             addContract(new ConstructContract<>(Villager.this, h));
         });
-        constructions.put("Lumberjack", _ -> {
-            addContract(new ConstructContract<>(Villager.this, Building.createBuilding("Lumberjack")));
-        });
+        constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, Building.createBuilding("Lumberjack"))));
         constructions.put("Wall", _ -> {
             Wall w = new Wall();
             addContract(new ConstructContract<>(Villager.this, w));
@@ -64,7 +60,7 @@ public class Villager extends Worker implements Constructor {
 
 
     @Override
-    public void addContract(Contract c) throws IllegalArgumentException {
+    public void addContract(Contract<Worker> c) throws IllegalArgumentException {
         // Removes current Contract(s), if any
         getContracts().forEach(Contract::abandon);
         getContracts().clear();

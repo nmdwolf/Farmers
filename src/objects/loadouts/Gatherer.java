@@ -24,6 +24,7 @@ public class Gatherer extends Loadout {
     }
 
     @Override
+    // TODO include Boosters
     public String toString() {
             return "Yield: {" + yield + "}";
     }

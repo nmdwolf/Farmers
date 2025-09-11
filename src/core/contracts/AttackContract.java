@@ -2,13 +2,14 @@ package core.contracts;
 
 import objects.Aggressive;
 import objects.GameObject;
+import objects.Operational;
 
-public class AttackContract extends Contract {
+public class AttackContract<T extends GameObject & Operational<T> & Aggressive> extends Contract<T> {
 
     private final GameObject target;
 
-    public AttackContract(Aggressive aggressor, int energyCost, GameObject target) {
-        super((GameObject)aggressor, energyCost);
+    public AttackContract(T aggressor, int energyCost, GameObject target) {
+        super(aggressor, energyCost);
         this.target = target;
     }
 

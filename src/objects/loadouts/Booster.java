@@ -26,12 +26,6 @@ public class Booster extends Loadout implements objects.Booster {
     }
 
     @Override
-    // TODO Why also a GameObject?
-    public ResourceContainer getBoostAmount(GameObject obj) {
-        return yield;
-    }
-
-    @Override
     public String toString() {
         return "Boost radius: " + radius + "\n" +
                 "Boosts: " + yield;

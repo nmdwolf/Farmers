@@ -14,6 +14,7 @@ import static core.GameConstants.COLD_LEVEL;
 import static core.GameConstants.UNIT_TYPE;
 import static core.Status.IDLE;
 
+// TODO Perhaps extend F-bounded quantification to all GameObjects
 public abstract class Unit<U extends Unit<U>> extends Construction implements Animated<U> {
 
     private int energy, maxEnergy, step;

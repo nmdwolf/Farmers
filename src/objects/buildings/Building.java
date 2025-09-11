@@ -3,7 +3,6 @@ package objects.buildings;
 import objects.Construction;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
-import objects.templates.UnitTemplate;
 
 import static core.GameConstants.BUILDING_TYPE;
 

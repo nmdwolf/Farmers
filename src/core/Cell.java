@@ -30,10 +30,8 @@ public class Cell {
     }
 
     public void cycle(int cycle) {
-
         if(cycle % SEASON_LENGTH == 0)
             seasonalCycle((cycle % (4 * SEASON_LENGTH)) / SEASON_LENGTH);
-
         if(heatLevel >= HOT_LEVEL)
             resources.put("Water", Math.max(resources.get("Water") - 2, 0));
     }
@@ -250,6 +248,8 @@ public class Cell {
         for(String res : resources.keySet())
             if(!res.equals("Time"))
                 description.append(res).append(": ").append(resources.get(res)).append("\n");
+
+        description.append("\n\n").append("Heat level: ").append(heatLevel);
 
         return description.toString();
     }

@@ -6,6 +6,7 @@ import core.contracts.ConstructContract;
 import core.player.Player;
 import objects.GameObject;
 import core.Status;
+import objects.Operational;
 import objects.buildings.Building;
 import objects.buildings.Foundation;
 import objects.buildings.Wall;
@@ -19,8 +20,11 @@ import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static UI.CustomMethods.cellCoordinateTransform;
 import static core.GameConstants.*;
@@ -29,21 +33,25 @@ public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;
     private int poolSize, unitRow, buildingRow, enemyRow;
+    private BufferedImage drawing, currentAnimation;
+    private final ArrayDeque<BufferedImage> animations;
 
     private final Property<GameObject> selected;
     private final Property<Pair<GameObject, Boolean>> target;
-    private final Property<Boolean> cellArrowProperty;
+    private final Property<Boolean> cellArrowProperty, animatingProperty;
     private Player player;
     private BiMap objectMap;
     private Cell cell;
 
-    public CellPanel(Property<GameObject> selected, Property<Pair<GameObject, Boolean>> target, Property<Boolean> cellArrowProperty) {
+    public CellPanel(Property<GameObject> selected, Property<Pair<GameObject, Boolean>> target, Property<Boolean> cellArrowProperty, Property<Boolean> animatingProperty) {
         selection = new Pair<>(-1, -1);
         objectMap = new BiMap();
+        animations = new ArrayDeque<>();
         buildingRow = 1;
         this.selected = selected;
         this.target = target;
         this.cellArrowProperty = cellArrowProperty;
+        this.animatingProperty = animatingProperty;
 
         MouseAdapter adapter = new MouseAdapter() {
             @Override
@@ -61,9 +69,13 @@ public class CellPanel extends JPanel {
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
 
+                Pair<Integer, Integer> oldSelection = selection;
                 selection = cellCoordinateTransform(e.getX(), e.getY());
                 if(objectMap.get(selection) == null)
                     selection = new Pair<>(-1, -1);
+
+                if(!oldSelection.equals(selection))
+                    doubleBuffer();
 
                 repaint();
             }
@@ -80,19 +92,20 @@ public class CellPanel extends JPanel {
         setOpaque(false);
     }
 
-    public void update() {
-        update(cell, player);
+    public void updateContent() {
+        updateContent(cell, player);
     }
     
-    public void update(Cell cell, Player player) {
+    public void updateContent(Cell cell, Player player) {
+        Cell oldCell = this.cell;
         this.cell = cell;
         this.player = player;
+
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f)); // TODO Might move to a resize method
 
         unitRow = 0;
         buildingRow = CustomMethods.cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX).value();
         enemyRow = (buildingRow / 2) + 1;
-
 
         if(cell != null) {
             int unitCounter = 0;
@@ -108,6 +121,9 @@ public class CellPanel extends JPanel {
                 } else
                     objectMap.put(new Pair<>(enemyCounter++, enemyRow), object);
             }
+
+            if(!cell.equals(oldCell))
+                doubleBuffer();
         }
     }
 
@@ -118,31 +134,38 @@ public class CellPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if(cell != null) {
-            Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
-
-            gr.setColor(Color.white);
-            gr.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-            gr.setColor(Color.black);
-
-            gr.setStroke(new BasicStroke(2));
-            gr.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-
-            drawField(gr);
-            drawForest(gr);
-            drawRiver(gr);
-            drawObjects(gr);
-
-            if(target.getUnsafe().value()) {
-                Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-                cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
-
-                gr.setColor(new Color(0, 0, 0, 128));
-                gr.fill(cover);
-            }
-
-            gr.dispose();
+        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
+        if(drawing != null) {
+            if(animatingProperty.getUnsafe())
+                gr.drawImage(currentAnimation, null, 0, 0);
+            else if (cell != null)
+                gr.drawImage(drawing, null, 0, 0);
         }
+    }
+
+    public void doubleBuffer() {
+        drawing = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = CustomMethods.optimizeGraphics(drawing.createGraphics());
+        gr.setColor(Color.white);
+        gr.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+        gr.setColor(Color.black);
+
+        gr.setStroke(new BasicStroke(2));
+        gr.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+
+        drawField(gr);
+        drawForest(gr);
+        drawRiver(gr);
+        drawObjects(gr);
+
+        if (target.getUnsafe().value()) {
+            Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+            cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
+
+            gr.setColor(new Color(0, 0, 0, 128));
+            gr.fill(cover);
+        }
+        gr.dispose();
     }
 
     public void drawField(Graphics2D gr) {
@@ -221,7 +244,7 @@ public class CellPanel extends JPanel {
                             drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
                     });
 
-                    u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract)c).forEach(c -> {
+                    u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract<?>)c).forEach(c -> {
                         Pair<Integer, Integer> targetPair = objectMap.get(c.getTarget());
                         if(targetPair != null)
                             drawWavyArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), pair.value() * (CELL_Y_MARGIN + SPRITE_SIZE_MAX), (CELL_X_MARGIN + SPRITE_SIZE_MAX) * targetPair.key(),targetPair.value() * (CELL_Y_MARGIN + SPRITE_SIZE_MAX));
@@ -275,6 +298,39 @@ public class CellPanel extends JPanel {
         // TODO Fix bounding box for nonstandard sprite sizes (cf. CustomMethods.selectedSprite)
         if(selection.key() !=-1 && selection.value() != -1)
             drawBox(gr, player.getAlternativeColor(), selection);
+    }
+
+    public void cycleAnimation() {
+        if(animatingProperty.getUnsafe()) {
+            if(!animations.isEmpty())
+                currentAnimation = animations.pop();
+            else
+                animatingProperty.set(false);
+        }
+    }
+
+    public void generateCycleAnimation() {
+        if(cell != null && drawing != null) {
+            java.util.List<Operational<?>> drawables = cell.getContent().stream().filter(Operational.class::isInstance).map(obj -> (Operational<?>) obj).collect(Collectors.toCollection(ArrayList::new));
+
+            for (Operational<?> obj : drawables) {
+                for (int i = 0; i < 4; i++) {
+                    BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());
+                    gr.setColor(Color.black);
+                    gr.drawImage(drawing, null, 0, 0);
+                    gr.drawString(obj.toString() + " -- " + i, 10, 10);
+                    gr.dispose();
+                    animations.addLast(img);
+                }
+            }
+        } else {
+            animatingProperty.set(false);
+            animatingProperty.bindSingle(bool -> {
+                if(bool)
+                    animatingProperty.set(false);
+            });
+        }
     }
 
     private void drawBox(Graphics2D gr, Color c, Pair<Integer, Integer> pos) {

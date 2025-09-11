@@ -4,7 +4,6 @@ import core.*;
 
 import UI.*;
 import core.player.Player;
-import objects.loadouts.Fighter;
 import objects.loadouts.Loadout;
 import objects.templates.Template;
 import org.jetbrains.annotations.NotNull;
@@ -99,10 +98,10 @@ public abstract class GameObject {
     public void changeSight(int amount) { sight += amount; }
 
     public void cycle(int cycle) { degrade(cycle); }
-    public int getStartCycle() { return startCycle; }
+    public final int getStartCycle() { return startCycle; }
 
     public void degrade(int cycle) {
-        if(degradeTime > 0 && (cycle - getStartCycle()) % degradeTime == 0)
+        if(cycle != startCycle && degradeTime > 0 && (cycle - startCycle) % degradeTime == 0)
             changeHealth(-degradeAmount);
     }
     public int getDegradeTime() { return degradeTime; }

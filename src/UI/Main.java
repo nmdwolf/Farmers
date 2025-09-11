@@ -30,7 +30,7 @@ public class Main extends JFrame{
     @NotNull private final Property<Integer> current, cycle;
     @NotNull private final Property<Player> currentPlayer;
     @NotNull private final Property<String> audioSource;
-    @NotNull private final Property<Boolean> shuffleMusic, playMusic;
+    @NotNull private final Property<Boolean> shuffleMusic, playMusic, animating;
     private Thread audioThread;
     private DJ dj;
 
@@ -40,7 +40,7 @@ public class Main extends JFrame{
     private final ArrayList<Player> players, allPlayers;
 
     private final ArrayList<AI> ais;
-    private final Timer garbageCollector;
+    private final Thread garbageCollector;
     private final GameFrame game;
 
     /**
@@ -74,68 +74,94 @@ public class Main extends JFrame{
         current = new Property<>(0);
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
+        animating = new Property<>(false);
 
         showPlayerInputDialog();
         currentPlayer.set(players.get(current.getUnsafe()));
 
-        game = new GameFrame(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic);
+        game = new GameFrame(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic, animating);
         game.initialize();
         startMusic();
 
         // Add player change logic
-        current.bind(_-> this.nextPlayer());
+        current.bind(_-> {
+            // All objects should 'work' at the end of every cycle.
+            // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
+            for (GameObject object : currentPlayer.getUnsafe().getObjects())
+                object.cycle(cycle.getUnsafe());
 
-        garbageCollector = new Timer(100, _ -> {
-            for(Player p : allPlayers) {
-                for(GameObject obj : p.getNewObjects()) {
-                    addObject(obj);
-                    obj.setCell(obj.getCell());
+            animating.set(true);
+            if(animating.getUnsafe()) {
+                Timer animationTimer = new Timer(250, null);
+                animationTimer.addActionListener(e -> {
+                    SwingUtilities.invokeLater(game::cycleAnimation);
+
+                    if (!animating.getUnsafe()) { // callback when animation is over
+                        ((Timer) e.getSource()).stop();
+                        nextPlayer();
+                    }
+                });
+                animationTimer.start();
+            } else
+                nextPlayer();
+        });
+
+        garbageCollector = new Thread(() -> {
+            while (true) {
+                try { Thread.sleep(100); } catch (InterruptedException e) { break; }
+                for(Player p : allPlayers) {
+                    for(GameObject obj : p.getNewObjects()) {
+                        addObject(obj);
+                        obj.setCell(obj.getCell());
+                    }
+
+                    for (GameObject obj : p.getObjects()) {
+                        if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
+                            p.removeObject(obj);
+
+                        if(obj instanceof Animated<?> a)
+                            a.step();
+                    }
+
+                    for(GameObject obj : p.getRemovableObjects())
+                        removeObject(obj);
                 }
 
-                for (GameObject obj : p.getObjects()) {
-                    if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
-                        p.removeObject(obj);
+                SwingUtilities.invokeLater(() -> {
+                    for (String text : currentPlayer.getUnsafe().getMessages())
+                        game.showMessagePanel(text);
+                    game.refreshWindow();
+                });
 
-                    if(obj instanceof Animated a)
-                        a.step();
-                }
-
-                for(GameObject obj : p.getRemovableObjects())
-                    removeObject(obj);
             }
-
-            for (String text : currentPlayer.getUnsafe().getMessages())
-                game.showMessagePanel(text);
-
-            game.refreshWindow();
         });
         garbageCollector.start();
     }
 
-    /**
-     * Gives control to the next player in queue.
-     * If the last player of the queue has finished his turn, the AIs are given control and a new cycle is started.
-     */
     private void nextPlayer() {
-        // When last player of round has played
-        if(current.getUnsafe() == players.size()) {
-            for(AI ai : ais) // Let AIs play at end of cycle
-                ai.makeMove(cycle.getUnsafe());
-
-            cycle.set(cycle.getUnsafe() + 1);
-            cells.cycle(cycle.getUnsafe());
-
-            current.setAsParent(0);
-        }
+        if (current.getUnsafe() == players.size())
+            playEndOfCycle();
 
         currentPlayer.set(players.get(current.getUnsafe()));
         currentPlayer.getUnsafe().validateMissions();
 
-        for (GameObject object : currentPlayer.getUnsafe().getObjects())
-            object.cycle(cycle.getUnsafe());
+        SwingUtilities.invokeLater(() -> {
+            game.hidePanels(true);
+            game.refreshWindow();
+        });
+    }
 
-        game.hidePanels(true);
-        game.refreshWindow();
+    /**
+     * If the last player of the queue has finished his turn, the AIs are given control and a new cycle is started.
+     */
+    private void playEndOfCycle() {
+        for(AI ai : ais) // Let AIs play at end of cycle
+            ai.makeMove(cycle.getUnsafe());
+
+        cycle.set(cycle.getUnsafe() + 1);
+        cells.cycle(cycle.getUnsafe());
+
+        current.setAsParent(0);
     }
 
     /**
@@ -331,8 +357,8 @@ public class Main extends JFrame{
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
 
-        // TODO Rephrase through getType()?
-        if(!(obj instanceof Unit unit))
+        // TODO Rephrase through getType()? Does lose type safety and pattern matching
+        if(!(obj instanceof Unit<?> unit))
             throw new IllegalArgumentException("GameObject should be of type Unit.");
 
         if(target == obj.getCell())
@@ -440,20 +466,20 @@ public class Main extends JFrame{
      */
     @Deprecated
     private int calculateTravelCost(GameObject obj, Cell target) {
-        if(obj instanceof Unit object) {
-            int locX = object.getMaxEnergy();
-            int locY = object.getMaxEnergy();
+        if(obj instanceof Unit<?> unit) {
+            int locX = unit.getMaxEnergy();
+            int locY = unit.getMaxEnergy();
 //            int locLevel = object.getMaxEnergy();
 
             ArrayList<Cell> toDo = new ArrayList<>();
             ArrayList<Cell> done = new ArrayList<>();
             done.add(target);
 
-            if (target.distanceTo(object.getCell()) > object.getMaxEnergy())
+            if (target.distanceTo(unit.getCell()) > unit.getMaxEnergy())
                 return NUMBER_OF_CELLS;
 
-            if (object.getCell().getZ() == target.getZ()) {
-                int[][] grid = new int[2 * object.getMaxEnergy() + 1][2 * object.getMaxEnergy() + 1];
+            if (unit.getCell().getZ() == target.getZ()) {
+                int[][] grid = new int[2 * unit.getMaxEnergy() + 1][2 * unit.getMaxEnergy() + 1];
                 for (int x = -locX; x < locX + 1; x++) {
                     for (int y = -locY; y < locY + 1; y++) {
                         grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : 9;
@@ -484,7 +510,7 @@ public class Main extends JFrame{
                             for (int y = -1; y < 2; y++) {
                                 if (x * y == 0) {
                                     Cell next = cells.get(loc.getLocation().add(x, y, 0));
-                                    if (target.distanceTo(next) <= object.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
+                                    if (target.distanceTo(next) <= unit.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
                                         tempList.add(next);
                                 }
                             }
@@ -495,12 +521,12 @@ public class Main extends JFrame{
                     toDo = tempList;
                 }
 
-                int deltaX = object.getCell().getX() - target.getX();
-                int deltaY = object.getCell().getY() - target.getY();
+                int deltaX = unit.getCell().getX() - target.getX();
+                int deltaY = unit.getCell().getY() - target.getY();
 
 //            printTranspose(grid);
 
-                return grid[locX + deltaX][locY + deltaY] - object.getCell().getTravelCost();
+                return grid[locX + deltaX][locY + deltaY] - unit.getCell().getTravelCost();
             }
         }
         return NUMBER_OF_CELLS;

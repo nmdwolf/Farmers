@@ -61,7 +61,7 @@ public class GameFrame extends JFrame {
     public GameFrame(@NotNull Main main, @NotNull Grid cells,
                      @NotNull Property<Integer> current, @NotNull Property<Integer> cycle, @NotNull Property<Player> player,
                      @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic,
-                     @NotNull Property<Boolean> shuffleMusic) {
+                     @NotNull Property<Boolean> shuffleMusic, @NotNull Property<Boolean> animatingProperty) {
         parent = main;
         this.cells = cells;
         this.current = current;
@@ -96,7 +96,7 @@ public class GameFrame extends JFrame {
         operationsPanel = new OperationsPanel(cellWidth, cellHeight);
         choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources, target);
         infoPanel = new InfoPanel(selected);
-        cellPanel = new CellPanel(selected, target, cellArrowProperty);
+        cellPanel = new CellPanel(selected, target, cellArrowProperty, animatingProperty);
         settingsPanel = new SettingsPanel(cursorFlag, audioSource, playMusic, shuffleMusic, cellArrowProperty);
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
@@ -122,7 +122,8 @@ public class GameFrame extends JFrame {
         });
         target.bind(pair -> {
             if (!pair.value()) {
-                selected.ifPresent(fighter -> ((Unit) fighter).addContract(new AttackContract((Aggressive) fighter, ((Aggressive) fighter).getAttackCost(), pair.key())));
+                selected.ifPresent(fighter ->
+                    ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive) fighter).getAttackCost(), pair.key())));
                 selected.set(null);
             }
         });
@@ -136,8 +137,6 @@ public class GameFrame extends JFrame {
 
         addResizeListener();
         setSize(new Dimension(INITIAL_SCREEN_SIZE, INITIAL_SCREEN_SIZE));
-//        revalidate();
-//        repaint();
 
         contentPanel.add(choicePanel, Integer.valueOf(1));
         contentPanel.add(operationsPanel, Integer.valueOf(1));
@@ -253,10 +252,8 @@ public class GameFrame extends JFrame {
                 hoverPath.set(null);
                 destination = null;
                 selected.set(null);
+                cellPanel.generateCycleAnimation();
                 current.set(current.getUnsafe() + 1);
-
-                hidePanels(true);
-                refreshWindow();
             }
         });
         contentPanel.getActionMap().put("left", new AbstractAction() {
@@ -267,7 +264,7 @@ public class GameFrame extends JFrame {
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.getUnsafe());
+                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.getUnsafe());
                 }
             }
         });
@@ -279,7 +276,7 @@ public class GameFrame extends JFrame {
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(1, 0, 0), player.getUnsafe());
+                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(1, 0, 0), player.getUnsafe());
                 }
             }
         });
@@ -291,7 +288,7 @@ public class GameFrame extends JFrame {
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, -1, 0), player.getUnsafe());
+                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, -1, 0), player.getUnsafe());
                 }
             }
         });
@@ -303,7 +300,7 @@ public class GameFrame extends JFrame {
                     refreshWindow();
 
                     if(cellPanel.isVisible())
-                        cellPanel.update(cellPanel.getCurrentCell().fetch(0, 1, 0), player.getUnsafe());
+                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, 1, 0), player.getUnsafe());
                 }
             }
         });
@@ -388,7 +385,7 @@ public class GameFrame extends JFrame {
                         // If clicked on cell with objects, show info panel
                         // TODO Change this check to cells within view distance
                         if (player.getUnsafe().getObjects().stream().anyMatch(obj -> obj.getCell().getLocation().equals(clickPos))) {
-                            cellPanel.update(cells.get(clickPos), player.getUnsafe());
+                            cellPanel.updateContent(cells.get(clickPos), player.getUnsafe());
                             cellPanel.setVisible(true);
                             clicked.set(true);
                         } else
@@ -850,7 +847,7 @@ public class GameFrame extends JFrame {
         cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
                 " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
 
-        cellPanel.update();
+        cellPanel.updateContent();
         contentPanel.revalidate();
         contentPanel.repaint();
     }
@@ -871,8 +868,10 @@ public class GameFrame extends JFrame {
         operationsPanel.setVisible(false);
         choicePanel.setVisible(false);
         settingsPanel.setVisible(false);
-        if(alsoCellPanel)
+        if(alsoCellPanel) {
+            cellPanel.updateContent(null, player.getUnsafe());
             cellPanel.setVisible(false);
+        }
     }
 
     /**
@@ -890,6 +889,7 @@ public class GameFrame extends JFrame {
     /**
      * Turns a given Motion object into a thread that moves the object along the given path.
      * If the thread is interrupted, the path is completed instantly.
+     * TODO Add motions that span multiple cycles
      * @param motion path to complete
      */
     public void motionToThread(Motion motion) {
@@ -910,5 +910,9 @@ public class GameFrame extends JFrame {
             }
         };
         new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
+    }
+
+    public void cycleAnimation() {
+        cellPanel.cycleAnimation();
     }
 }

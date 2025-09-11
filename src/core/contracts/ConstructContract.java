@@ -5,7 +5,7 @@ import objects.buildings.Foundation;
 import objects.Spacer;
 import objects.units.Worker;
 
-public class ConstructContract<T extends Construction> extends Contract{
+public class ConstructContract<T extends Construction> extends Contract<Worker>{
 
     private final T constructable;
     private final Foundation<T> foundation;
