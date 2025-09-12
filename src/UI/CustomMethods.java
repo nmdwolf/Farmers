@@ -86,6 +86,7 @@ public class CustomMethods {
         }
     }
 
+    @Deprecated
     public static BufferedImage selectedSprite(BufferedImage sprite, Color color) {
         BufferedImage img = new BufferedImage(sprite.getWidth() + 2, sprite.getHeight() + 2, BufferedImage.TYPE_INT_ARGB);
         Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());

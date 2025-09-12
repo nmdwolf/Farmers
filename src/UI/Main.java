@@ -30,7 +30,7 @@ public class Main extends JFrame{
     @NotNull private final Property<Integer> current, cycle;
     @NotNull private final Property<Player> currentPlayer;
     @NotNull private final Property<String> audioSource;
-    @NotNull private final Property<Boolean> shuffleMusic, playMusic, animating;
+    @NotNull private final Property<Boolean> shuffleMusic, playMusic, animating, active;
     private Thread audioThread;
     private DJ dj;
 
@@ -68,6 +68,7 @@ public class Main extends JFrame{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
+        active = new Property<>(true);
         audioSource = new Property<>("src/music/FAVA - Lifetracks/");
         shuffleMusic = new Property<>(SHUFFLE_MUSIC);
         playMusic = new Property<>(PLAY_MUSIC);
@@ -107,7 +108,7 @@ public class Main extends JFrame{
         });
 
         garbageCollector = new Thread(() -> {
-            while (true) {
+            while (active.getUnsafe()) {
                 try { Thread.sleep(100); } catch (InterruptedException e) { break; }
                 for(Player p : allPlayers) {
                     for(GameObject obj : p.getNewObjects()) {

@@ -34,7 +34,7 @@ public class CellPanel extends JPanel {
     private Pair<Integer, Integer> selection;
     private int poolSize, unitRow, buildingRow, enemyRow;
     private BufferedImage drawing, currentAnimation;
-    private final ArrayDeque<BufferedImage> animations;
+    private ArrayDeque<BufferedImage> animations;
 
     private final Property<GameObject> selected;
     private final Property<Pair<GameObject, Boolean>> target;
@@ -63,6 +63,8 @@ public class CellPanel extends JPanel {
                     target.set(new Pair<>(obj, false));
                 else if(SwingUtilities.isLeftMouseButton(e))
                     selected.set(obj);
+
+                refresh();
             }
 
             @Override
@@ -75,20 +77,19 @@ public class CellPanel extends JPanel {
                     selection = new Pair<>(-1, -1);
 
                 if(!oldSelection.equals(selection))
-                    doubleBuffer();
-
-                repaint();
+                    refresh();
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 super.mouseExited(e);
                 selection = new Pair<>(-1, -1);
+                refresh();
             }
         };
-
         addMouseListener(adapter);
         addMouseMotionListener(adapter);
+
         setOpaque(false);
     }
 
@@ -135,15 +136,33 @@ public class CellPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
-        if(drawing != null) {
+        if(cell != null) {
             if(animatingProperty.getUnsafe())
                 gr.drawImage(currentAnimation, null, 0, 0);
-            else if (cell != null)
+            else {
                 gr.drawImage(drawing, null, 0, 0);
+                drawDetails(gr);
+                drawSelection(gr);
+
+                if (target.getUnsafe().value()) {
+                    Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+                    cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
+
+                    gr.setColor(new Color(0, 0, 0, 128));
+                    gr.fill(cover);
+                }
+            }
         }
     }
 
-    public void doubleBuffer() {
+    public synchronized void refresh() {
+        if(cell != null) {
+            doubleBuffer();
+            repaint();
+        }
+    }
+
+    private void doubleBuffer() {
         drawing = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D gr = CustomMethods.optimizeGraphics(drawing.createGraphics());
         gr.setColor(Color.white);
@@ -157,25 +176,17 @@ public class CellPanel extends JPanel {
         drawForest(gr);
         drawRiver(gr);
         drawObjects(gr);
-
-        if (target.getUnsafe().value()) {
-            Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-            cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
-
-            gr.setColor(new Color(0, 0, 0, 128));
-            gr.fill(cover);
-        }
         gr.dispose();
     }
 
-    public void drawField(Graphics2D gr) {
+    private void drawField(Graphics2D gr) {
         if (cell.isField()) {
             gr.setColor(new Color(200, 120, 0, 100));
             gr.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
         }
     }
 
-    public void drawRiver(Graphics2D gr) {
+    private void drawRiver(Graphics2D gr) {
         
         if (cell.isRiver()) {
             gr.setColor(new Color(0, 100, 255));
@@ -209,7 +220,7 @@ public class CellPanel extends JPanel {
      * TODO Fix rounded corners for arcs!
      * @param gr Graphics object from panel
      */
-    public void drawForest(Graphics2D gr) {
+    private void drawForest(Graphics2D gr) {
         if (cell.isForest()) {
             gr.setColor(new Color(20, 150, 20));
 
@@ -229,6 +240,29 @@ public class CellPanel extends JPanel {
         /*
          * Draw all (visible/relevant) game objects taking into account their state
          */
+        for(Pair<Integer, Integer> pair : objectMap.posSet()) {
+            GameObject object = objectMap.get(pair);
+            object.getSprite(true).ifPresentOrElse(
+                    sprite -> gr.drawImage(sprite,
+                            (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN,
+                            (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN, null),
+                    () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN + gr.getFontMetrics().getHeight()));
+
+            // Draws a coloured box around objects of other players to indicate the corresponding Player
+            if(!object.getPlayer().equals(player) && objectMap.get(object) != objectMap.get(selected.getUnsafe()))
+                drawBox(gr, object.getPlayer().getColor(), objectMap.get(object));
+        }
+
+        if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
+            gr.setColor(new Color(80, 40, 10));
+            Stroke oldStroke = gr.getStroke();
+            gr.setStroke(new BasicStroke(20));
+            gr.drawOval(getWidth() / 6, getHeight() / 6, 2 * getWidth() / 3, 2 * getHeight() / 3);
+            gr.setStroke(oldStroke);
+        }
+    }
+
+    public void drawDetails(Graphics2D gr) {
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
             GameObject object = objectMap.get(pair);
             selected.get().ifPresentOrElse(
@@ -256,6 +290,7 @@ public class CellPanel extends JPanel {
                 int part = (int)(currentLength / pieces);
                 double remainder = (currentLength / pieces) - part;
 
+                // Drawing of cycling box
                 if(part > 0) {
                     gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + SPRITE_SIZE_MAX, CELL_Y_MARGIN);
                     if(part > 1) {
@@ -273,26 +308,18 @@ public class CellPanel extends JPanel {
                 } else
                     gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + (int)(SPRITE_SIZE_MAX * remainder), CELL_Y_MARGIN);
             }
-
-            object.getSprite(true).ifPresentOrElse(
-                    sprite -> gr.drawImage(selected.get().map(
-                                    obj -> object.equals(obj) ? CustomMethods.selectedSprite(sprite, gr.getColor()) : sprite).orElse(sprite),
-                            (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN,
-                            (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN, null),
-                    () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), (CELL_Y_MARGIN + SPRITE_SIZE_MAX) * pair.value() + CELL_Y_MARGIN + gr.getFontMetrics().getHeight()));
-
-            // Draws a coloured box around objects of other players to indicate the corresponding Player
-            if(!object.getPlayer().equals(player) && objectMap.get(object) != objectMap.get(selected.getUnsafe()))
-                drawBox(gr, object.getPlayer().getColor(), objectMap.get(object));
         }
+    }
 
-        if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
-            gr.setColor(new Color(80, 40, 10));
-            Stroke oldStroke = gr.getStroke();
-            gr.setStroke(new BasicStroke(20));
-            gr.drawOval(getWidth() / 6, getHeight() / 6, 2 * getWidth() / 3, 2 * getHeight() / 3);
-            gr.setStroke(oldStroke);
-        }
+    private void drawSelection(Graphics2D gr) {
+        // Draw box around currently selected object
+        selected.ifPresent(obj -> {
+            gr.setColor(obj.getPlayer().getAlternativeColor());
+            gr.setStroke(new BasicStroke(2));
+            obj.getSprite(true).ifPresentOrElse(
+                    img -> gr.drawRect(objectMap.get(obj).key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, objectMap.get(obj).value() * (SPRITE_SIZE_MAX + CELL_Y_MARGIN) + CELL_Y_MARGIN, img.getWidth(), img.getHeight()),
+                    () -> drawBox(gr, obj.getPlayer().getAlternativeColor(), objectMap.get(obj)));
+        });
 
         // Draws the selection box for Unit/Building/Foundation objects
         // TODO Fix bounding box for nonstandard sprite sizes (cf. CustomMethods.selectedSprite)
@@ -310,26 +337,33 @@ public class CellPanel extends JPanel {
     }
 
     public void generateCycleAnimation() {
-        if(cell != null && drawing != null) {
+        if(cell != null) {
+            if(drawing == null)
+                doubleBuffer();
+
             java.util.List<Operational<?>> drawables = cell.getContent().stream().filter(Operational.class::isInstance).map(obj -> (Operational<?>) obj).collect(Collectors.toCollection(ArrayList::new));
+
+            animations = new ArrayDeque<>(drawables.size() * 4 + 1); // 4 frames per object + 1 for the initial frame
+            currentAnimation = drawing;
 
             for (Operational<?> obj : drawables) {
                 for (int i = 0; i < 4; i++) {
                     BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                     Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());
-                    gr.setColor(Color.black);
                     gr.drawImage(drawing, null, 0, 0);
+                    gr.setColor(Color.black);
                     gr.drawString(obj.toString() + " -- " + i, 10, 10);
                     gr.dispose();
                     animations.addLast(img);
                 }
+                animations.addLast(drawing);
             }
         } else {
             animatingProperty.set(false);
             animatingProperty.bindSingle(bool -> {
                 if(bool)
                     animatingProperty.set(false);
-            });
+            }); // allows to skip pause between players
         }
     }
 
@@ -430,4 +464,5 @@ public class CellPanel extends JPanel {
             return objToPos.keySet();
         }
     }
+
 }

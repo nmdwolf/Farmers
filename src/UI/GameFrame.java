@@ -371,7 +371,7 @@ public class GameFrame extends JFrame {
                     destination = null;
 
                     // Any existing panels should be hidden on click
-                    hidePanels(true);
+                    hidePanels(false);
 
                     /*
                      * left-click events
@@ -393,7 +393,6 @@ public class GameFrame extends JFrame {
 
                         // right-click events
                     } else if (SwingUtilities.isRightMouseButton(e)) {
-
                         selected.get().ifPresent(obj -> {
 
                             if(obj instanceof Unit unit) {
@@ -411,7 +410,6 @@ public class GameFrame extends JFrame {
                                 }
                             }
                         });
-
                         selected.set(null);
                     }
 
@@ -462,7 +460,7 @@ public class GameFrame extends JFrame {
                 layout.putConstraint(SpringLayout.WEST, settingsPanel, (int)(2 * cellWidth), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, settingsPanel, (int)cellHeight, SpringLayout.NORTH, contentPanel);
 
-                hidePanels(true);
+                hidePanels(true); // little cheat while setting up the game frame (DO NOT REMOVE!!)
                 refreshWindow();
             }
         });
@@ -848,6 +846,7 @@ public class GameFrame extends JFrame {
                 " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
 
         cellPanel.updateContent();
+        cellPanel.refresh();
         contentPanel.revalidate();
         contentPanel.repaint();
     }
