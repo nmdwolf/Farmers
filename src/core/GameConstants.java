@@ -51,6 +51,8 @@ public interface GameConstants {
     boolean PLAY_MUSIC = false;
     boolean SHOW_CELL_ARROWS = true;
     boolean CUSTOM_CURSOR = true;
+    int FPS = 60;
+    String MUSIC_FOLDER = "src/music/FAVA - Lifetracks/";
 
     Color GRAY = new Color(210, 210, 210);
     String[] PLAYER_COLORS = new String[]{"Blue", "Green", "Yellow"};

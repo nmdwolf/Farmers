@@ -19,7 +19,6 @@ import objects.units.Warrior;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.Timer;
 import java.awt.*;
 import java.util.*;
 
@@ -27,10 +26,12 @@ import static core.GameConstants.*;
 
 public class Main extends JFrame{
 
-    @NotNull private final Property<Integer> current, cycle;
+    private int current;
+    @NotNull private final Property<Integer> cycle;
     @NotNull private final Property<Player> currentPlayer;
     @NotNull private final Property<String> audioSource;
-    @NotNull private final Property<Boolean> shuffleMusic, playMusic, animating, active;
+    @NotNull private final Property<Boolean> shuffleMusic, playMusic;
+    @NotNull private final Property<GameState> gameState;
     private Thread audioThread;
     private DJ dj;
 
@@ -40,7 +41,7 @@ public class Main extends JFrame{
     private final ArrayList<Player> players, allPlayers;
 
     private final ArrayList<AI> ais;
-    private final Thread garbageCollector;
+    private final Thread gameLoop;
     private final GameFrame game;
 
     /**
@@ -68,48 +69,37 @@ public class Main extends JFrame{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
-        active = new Property<>(true);
-        audioSource = new Property<>("src/music/FAVA - Lifetracks/");
+        audioSource = new Property<>(MUSIC_FOLDER);
         shuffleMusic = new Property<>(SHUFFLE_MUSIC);
         playMusic = new Property<>(PLAY_MUSIC);
-        current = new Property<>(0);
+        current = 0;
         cycle = new Property<>(1);
         cells = new Grid(NUMBER_OF_CELLS);
-        animating = new Property<>(false);
+        gameState = new Property<>(GameState.PLAYING);
 
         showPlayerInputDialog();
-        currentPlayer.set(players.get(current.getUnsafe()));
+        currentPlayer.set(players.getFirst());
 
-        game = new GameFrame(this, cells, current, cycle, currentPlayer, audioSource, playMusic, shuffleMusic, animating);
+        game = new GameFrame(this, cells, cycle, currentPlayer, audioSource, playMusic, shuffleMusic, gameState);
         game.initialize();
         startMusic();
 
         // Add player change logic
-        current.bind(_-> {
-            // All objects should 'work' at the end of every cycle.
-            // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
-            for (GameObject object : currentPlayer.getUnsafe().getObjects())
-                object.cycle(cycle.getUnsafe());
-
-            animating.set(true);
-            if(animating.getUnsafe()) {
-                Timer animationTimer = new Timer(250, null);
-                animationTimer.addActionListener(e -> {
-                    SwingUtilities.invokeLater(game::cycleAnimation);
-
-                    if (!animating.getUnsafe()) { // callback when animation is over
-                        ((Timer) e.getSource()).stop();
-                        nextPlayer();
-                    }
-                });
-                animationTimer.start();
-            } else
-                nextPlayer();
+        gameState.bind(state -> {
+           if(state == GameState.IDLE)
+               nextPlayer();
+           else if(state == GameState.ANIMATING) {
+               // All objects should 'work' at the end of every cycle.
+               // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
+               for (GameObject object : currentPlayer.getUnsafe().getObjects())
+                   object.cycle(cycle.getUnsafe());
+               current++;
+           }
         });
 
-        garbageCollector = new Thread(() -> {
-            while (active.getUnsafe()) {
-                try { Thread.sleep(100); } catch (InterruptedException e) { break; }
+        // TODO perhaps try to remove this additional thread. Since game runs essentially sequentially, this might not be necessary.
+        gameLoop = new Thread(() -> {
+            while (gameState.getUnsafe() != GameState.CLOSE) {
                 for(Player p : allPlayers) {
                     for(GameObject obj : p.getNewObjects()) {
                         addObject(obj);
@@ -119,7 +109,6 @@ public class Main extends JFrame{
                     for (GameObject obj : p.getObjects()) {
                         if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                             p.removeObject(obj);
-
                         if(obj instanceof Animated<?> a)
                             a.step();
                     }
@@ -128,28 +117,34 @@ public class Main extends JFrame{
                         removeObject(obj);
                 }
 
-                SwingUtilities.invokeLater(() -> {
-                    for (String text : currentPlayer.getUnsafe().getMessages())
-                        game.showMessagePanel(text);
-                    game.refreshWindow();
-                });
+                if(gameState.getUnsafe() == GameState.ANIMATING)
+                    game.cycleAnimation();
 
+                game.updateContent();
+
+                try { Thread.sleep(1000 / FPS); } catch (InterruptedException e) { break; }
             }
         });
-        garbageCollector.start();
+        gameLoop.start();
+
+        // In case of shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            gameState.set(GameState.CLOSE);
+            if(dj != null)
+                dj.closeStream();
+            gameLoop.interrupt();
+        }));
     }
 
     private void nextPlayer() {
-        if (current.getUnsafe() == players.size())
+        if (current == players.size())
             playEndOfCycle();
 
-        currentPlayer.set(players.get(current.getUnsafe()));
+        currentPlayer.set(players.get(current));
         currentPlayer.getUnsafe().validateMissions();
 
-        SwingUtilities.invokeLater(() -> {
-            game.hidePanels(true);
-            game.refreshWindow();
-        });
+        SwingUtilities.invokeLater(() -> game.hidePanels(true));
+        gameState.set(GameState.PLAYING);
     }
 
     /**
@@ -162,7 +157,7 @@ public class Main extends JFrame{
         cycle.set(cycle.getUnsafe() + 1);
         cells.cycle(cycle.getUnsafe());
 
-        current.setAsParent(0);
+        current = 0;
     }
 
     /**
@@ -531,5 +526,9 @@ public class Main extends JFrame{
             }
         }
         return NUMBER_OF_CELLS;
+    }
+
+    public static enum GameState {
+        PLAYING, ANIMATING, IDLE, CLOSE;
     }
 }

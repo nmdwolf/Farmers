@@ -98,6 +98,12 @@ public class CustomMethods {
         return img;
     }
 
+    /**
+     * Rotates a given image about its geometric center over the specified angle.
+     * @param img original image to be rotated
+     * @param angle rotation angle in radians
+     * @return rotated image
+     */
     public static BufferedImage rotateImage(BufferedImage img, double angle) {
         double sin = Math.abs(Math.sin(angle));
         double cos = Math.abs(Math.cos(angle));

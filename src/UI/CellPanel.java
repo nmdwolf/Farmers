@@ -11,6 +11,7 @@ import objects.buildings.Building;
 import objects.buildings.Foundation;
 import objects.buildings.Wall;
 import objects.units.Unit;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,59 +33,63 @@ import static core.GameConstants.*;
 public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;
-    private int poolSize, unitRow, buildingRow, enemyRow;
-    private BufferedImage drawing, currentAnimation;
-    private ArrayDeque<BufferedImage> animations;
+    private int poolSize, unitRow, buildingRow, enemyRow, cycle;
+    private BufferedImage drawing, currentAnimationFrame;
+    private ArrayDeque<Animation> animations;
 
     private final Property<GameObject> selected;
     private final Property<Pair<GameObject, Boolean>> target;
-    private final Property<Boolean> cellArrowProperty, animatingProperty;
+    private final Property<Boolean> cellArrowProperty;
+    private final Property<Main.GameState> gameState;
     private Player player;
     private BiMap objectMap;
     private Cell cell;
 
-    public CellPanel(Property<GameObject> selected, Property<Pair<GameObject, Boolean>> target, Property<Boolean> cellArrowProperty, Property<Boolean> animatingProperty) {
+    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject> selected, @NotNull Property<Pair<GameObject, Boolean>> target, @NotNull Property<Boolean> cellArrowProperty, @NotNull Property<Main.GameState> gameState) {
+        cell = initialCell;
+        player = initialPlayer;
         selection = new Pair<>(-1, -1);
         objectMap = new BiMap();
         animations = new ArrayDeque<>();
         buildingRow = 1;
+        cycle = 0;
         this.selected = selected;
         this.target = target;
         this.cellArrowProperty = cellArrowProperty;
-        this.animatingProperty = animatingProperty;
+        this.gameState = gameState;
 
         MouseAdapter adapter = new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseClicked(e);
-                GameObject obj = objectMap.get(selection);
+                if(gameState.getUnsafe() == Main.GameState.PLAYING) {
+                    GameObject obj = objectMap.get(selection);
 
-                if(target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
-                    target.set(new Pair<>(obj, false));
-                else if(SwingUtilities.isLeftMouseButton(e))
-                    selected.set(obj);
-
-                refresh();
+                    if (target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
+                        target.set(new Pair<>(obj, false));
+                    else if (SwingUtilities.isLeftMouseButton(e))
+                        selected.set(obj);
+                }
             }
 
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
 
-                Pair<Integer, Integer> oldSelection = selection;
-                selection = cellCoordinateTransform(e.getX(), e.getY());
-                if(objectMap.get(selection) == null)
-                    selection = new Pair<>(-1, -1);
-
-                if(!oldSelection.equals(selection))
-                    refresh();
+                if(gameState.getUnsafe() == Main.GameState.PLAYING) {
+                    Pair<Integer, Integer> oldSelection = selection;
+                    selection = cellCoordinateTransform(e.getX(), e.getY());
+                    if (objectMap.get(selection) == null)
+                        selection = new Pair<>(-1, -1);
+                }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 super.mouseExited(e);
-                selection = new Pair<>(-1, -1);
-                refresh();
+
+                if(gameState.getUnsafe() == Main.GameState.PLAYING)
+                    selection = new Pair<>(-1, -1);
             }
         };
         addMouseListener(adapter);
@@ -97,24 +102,24 @@ public class CellPanel extends JPanel {
         updateContent(cell, player);
     }
     
-    public void updateContent(Cell cell, Player player) {
+    public void updateContent(@NotNull Cell cell, @NotNull Player player) {
         Cell oldCell = this.cell;
+        Player oldPlayer = this.player;
         this.cell = cell;
         this.player = player;
 
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f)); // TODO Might move to a resize method
-
         unitRow = 0;
         buildingRow = CustomMethods.cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX).value();
         enemyRow = (buildingRow / 2) + 1;
 
-        if(cell != null) {
+        if(!player.equals(oldPlayer) || !cell.equals(oldCell) || cell.contentChanged()) {
             int unitCounter = 0;
             int buildingCounter = 0;
             int enemyCounter = 0;
             objectMap = new BiMap();
             for (GameObject object : cell.getContent()) {
-                if(object.getPlayer().equals(player)) {
+                if (object.getPlayer().equals(player)) {
                     if (object instanceof Unit)
                         objectMap.put(new Pair<>(unitCounter++, unitRow), object);
                     else if (object instanceof Building || object instanceof Foundation)
@@ -123,8 +128,7 @@ public class CellPanel extends JPanel {
                     objectMap.put(new Pair<>(enemyCounter++, enemyRow), object);
             }
 
-            if(!cell.equals(oldCell))
-                doubleBuffer();
+            doubleBuffer();
         }
     }
 
@@ -136,40 +140,34 @@ public class CellPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
-        if(cell != null) {
-            if(animatingProperty.getUnsafe())
-                gr.drawImage(currentAnimation, null, 0, 0);
-            else {
-                gr.drawImage(drawing, null, 0, 0);
-                drawDetails(gr);
-                drawSelection(gr);
 
-                if (target.getUnsafe().value()) {
-                    Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-                    cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
+        if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
+            gr.drawImage(drawing, null, 0, 0);
+            gr.drawImage(currentAnimationFrame, null, (getWidth() - currentAnimationFrame.getWidth()) / 2, (getHeight() - currentAnimationFrame.getHeight()) / 2);
+        }
+        else {
+            gr.drawImage(drawing, null, 0, 0);
+            drawDetails(gr);
+            drawSelection(gr);
 
-                    gr.setColor(new Color(0, 0, 0, 128));
-                    gr.fill(cover);
-                }
+            if (target.getUnsafe().value()) {
+                Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+                cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + SPRITE_SIZE_MAX) - SPRITE_SIZE_MAX / 2f, getWidth() - CELL_X_MARGIN, 2 * SPRITE_SIZE_MAX, 30, 30)));
+
+                gr.setColor(new Color(0, 0, 0, 128));
+                gr.fill(cover);
             }
         }
     }
 
-    public synchronized void refresh() {
-        if(cell != null) {
-            doubleBuffer();
-            repaint();
-        }
-    }
-
-    private void doubleBuffer() {
+    public void doubleBuffer() {
         drawing = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D gr = CustomMethods.optimizeGraphics(drawing.createGraphics());
         gr.setColor(Color.white);
         gr.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
         gr.setColor(Color.black);
 
-        gr.setStroke(new BasicStroke(2));
+        gr.setStroke(new BasicStroke(STROKE_WIDTH));
         gr.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
 
         drawField(gr);
@@ -263,6 +261,7 @@ public class CellPanel extends JPanel {
     }
 
     public void drawDetails(Graphics2D gr) {
+        gr.setStroke(new BasicStroke(STROKE_WIDTH));
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
             GameObject object = objectMap.get(pair);
             selected.get().ifPresentOrElse(
@@ -270,12 +269,12 @@ public class CellPanel extends JPanel {
                     () -> gr.setColor(object.getPlayer().getColor()));
 
             // Draws animation around working Units
-            if(object instanceof Unit<?> u && u.getStatus() == Status.WORKING) {
+            if(object.getPlayer().equals(player) && object instanceof Unit<?> u && u.getStatus() == Status.WORKING) {
                 if(cellArrowProperty.getUnsafe()) {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
                         Pair<Integer, Integer> targetPair = objectMap.get(c.getFoundation());
                         if(targetPair != null)
-                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),getHeight() - CELL_X_MARGIN - SPRITE_SIZE_MAX);
+                            drawArrow(gr, (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key(), CELL_Y_MARGIN,targetPair.key() * (CELL_X_MARGIN + SPRITE_SIZE_MAX),targetPair.value() * (CELL_Y_MARGIN + SPRITE_SIZE_MAX));
                     });
 
                     u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract<?>)c).forEach(c -> {
@@ -285,10 +284,10 @@ public class CellPanel extends JPanel {
                     });
                 }
 
-                double pieces = u.getCycleLength() / 4f;
-                int currentLength = u.getCurrentStep() + 1;
-                int part = (int)(currentLength / pieces);
-                double remainder = (currentLength / pieces) - part;
+                cycle = (++cycle % FPS);
+                double pieces = FPS / 4f;
+                int part = (int)(cycle / pieces);
+                double remainder = (cycle / pieces) - part;
 
                 // Drawing of cycling box
                 if(part > 0) {
@@ -315,7 +314,7 @@ public class CellPanel extends JPanel {
         // Draw box around currently selected object
         selected.ifPresent(obj -> {
             gr.setColor(obj.getPlayer().getAlternativeColor());
-            gr.setStroke(new BasicStroke(2));
+            gr.setStroke(new BasicStroke(STROKE_WIDTH));
             obj.getSprite(true).ifPresentOrElse(
                     img -> gr.drawRect(objectMap.get(obj).key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, objectMap.get(obj).value() * (SPRITE_SIZE_MAX + CELL_Y_MARGIN) + CELL_Y_MARGIN, img.getWidth(), img.getHeight()),
                     () -> drawBox(gr, obj.getPlayer().getAlternativeColor(), objectMap.get(obj)));
@@ -327,44 +326,44 @@ public class CellPanel extends JPanel {
             drawBox(gr, player.getAlternativeColor(), selection);
     }
 
+    //TODO Should "animations" be a deque or can it be a list?
     public void cycleAnimation() {
-        if(animatingProperty.getUnsafe()) {
-            if(!animations.isEmpty())
-                currentAnimation = animations.pop();
-            else
-                animatingProperty.set(false);
+        if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
+            if(!animations.isEmpty()) {
+                Toolkit.getDefaultToolkit().sync();
+                if(animations.peek().isEmpty())
+                    animations.pop();
+                if(!animations.isEmpty())
+                    currentAnimationFrame = animations.peek().pop();
+            }
+            else {
+                setVisible(false);
+                gameState.set(Main.GameState.IDLE);
+            }
         }
     }
 
+    /**
+     * Generates an animation set based on the {@code GameObject}s presents in this {@code Cell}.
+     */
     public void generateCycleAnimation() {
-        if(cell != null) {
+        if(isVisible()) {
             if(drawing == null)
                 doubleBuffer();
 
-            java.util.List<Operational<?>> drawables = cell.getContent().stream().filter(Operational.class::isInstance).map(obj -> (Operational<?>) obj).collect(Collectors.toCollection(ArrayList::new));
+//            java.util.List<Operational<?>> drawables = cell.getContent().stream().filter(Operational.class::isInstance).map(obj -> (Operational<?>) obj).collect(Collectors.toCollection(ArrayList::new));
+            java.util.List<GameObject> drawables = cell.getContent().stream().filter(Operational.class::isInstance).collect(Collectors.toCollection(ArrayList::new));
 
-            animations = new ArrayDeque<>(drawables.size() * 4 + 1); // 4 frames per object + 1 for the initial frame
-            currentAnimation = drawing;
+            animations = new ArrayDeque<>(drawables.size()); // 4 frames per object + 1 for the initial frame
+            currentAnimationFrame = drawing;
 
-            for (Operational<?> obj : drawables) {
-                for (int i = 0; i < 4; i++) {
-                    BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-                    Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());
-                    gr.drawImage(drawing, null, 0, 0);
-                    gr.setColor(Color.black);
-                    gr.drawString(obj.toString() + " -- " + i, 10, 10);
-                    gr.dispose();
-                    animations.addLast(img);
-                }
-                animations.addLast(drawing);
-            }
-        } else {
-            animatingProperty.set(false);
-            animatingProperty.bindSingle(bool -> {
-                if(bool)
-                    animatingProperty.set(false);
-            }); // allows to skip pause between players
-        }
+//            for (Operational<?> obj : drawables)
+//                    animations.addLast(new Animation(drawing, FPS));
+            for(GameObject obj : drawables)
+                obj.getSprite(true).ifPresent(img -> animations.addLast(new Animation(img, FPS)));
+
+        } else
+            gameState.set(Main.GameState.IDLE);
     }
 
     private void drawBox(Graphics2D gr, Color c, Pair<Integer, Integer> pos) {
