@@ -14,12 +14,12 @@ import java.util.Objects;
 
 public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
 
-    private final GameObject object;
+    private final GameObject<?> object;
     private final BufferedImage image;
     private final int length;
     private int code;
 
-    public Animation(GameObject obj, int numOfFrames) {
+    public Animation(GameObject<?> obj, int numOfFrames) {
         super(numOfFrames * ((Operational<?>)obj).getLogger().size());
 
         object = obj;

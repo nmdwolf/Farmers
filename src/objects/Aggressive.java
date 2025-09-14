@@ -8,7 +8,7 @@ public interface Aggressive {
 
     int getRange();
 
-    void attack(GameObject obj);
+    void attack(GameObject<?> obj);
 
     void changeAttack(int amount);
 

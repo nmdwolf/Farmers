@@ -15,7 +15,7 @@ public class Cell {
     private final int cellX, cellY, cellZ;
 
     private Cell east, west, north, south, up, down;
-    private final HashSet<GameObject> content;
+    private final HashSet<GameObject<?>> content;
 
     public Cell(int x, int y, int z, int s, int b) {
         this.cellX = x;
@@ -120,15 +120,15 @@ public class Cell {
 
     public boolean isField() { return resources.get("Food") >= FOOD_THRESHOLD; }
 
-    public void addContent(GameObject obj) {
+    public void addContent(GameObject<?> obj) {
         content.add(obj);
     }
 
-    public void removeContent(GameObject obj) {
+    public void removeContent(GameObject<?> obj) {
         content.remove(obj);
     }
 
-    public HashSet<GameObject> getContent() { return content; }
+    public HashSet<GameObject<?>> getContent() { return content; }
 
     /**
      * Changes parameters of the cell when the season switches

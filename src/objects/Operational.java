@@ -14,31 +14,65 @@ import java.util.ArrayList;
  */
 public interface Operational<U extends GameObject & Operational<U>> {
 
+    /**
+     * Gives a list of all operations of the specified type that this object can perform at the current time.
+     * @param cycle current cycle
+     * @param code type of operations
+     * @return list of operations of the specified type
+     */
     OperationsList getOperations(int cycle, OperationCode code);
 
     /**
-     * Performs work on the list of active contracts if this Unit has sufficient energy.
+     * Performs work on the list of active contracts if this object has sufficient energy.
      */
     void work();
 
+    /**
+     * Adds a contract (compatible with this object's type) to the list of active contracts.
+     * @param c new contract
+     */
     void addContract(Contract<U> c);
 
     /**
-     * Transfers a contract from an existing owner to this GameObject.
+     * Transfers a contract from an existing owner to this object.
      * @param c contract to transfer
      */
     void transferContract(Contract<U> c);
 
+    /**
+     * Retrieves the list of active contracts.
+     * @return list of active contracts
+     */
     ArrayList<Contract<U>> getContracts();
 
+    /**
+     * Stops working on all contracts and stops moving.
+     */
     void seizeActions();
 
+    /**
+     * Gives the currently remaining energy of this object.
+     * @return remaining energy
+     */
     int getEnergy();
 
+    /**
+     * Gives the maximum energy this object has.
+     * This is the amount of energy this object has at the start of a new cycle (after calling {@code cycle()}.
+     * @return maximum energy
+     */
     int getMaxEnergy();
 
+    /**
+     * Changes the currently available energy.
+     * @param amount energy change
+     */
     void changeEnergy(int amount);
 
+    /**
+     * Changes the maximum energy of this object.
+     * @param amount energy change
+     */
     void changeMaxEnergy(int amount);
 
     /**

@@ -16,7 +16,7 @@ import static core.GameConstants.UNIT_TYPE;
 import static core.Status.IDLE;
 
 // TODO Perhaps extend F-bounded quantification to all GameObjects
-public abstract class Unit<U extends Unit<U>> extends Construction implements Animated<U> {
+public abstract class Unit<U extends Unit<U>> extends Construction<U> implements Animated<U> {
 
     private int energy, maxEnergy, step;
     private final int animationDelay;
@@ -55,23 +55,28 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
         changeHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
     }
 
+    @Override
     public int getEnergy() {
         return energy;
     }
 
+    @Override
     public void changeEnergy(int amount) {
         energy += amount;
     }
 
+    @Override
     public int getMaxEnergy() {
         return maxEnergy;
     }
 
+    @Override
     public void changeMaxEnergy(int amount) {
         maxEnergy += amount;
         energy += amount;
     }
 
+    @Override
     public int getAnimationDelay() { return animationDelay; }
 
     @Override

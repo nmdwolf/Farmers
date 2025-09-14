@@ -15,7 +15,7 @@ import java.util.Optional;
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
 
-public abstract class GameObject {
+public abstract class GameObject<G extends GameObject<G>> {
 
     private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>(), maxiSprites = new HashMap<>();
 
@@ -158,7 +158,7 @@ public abstract class GameObject {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof GameObject go) && (id == go.getObjectIdentifier());
+        return (obj instanceof GameObject<?> go) && (id == go.getObjectIdentifier());
     }
 
     @Override

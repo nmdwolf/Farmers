@@ -6,7 +6,7 @@ import objects.templates.ConstructionTemplate;
 
 import java.util.Optional;
 
-public abstract class Construction extends GameObject {
+public abstract class Construction<T extends Construction<T>> extends GameObject<T> {
 
     private int completed;
     private final int energyCost, constructionTime;

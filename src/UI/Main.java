@@ -86,7 +86,7 @@ public class Main extends JFrame{
         current.bind(_ -> {
             // All objects should 'work' at the end of every cycle.
             // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
-            for (GameObject object : currentPlayer.getUnsafe().getObjects())
+            for (GameObject<?> object : currentPlayer.getUnsafe().getObjects())
                 object.cycle(cycle.getUnsafe());
         });
 
@@ -101,12 +101,12 @@ public class Main extends JFrame{
             while (gameState.getUnsafe() != GameState.CLOSE) {
                 boolean reload = false;
                 for(Player p : allPlayers) {
-                    for(GameObject obj : p.getNewObjects()) {
+                    for(GameObject<?> obj : p.getNewObjects()) {
                         reload = addObject(obj) || reload;
                         obj.setCell(obj.getCell());
                     }
 
-                    for (GameObject obj : p.getObjects()) {
+                    for (GameObject<?> obj : p.getObjects()) {
                         if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                             p.removeObject(obj);
                         if(obj instanceof Animated<?> a)
@@ -116,7 +116,7 @@ public class Main extends JFrame{
                         reload = reload || obj.hasChanged();
                     }
 
-                    for(GameObject obj : p.getRemovableObjects())
+                    for(GameObject<?> obj : p.getRemovableObjects())
                         reload  = removeObject(obj) || reload;
                 }
 
@@ -140,7 +140,7 @@ public class Main extends JFrame{
     }
 
     private void nextPlayer() {
-        for (GameObject object : currentPlayer.getUnsafe().getObjects()) {
+        for (GameObject<?> object : currentPlayer.getUnsafe().getObjects()) {
             if(object instanceof Operational<?> op)
                 op.initLogger();
         }
@@ -248,13 +248,13 @@ public class Main extends JFrame{
 //        else
         players.add(p);
 
-        GameObject base = new TownHall();
+        GameObject<?> base = new TownHall();
         base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
-        GameObject lumberjack = Building.createBuilding("Lumberjack");
+        GameObject<?> lumberjack = Building.createBuilding("Lumberjack");
         lumberjack.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
-        GameObject v1 = new Villager();
+        GameObject<?> v1 = new Villager();
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
-        GameObject v2 = new Villager();
+        GameObject<?> v2 = new Villager();
         v2.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         Hero hero = new Hero();
         hero.setName(p.getName());
@@ -276,7 +276,7 @@ public class Main extends JFrame{
      * @param obj new object
      * @return whether the object has been added or not
      */
-    public boolean addObject(GameObject obj) {
+    public boolean addObject(GameObject<?> obj) {
 
         boolean added = false;
 
@@ -302,7 +302,7 @@ public class Main extends JFrame{
      * Removes a GameObject from the game.
      * @param obj object to remove
      */
-    public boolean removeObject(GameObject obj) {
+    public boolean removeObject(GameObject<?> obj) {
 
         boolean removed = false;
 
@@ -330,7 +330,7 @@ public class Main extends JFrame{
      * @param obj object to move
      * @param loc new Location of object
      */
-    public void moveObject(GameObject obj, Location loc) {
+    public void moveObject(GameObject<?> obj, Location loc) {
         Cell target = cells.get(loc);
         if (!obj.getCell().equals(target)) {
             if(obj instanceof Unit) {
@@ -357,7 +357,7 @@ public class Main extends JFrame{
         }
     }
 
-    public Pair<Motion, Location> getShortestAdmissiblePath(GameObject obj, Cell target) throws IllegalArgumentException, IllegalStateException {
+    public Pair<Motion, Location> getShortestAdmissiblePath(GameObject<?> obj, Cell target) throws IllegalArgumentException, IllegalStateException {
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
 
@@ -469,7 +469,7 @@ public class Main extends JFrame{
      * @return required energy cost
      */
     @Deprecated
-    private int calculateTravelCost(GameObject obj, Cell target) {
+    private int calculateTravelCost(GameObject<?> obj, Cell target) {
         if(obj instanceof Unit<?> unit) {
             int locX = unit.getMaxEnergy();
             int locY = unit.getMaxEnergy();
@@ -536,7 +536,7 @@ public class Main extends JFrame{
         return NUMBER_OF_CELLS;
     }
 
-    public static enum GameState {
-        PLAYING, ANIMATING, IDLE, CLOSE;
+    public enum GameState {
+        PLAYING, ANIMATING, IDLE, CLOSE
     }
 }

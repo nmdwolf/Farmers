@@ -16,7 +16,7 @@ import java.util.Optional;
 import static core.GameConstants.*;
 
 // TODO MERGE WITH BUILDINGS?
-public class Foundation<T extends Construction> extends GameObject {
+public class Foundation<T extends Construction<T>> extends GameObject<T> {
 
     public final static BufferedImage FOUNDATION_SPRITE = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE, SPRITE_SIZE).orElseThrow();
     public final static BufferedImage FOUNDATION_SPRITE_MAX = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();

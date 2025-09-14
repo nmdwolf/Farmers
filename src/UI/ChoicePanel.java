@@ -19,9 +19,9 @@ public class ChoicePanel extends JPanel {
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
-    private final Property<Pair<GameObject, Boolean>> target;
+    private final Property<Pair<GameObject<?>, Boolean>> target;
 
-    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, Property<Pair<GameObject, Boolean>> target) {
+    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, Property<Pair<GameObject<?>, Boolean>> target) {
         this.operationsPanel = operationsPanel;
         this.hideListener = hide;
         this.target = target;
@@ -68,7 +68,7 @@ public class ChoicePanel extends JPanel {
         setOpaque(false);
     }
 
-    public void update(GameObject selected, int cycle) {
+    public void update(GameObject<?> selected, int cycle) {
         for(RoundedButton button : buttons) {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());

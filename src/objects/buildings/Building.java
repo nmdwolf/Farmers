@@ -6,7 +6,7 @@ import objects.templates.TemplateFactory;
 
 import static core.GameConstants.BUILDING_TYPE;
 
-public class Building extends Construction {
+public class Building extends Construction<Building> {
 
     public Building(ConstructionTemplate temp) {
         super(temp);

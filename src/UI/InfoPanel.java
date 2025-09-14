@@ -12,10 +12,10 @@ public class InfoPanel extends JPanel {
     public enum Mode {OBJECT, CELL, PLAYER}
 
     private int width, height;
-    private final Property<GameObject> selected;
+    private final Property<GameObject<?>> selected;
     private Mode mode;
 
-    public InfoPanel(Property<GameObject> selected) {
+    public InfoPanel(Property<GameObject<?>> selected) {
         mode = Mode.OBJECT;
         this.selected = selected;
 

@@ -20,8 +20,8 @@ public class Player {
     private final MissionArchive missionArchive;
     private final AwardArchive awardArchive;
 
-    private final Set<GameObject> objects;
-    private Set<GameObject> newObjects, removableObjects;
+    private final Set<GameObject<?>> objects;
+    private Set<GameObject<?>> newObjects, removableObjects;
     private final HashSet<Upgrade> enabledUpgrades;
     private final HashSet<Cell> discovered, spotted;
     private final ResourceContainer resources, totalResources, gained, spent;
@@ -60,20 +60,20 @@ public class Player {
         gained = new ResourceContainer();
     }
 
-    public Set<GameObject> getObjects() {
+    public Set<GameObject<?>> getObjects() {
         return objects;
     }
 
-    public Set<GameObject> getNewObjects() {
+    public Set<GameObject<?>> getNewObjects() {
         objects.addAll(newObjects);
-        HashSet<GameObject> temp = new HashSet<>(newObjects);
+        HashSet<GameObject<?>> temp = new HashSet<>(newObjects);
         newObjects = ConcurrentHashMap.newKeySet();
         return temp;
     }
 
-    public Set<GameObject> getRemovableObjects() {
+    public Set<GameObject<?>> getRemovableObjects() {
         objects.removeAll(removableObjects);
-        HashSet<GameObject> temp = new HashSet<>(removableObjects);
+        HashSet<GameObject<?>> temp = new HashSet<>(removableObjects);
         removableObjects = ConcurrentHashMap.newKeySet();
         return temp;
     }
@@ -82,7 +82,7 @@ public class Player {
      * Make new object ready to be added to the game field.
      * @param object GameObject to be added
      */
-    public void addObject(GameObject object) {
+    public void addObject(GameObject<?> object) {
         object = civ.initObject(object);
         newObjects.add(object);
 
@@ -104,7 +104,7 @@ public class Player {
             upgrade.apply(object);
     }
 
-    public void removeObject(GameObject object) {
+    public void removeObject(GameObject<?> object) {
         removableObjects.add(object);
         if(object.getType() == UNIT_TYPE)
             changePop(-object.getSize());

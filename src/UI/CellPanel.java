@@ -38,8 +38,8 @@ public class CellPanel extends JPanel {
     private Pair<BufferedImage, String> currentAnimationFrame;
     private ArrayDeque<Animation> animations;
 
-    private final Property<GameObject> selected;
-    private final Property<Pair<GameObject, Boolean>> target;
+    private final Property<GameObject<?>> selected;
+    private final Property<Pair<GameObject<?>, Boolean>> target;
     private final Property<Boolean> cellArrowProperty;
     private final Property<Main.GameState> gameState;
     private Player player;
@@ -47,7 +47,7 @@ public class CellPanel extends JPanel {
     private Cell cell;
     private boolean reload;
 
-    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject> selected, @NotNull Property<Pair<GameObject, Boolean>> target, @NotNull Property<Boolean> cellArrowProperty, @NotNull Property<Main.GameState> gameState) {
+    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject<?>> selected, @NotNull Property<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Boolean> cellArrowProperty, @NotNull Property<Main.GameState> gameState) {
         cell = initialCell;
         player = initialPlayer;
         selection = new Pair<>(-1, -1);
@@ -66,7 +66,7 @@ public class CellPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 super.mouseClicked(e);
                 if(gameState.getUnsafe() == Main.GameState.PLAYING) {
-                    GameObject obj = objectMap.get(selection);
+                    GameObject<?> obj = objectMap.get(selection);
 
                     if (target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
                         target.set(new Pair<>(obj, false));
@@ -121,7 +121,7 @@ public class CellPanel extends JPanel {
             int buildingCounter = 0;
             int enemyCounter = 0;
             objectMap = new BiMap();
-            for (GameObject object : cell.getContent()) {
+            for (GameObject<?> object : cell.getContent()) {
                 if (object.getPlayer().equals(player)) {
                     if (object instanceof Unit)
                         objectMap.put(new Pair<>(unitCounter++, unitRow), object);
@@ -207,7 +207,7 @@ public class CellPanel extends JPanel {
             if(drawing == null)
                 doubleBuffer();
 
-            java.util.List<GameObject> drawables = cell.getContent().stream()
+            java.util.List<GameObject<?>> drawables = cell.getContent().stream()
                     .filter(obj -> obj.getPlayer().equals(player))
                     .filter(Operational.class::isInstance)
                     .filter(obj -> ((Operational<?>) obj).getLogger().size() > 0)
@@ -216,7 +216,7 @@ public class CellPanel extends JPanel {
             animations = new ArrayDeque<>(drawables.size());
             currentAnimationFrame = new Pair<>(drawing, ""); // Start with current cell (without selection boxes)
 
-            for(GameObject obj : drawables)
+            for(GameObject<?> obj : drawables)
                 obj.getSprite(true).ifPresent(_ -> animations.addLast(new Animation(obj, SECONDS_PER_ANIMATION * FPS)));
 
         } else
@@ -285,7 +285,7 @@ public class CellPanel extends JPanel {
          * Draw all (visible/relevant) game objects taking into account their state
          */
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
-            GameObject object = objectMap.get(pair);
+            GameObject<?> object = objectMap.get(pair);
             object.getSprite(true).ifPresentOrElse(
                     sprite -> gr.drawImage(sprite,
                             (CELL_X_MARGIN + SPRITE_SIZE_MAX) * pair.key() + CELL_X_MARGIN,
@@ -311,7 +311,7 @@ public class CellPanel extends JPanel {
         cycle = (++cycle % FPS);
         gr.setStroke(new BasicStroke(STROKE_WIDTH));
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
-            GameObject object = objectMap.get(pair);
+            GameObject<?> object = objectMap.get(pair);
             selected.get().ifPresentOrElse(
                     obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
                     () -> gr.setColor(object.getPlayer().getColor()));
@@ -441,23 +441,23 @@ public class CellPanel extends JPanel {
     }
 
     public static class BiMap {
-        private final HashMap<Pair<Integer, Integer>, GameObject> posToObj;
-        private final HashMap<GameObject, Pair<Integer, Integer>> objToPos;
+        private final HashMap<Pair<Integer, Integer>, GameObject<?>> posToObj;
+        private final HashMap<GameObject<?>, Pair<Integer, Integer>> objToPos;
 
         public BiMap() {
             posToObj = new HashMap<>();
             objToPos = new HashMap<>();
         }
 
-        public GameObject get(Pair<Integer, Integer> pos) {
+        public GameObject<?> get(Pair<Integer, Integer> pos) {
             return posToObj.get(pos);
         }
 
-        public Pair<Integer, Integer> get(GameObject obj) {
+        public Pair<Integer, Integer> get(GameObject<?> obj) {
             return objToPos.get(obj);
         }
 
-        public void put(Pair<Integer, Integer> pos, GameObject obj) {
+        public void put(Pair<Integer, Integer> pos, GameObject<?> obj) {
             posToObj.put(pos, obj);
             objToPos.put(obj, pos);
         }
@@ -466,7 +466,7 @@ public class CellPanel extends JPanel {
             return posToObj.keySet();
         }
 
-        public Set<GameObject> objSet() {
+        public Set<GameObject<?>> objSet() {
             return objToPos.keySet();
         }
     }

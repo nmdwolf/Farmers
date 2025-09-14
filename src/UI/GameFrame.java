@@ -50,8 +50,8 @@ public class GameFrame extends JFrame {
     @NotNull private final Property<Boolean> clicked, cursorFlag;
     @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<InfoPanel.Mode> showResources;
-    @NotNull private final Property<GameObject> selected;
-    @NotNull private final Property<Pair<GameObject, Boolean>> target;
+    @NotNull private final Property<GameObject<?>> selected;
+    @NotNull private final Property<Pair<GameObject<?>, Boolean>> target;
     private int travelDistance;
     private Location clickPos, destination;
     @NotNull private final Property<Location[]> hoverPath;
@@ -392,7 +392,7 @@ public class GameFrame extends JFrame {
                     } else if (SwingUtilities.isRightMouseButton(e)) {
                         selected.get().ifPresent(obj -> {
 
-                            if(obj instanceof Unit unit) {
+                            if(obj instanceof Unit<?> unit) {
                                 Pair<Motion, Location> motion =
                                         parent.getShortestAdmissiblePath(unit, cells.get(clickPos));
 

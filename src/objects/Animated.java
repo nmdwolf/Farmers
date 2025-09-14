@@ -2,6 +2,7 @@ package objects;
 
 public interface Animated<U extends GameObject & Operational<U>> extends Operational<U> {
 
+    @Deprecated
     void step();
 
     /**
@@ -19,5 +20,9 @@ public interface Animated<U extends GameObject & Operational<U>> extends Operati
     @Deprecated
     int getCycleLength();
 
+    /**
+     * Gives this object's "move speed". Used by {@code Motion}'s for animation purposes.
+     * @return move speed
+     */
     int getAnimationDelay();
 }

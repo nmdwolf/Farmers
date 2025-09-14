@@ -35,7 +35,7 @@ public class AI extends Player {
     public void makeMove(int cycle) {
         // init step
         if(base == null)
-            for(GameObject obj : getObjects())
+            for(GameObject<?> obj : getObjects())
                 if (obj instanceof TownHall)
                     base = (TownHall) obj;
 
@@ -46,7 +46,7 @@ public class AI extends Player {
                 v.construct();
         }
 
-        for(Iterator<GameObject> it = getObjects().stream().filter(obj -> obj instanceof Worker).iterator(); it.hasNext();) {
+        for(Iterator<GameObject<?>> it = getObjects().stream().filter(obj -> obj instanceof Worker).iterator(); it.hasNext();) {
             Worker obj = (Worker) it.next();
             Cell newLoc = obj.getCell();
             if(obj.getStatus() == Status.IDLE) {
