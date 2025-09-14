@@ -3,7 +3,7 @@ package core.contracts;
 import objects.GameObject;
 import objects.Operational;
 
-public abstract class Contract<T extends GameObject & Operational<T>> {
+public abstract class Contract<T extends GameObject<T> & Operational<T>> {
 
     private T employee;
     private final int energyCost;

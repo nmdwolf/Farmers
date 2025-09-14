@@ -70,8 +70,10 @@ public class CellPanel extends JPanel {
 
                     if (target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
                         target.set(new Pair<>(obj, false));
-                    else if (SwingUtilities.isLeftMouseButton(e))
+                    else if (SwingUtilities.isLeftMouseButton(e)) {
                         selected.set(obj);
+                        target.set(new Pair<>(null, false));
+                    }
                 }
             }
 
@@ -135,6 +137,10 @@ public class CellPanel extends JPanel {
         }
     }
 
+    /**
+     * Gives the {@code Cell} currently in focus.
+     * @return current cell
+     */
     public Cell getCurrentCell() {
         return cell;
     }

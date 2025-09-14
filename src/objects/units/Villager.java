@@ -58,7 +58,6 @@ public class Villager extends Worker implements Constructor {
             return Optional.of(max ? WORKING_SPRITE_MAX : WORKING_SPRITE);
     }
 
-
     @Override
     public void addContract(Contract<Worker> c) throws IllegalArgumentException {
         // Removes current Contract(s), if any

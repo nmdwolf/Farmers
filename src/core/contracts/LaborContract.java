@@ -39,6 +39,7 @@ public class LaborContract extends Contract<Worker> {
 
     @Override
     public void initialize() {
+        super.initialize();
     }
 
     @Override

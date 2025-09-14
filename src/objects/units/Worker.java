@@ -10,7 +10,7 @@ import objects.templates.UnitTemplate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class Worker extends Unit<Worker> {
+public abstract class Worker extends Unit<Worker> implements objects.Gatherer {
 
     private List<Booster> boosters;
 
@@ -24,11 +24,7 @@ public abstract class Worker extends Unit<Worker> {
         boosters = getPlayer().getObjects().stream().flatMap(obj -> obj.getLoadout(objects.loadouts.Booster.class).stream().filter(booster -> cell.distanceTo(obj.getCell()) <= booster.getBoostRadius())).toList();
     }
 
-    /**
-     * Calculates the production yield of the provided resource, taking into account current {@code Booster}s.
-     * @param resource Resource for which the production yield is calculated.
-     * @return production yield
-     */
+    @Override
     public int getYield(String resource) {
         final AtomicInteger yield = new AtomicInteger(0);
         getLoadout(Gatherer.class).ifPresent(loadout -> {
@@ -53,7 +49,8 @@ public abstract class Worker extends Unit<Worker> {
         return operations;
     }
 
+    @Override
     public int getGatherCost() {
-        return getLoadout(Gatherer.class).map(Gatherer::getEnergyCost).orElse(0);
+        return getLoadout(Gatherer.class).map(Gatherer::getGatherCost).orElse(0);
     }
 }

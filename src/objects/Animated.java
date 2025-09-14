@@ -1,6 +1,6 @@
 package objects;
 
-public interface Animated<U extends GameObject & Operational<U>> extends Operational<U> {
+public interface Animated<U extends GameObject<U> & Operational<U>> extends Operational<U> {
 
     @Deprecated
     void step();

@@ -35,6 +35,7 @@
     "degradeAmount": 2,
     "cycleLength": 12,
     "gatherer": {
+      "energyCost": 1,
       "yield": {
         "resources": ["Food", "Water", "Wood", "Stone"],
         "amounts": [5, 5, 5, 5]

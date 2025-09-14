@@ -9,6 +9,7 @@ import objects.buildings.Building;
 import objects.buildings.TownHall;
 import objects.loadouts.*;
 import objects.loadouts.Booster;
+import objects.loadouts.Gatherer;
 import objects.loadouts.Spacer;
 import objects.templates.*;
 import objects.units.Hero;
@@ -24,7 +25,7 @@ import java.util.function.Consumer;
 
 import static core.GameConstants.*;
 
-public class Main extends JFrame{
+public class Main{
 
     @NotNull private final Property<Integer> cycle, current;
     @NotNull private final Property<Player> currentPlayer;
@@ -139,6 +140,9 @@ public class Main extends JFrame{
         }));
     }
 
+    /**
+     * Switches to the next player.
+     */
     private void nextPlayer() {
         for (GameObject<?> object : currentPlayer.getUnsafe().getObjects()) {
             if(object instanceof Operational<?> op)
@@ -190,6 +194,9 @@ public class Main extends JFrame{
         audioSource.set("src/music/FAVA - Lifetracks/"); // This call will also start playing the music on startup
     }
 
+    /**
+     * Shows an input dialog for a new player's name, the name of its hero and its preferred colour.
+     */
     public void showPlayerInputDialog() {
         boolean inputFlag = true;
         int playerCount = 1;
@@ -357,6 +364,15 @@ public class Main extends JFrame{
         }
     }
 
+    /**
+     * Calculates the shortest path from the given object's {@code Location} to the target {@code Location}
+     * using Dijkstra's algorithm in L1-distance.
+     * @param obj travelling object
+     * @param target target location
+     * @return shortest path (in L1-distance)
+     * @throws IllegalArgumentException if target is {@code null} or object is not a Unit
+     * @throws IllegalStateException if no valid path could be found
+     */
     public Pair<Motion, Location> getShortestAdmissiblePath(GameObject<?> obj, Cell target) throws IllegalArgumentException, IllegalStateException {
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
@@ -462,10 +478,10 @@ public class Main extends JFrame{
     }
 
     /**
-     * Calculates the required energy to travel from the current Location to the target Location
-     * based on Dijkstra's algorithm
+     * Calculates the required energy to travel from the current {@code Location} to the target {@code Location}
+     * based on Dijkstra's algorithm in L1-distance.
      * @param obj travelling object
-     * @param target target Location
+     * @param target target location
      * @return required energy cost
      */
     @Deprecated
@@ -536,6 +552,9 @@ public class Main extends JFrame{
         return NUMBER_OF_CELLS;
     }
 
+    /**
+     * Identifier indicating the current state of the game engine.
+     */
     public enum GameState {
         PLAYING, ANIMATING, IDLE, CLOSE
     }

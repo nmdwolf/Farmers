@@ -1,5 +1,6 @@
 package objects.loadouts;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 
@@ -8,7 +9,7 @@ public class Booster extends Loadout implements objects.Booster {
     private final int radius;
     private final ResourceContainer yield;
 
-    public Booster(int radius, ResourceContainer yield) {
+    public Booster(@JsonProperty(defaultValue = "1") int radius, @JsonProperty(required = true) ResourceContainer yield) {
         super("booster");
         this.radius = radius;
         this.yield = yield;
@@ -20,8 +21,7 @@ public class Booster extends Loadout implements objects.Booster {
     }
 
     @Override
-    // TODO Why also a GameObject?
-    public int getBoostAmount(GameObject obj, String res) {
+    public int getBoostAmount(GameObject<?> obj, String res) {
         return yield.get(res);
     }
 

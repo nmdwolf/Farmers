@@ -8,8 +8,8 @@ public class Fighter extends Loadout implements Aggressive {
 
     private int attack, attackCost, range;
 
-    @JsonCreator
-    public Fighter(int attack, int attackCost, @JsonProperty(defaultValue = "0") int range) {
+    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+    public Fighter(@JsonProperty(required = true) int attack, @JsonProperty(defaultValue = "0") int attackCost, @JsonProperty(defaultValue = "0") int range) {
         super("fighter");
         this.attack = attack;
         this.attackCost = attackCost;
@@ -30,7 +30,7 @@ public class Fighter extends Loadout implements Aggressive {
     }
 
     @Override
-    public void attack(GameObject object) { object.changeHealth(-attack); }
+    public void attack(GameObject<?> object) { object.changeHealth(-attack); }
 
     @Override
     public void changeAttack(int amount) { attack += amount; }

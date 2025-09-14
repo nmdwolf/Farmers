@@ -120,7 +120,7 @@ public class GameFrame extends JFrame {
             refreshWindow();
         });
         target.bind(pair -> {
-            if (!pair.value()) {
+            if (pair.key() != null && !pair.value()) {
                 selected.ifPresent(fighter ->
                     ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive) fighter).getAttackCost(), pair.key())));
                 selected.set(null);

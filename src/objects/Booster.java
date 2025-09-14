@@ -1,7 +1,5 @@
 package objects;
 
-import core.resources.ResourceContainer;
-
 public interface Booster {
 
     /**
@@ -10,5 +8,6 @@ public interface Booster {
      */
     int getBoostRadius();
 
-    int getBoostAmount(GameObject obj, String res);
+    // TODO Why also a GameObject?
+    int getBoostAmount(GameObject<?> obj, String res);
 }

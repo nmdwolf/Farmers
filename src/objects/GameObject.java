@@ -45,26 +45,58 @@ public abstract class GameObject<G extends GameObject<G>> {
         template = temp;
     }
 
+    /**
+     * Returns the {@code Template} used to create this object.
+     * @return creation template
+     */
     public Template getTemplate() {
         return template;
     }
 
+    /**
+     * Initializes this object after creation. Sets the owner, current location and current cycle.
+     * @param player owner
+     * @param cell current location
+     * @param cycle current cycle
+     */
     public void initialize(Player player, Cell cell, int cycle) {
         setPlayer(player);
         setCell(cell);
         startCycle = cycle;
     }
 
+    /**
+     * Returns the identifier of this object. This is unique for each object (and used for the implementation of {@code hashCode()} and {@code equals(Object obj)}).
+     * @return unique identifier
+     */
     public int getObjectIdentifier() { return id; }
 
+    /**
+     * Gives the object's current owner.
+     * @return owner
+     */
     public Player getPlayer() { return player; }
+
+    /**
+     * Sets the object's owner.
+     * @param newPlayer new owner
+     */
     public void setPlayer(Player newPlayer) {
         if(player != null)
             throw new IllegalStateException("Player has already been set.");
         player = newPlayer;
     }
 
+    /**
+     * Gives the object's current location.
+     * @return location
+     */
     public Cell getCell() { return cell; }
+
+    /**
+     * Sets the object's location.
+     * @param cell new location
+     */
     public void setCell(Cell cell) {
         if(this.cell != null)
             this.cell.removeContent(this);
@@ -72,31 +104,87 @@ public abstract class GameObject<G extends GameObject<G>> {
         this.cell.addContent(this);
     }
 
+    /**
+     * Gives the object's class identifier (retrieved from its underlying template).
+     * @return class identifier
+     */
     public String getClassLabel() {
         return template.type;
     }
+
+    /**
+     * Shorthand for its class identifier (used for graphics).
+     * @return class identifier shorthand
+     */
     public String getToken() {
             return template.type.substring(0, 1);
     }
+
+    /**
+     * Gives the object's type (e.g. Unit or Building).
+     * @return object type
+     */
     public abstract int getType();
 
+    /**
+     * Retrieves the sprite corresponding to this object's class identifier (if available).
+     * @param max size
+     * @return sprite (if available)
+     */
     @NotNull
     public Optional<BufferedImage> getSprite(boolean max) { return GameObject.getSprite(template.type, max); }
 
+    /**
+     * Gives the amount of space occupied by this object.
+     * @return occupied space
+     */
     public int getSize() { return size; }
+
+    /**
+     * Sets the amount of space occupied by this object.
+     * @param amount space change
+     */
     public void changeSpace(int amount) { size += amount; }
 
+    /**
+     * Gives the current health of this object.
+     * @return health
+     */
     public int getHealth() { return health; }
+
+    /**
+     * Changes the current health of this object.
+     * @param amount health change
+     */
     public void changeHealth(int amount) {
         health = Math.min(health + amount, maxHealth);
     }
+
+    /**
+     * Gives the health of this object when it is at full health.
+     * @return maximum health
+     */
     public int getMaxHealth() { return maxHealth;}
+
+    /**
+     * Changes the maximum health of this object.
+     * @param amount health change
+     */
     public void changeMaxHealth(int amount) {
         health += amount;
         maxHealth += amount;
     }
 
+    /**
+     * Gives this object's observation distance.
+     * @return observation distance
+     */
     public int getSight() { return sight; }
+
+    /**
+     * Changes this object's observation distance.
+     * @param amount distance change
+     */
     public void changeSight(int amount) { sight += amount; }
 
     /**
@@ -105,13 +193,32 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @param cycle new cycle
      */
     public void cycle(int cycle) { degrade(cycle); }
+
+    /**
+     * Gives the cycle during which this object was created (set by {@code initialize()}).
+     * @return creation cycle
+     */
     public final int getStartCycle() { return startCycle; }
 
+    /**
+     * Damages this object based on its 'age'.
+     * @param cycle current cycle
+     */
     public void degrade(int cycle) {
         if(cycle != startCycle && degradeTime > 0 && (cycle - startCycle) % degradeTime == 0)
             changeHealth(-degradeAmount);
     }
+
+    /**
+     * Gives the time at which this object will start degrading.
+     * @return degradation start
+     */
     public int getDegradeTime() { return degradeTime; }
+
+    /**
+     * Gives the amount of health this object will lose every cycle beyond its degradation start.
+     * @return damage taken by degradation
+     */
     public int getDegradeAmount() { return degradeAmount; }
 
     /**
@@ -170,11 +277,22 @@ public abstract class GameObject<G extends GameObject<G>> {
         return s.toString();
     }
 
+    /**
+     * Registers a new sprite corresponding to the specified class identifier.
+     * @param name class identifier
+     * @param fileName sprite location
+     */
     public static void registerSprite(String name, String fileName) {
         sprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE, SPRITE_SIZE));
         maxiSprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX));
     }
 
+    /**
+     * Retrieves a sprite corresponding to the specified class identifier (if available).
+     * @param name class identifier
+     * @param max size of sprite
+     * @return sprite (if available)
+     */
     public static Optional<BufferedImage> getSprite(String name, boolean max) {
         if(max)
             return maxiSprites.get(name);

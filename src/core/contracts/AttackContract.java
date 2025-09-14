@@ -4,11 +4,11 @@ import objects.Aggressive;
 import objects.GameObject;
 import objects.Operational;
 
-public class AttackContract<T extends GameObject & Operational<T> & Aggressive> extends Contract<T> {
+public class AttackContract<T extends GameObject<T> & Operational<T> & Aggressive> extends Contract<T> {
 
-    private final GameObject target;
+    private final GameObject<?> target;
 
-    public AttackContract(T aggressor, int energyCost, GameObject target) {
+    public AttackContract(T aggressor, int energyCost, GameObject<?> target) {
         super(aggressor, energyCost);
         this.target = target;
     }
@@ -30,7 +30,7 @@ public class AttackContract<T extends GameObject & Operational<T> & Aggressive> 
     @Override
     public void abandon() {}
 
-    public GameObject getTarget() {
+    public GameObject<?> getTarget() {
         return target;
     }
 }

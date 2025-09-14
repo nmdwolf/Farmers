@@ -2,6 +2,9 @@ package objects;
 
 public interface Healer {
 
-    public void heal(GameObject obj);
+    void heal(GameObject<?> obj);
 
+    int getHeal();
+
+    void setHeal(int heal);
 }

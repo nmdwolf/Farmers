@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * Signals that a GameObject can "work" or perform operations.
  * This is also used for the graphics modules to generate a working animation (if applicable).
  */
-public interface Operational<U extends GameObject & Operational<U>> {
+public interface Operational<U extends GameObject<U> & Operational<U>> {
 
     /**
      * Gives a list of all operations of the specified type that this object can perform at the current time.
