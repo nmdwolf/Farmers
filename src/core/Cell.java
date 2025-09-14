@@ -16,14 +16,12 @@ public class Cell {
 
     private Cell east, west, north, south, up, down;
     private final HashSet<GameObject> content;
-    private boolean contentChanged;
 
     public Cell(int x, int y, int z, int s, int b) {
         this.cellX = x;
         this.cellY = y;
         this.cellZ = z;
         this.content = new HashSet<>();
-        contentChanged = true;
         unitSpace = s;
         buildingSpace = b;
         travelCost = INITIAL_TRAVEL_COST;
@@ -124,22 +122,10 @@ public class Cell {
 
     public void addContent(GameObject obj) {
         content.add(obj);
-        contentChanged = true;
     }
 
     public void removeContent(GameObject obj) {
         content.remove(obj);
-        contentChanged = true;
-    }
-
-    /**
-     * Says whether the content of this Cell has changed since the last call.
-     * @return if Cell has changed
-     */
-    public boolean contentChanged() {
-        boolean temp = contentChanged;
-        contentChanged = false;
-        return temp;
     }
 
     public HashSet<GameObject> getContent() { return content; }

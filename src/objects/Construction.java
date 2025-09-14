@@ -25,7 +25,7 @@ public abstract class Construction extends GameObject {
         this.hasVisibleFoundation = template.hasVisibleFoundation;
     }
 
-    public int getCompletion() {
+    public int getCompletionLevel() {
         return completed;
     }
     public int getConstructionTime() { return constructionTime; }

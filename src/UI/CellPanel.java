@@ -34,7 +34,8 @@ public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;
     private int poolSize, unitRow, buildingRow, enemyRow, cycle;
-    private BufferedImage drawing, currentAnimationFrame;
+    private BufferedImage drawing;
+    private Pair<BufferedImage, String> currentAnimationFrame;
     private ArrayDeque<Animation> animations;
 
     private final Property<GameObject> selected;
@@ -44,6 +45,7 @@ public class CellPanel extends JPanel {
     private Player player;
     private BiMap objectMap;
     private Cell cell;
+    private boolean reload;
 
     public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject> selected, @NotNull Property<Pair<GameObject, Boolean>> target, @NotNull Property<Boolean> cellArrowProperty, @NotNull Property<Main.GameState> gameState) {
         cell = initialCell;
@@ -53,6 +55,7 @@ public class CellPanel extends JPanel {
         animations = new ArrayDeque<>();
         buildingRow = 1;
         cycle = 0;
+        reload = false;
         this.selected = selected;
         this.target = target;
         this.cellArrowProperty = cellArrowProperty;
@@ -77,7 +80,6 @@ public class CellPanel extends JPanel {
                 super.mouseMoved(e);
 
                 if(gameState.getUnsafe() == Main.GameState.PLAYING) {
-                    Pair<Integer, Integer> oldSelection = selection;
                     selection = cellCoordinateTransform(e.getX(), e.getY());
                     if (objectMap.get(selection) == null)
                         selection = new Pair<>(-1, -1);
@@ -98,7 +100,8 @@ public class CellPanel extends JPanel {
         setOpaque(false);
     }
 
-    public void updateContent() {
+    public void updateContent(boolean forceReload) {
+        reload = forceReload;
         updateContent(cell, player);
     }
     
@@ -113,7 +116,7 @@ public class CellPanel extends JPanel {
         buildingRow = CustomMethods.cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - SPRITE_SIZE_MAX).value();
         enemyRow = (buildingRow / 2) + 1;
 
-        if(!player.equals(oldPlayer) || !cell.equals(oldCell) || cell.contentChanged()) {
+        if(reload || !player.equals(oldPlayer) || !cell.equals(oldCell)) {
             int unitCounter = 0;
             int buildingCounter = 0;
             int enemyCounter = 0;
@@ -143,7 +146,10 @@ public class CellPanel extends JPanel {
 
         if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
             gr.drawImage(drawing, null, 0, 0);
-            gr.drawImage(currentAnimationFrame, null, (getWidth() - currentAnimationFrame.getWidth()) / 2, (getHeight() - currentAnimationFrame.getHeight()) / 2);
+            gr.drawImage(currentAnimationFrame.key(), null, (getWidth() - currentAnimationFrame.key().getWidth()) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2);
+
+            String description = currentAnimationFrame.value();
+            CustomMethods.drawString(gr, description, (getWidth() - CustomMethods.maxLineWidth(gr, description)) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2 + currentAnimationFrame.key().getHeight() + SPRITE_SIZE_MAX);
         }
         else {
             gr.drawImage(drawing, null, 0, 0);
@@ -175,6 +181,46 @@ public class CellPanel extends JPanel {
         drawRiver(gr);
         drawObjects(gr);
         gr.dispose();
+    }
+
+    //TODO Should "animations" be a deque or can it be a list?
+    public void cycleAnimation() {
+        if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
+            if(!animations.isEmpty()) {
+                if(animations.peek().isEmpty())
+                    animations.pop();
+                if(!animations.isEmpty())
+                    currentAnimationFrame = animations.peek().pop();
+            }
+            else {
+                setVisible(false);
+                gameState.set(Main.GameState.IDLE);
+            }
+        }
+    }
+
+    /**
+     * Generates an animation set based on the {@code GameObject}s presents in this {@code Cell}.
+     */
+    public void generateCycleAnimation() {
+        if(isVisible()) {
+            if(drawing == null)
+                doubleBuffer();
+
+            java.util.List<GameObject> drawables = cell.getContent().stream()
+                    .filter(obj -> obj.getPlayer().equals(player))
+                    .filter(Operational.class::isInstance)
+                    .filter(obj -> ((Operational<?>) obj).getLogger().size() > 0)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            animations = new ArrayDeque<>(drawables.size());
+            currentAnimationFrame = new Pair<>(drawing, ""); // Start with current cell (without selection boxes)
+
+            for(GameObject obj : drawables)
+                obj.getSprite(true).ifPresent(_ -> animations.addLast(new Animation(obj, SECONDS_PER_ANIMATION * FPS)));
+
+        } else
+            gameState.set(Main.GameState.IDLE);
     }
 
     private void drawField(Graphics2D gr) {
@@ -234,7 +280,7 @@ public class CellPanel extends JPanel {
      * Draws GameObjects such as Units and Buildings.
      * @param gr Graphics object from panel
      */
-    public void drawObjects(Graphics2D gr) {
+    private void drawObjects(Graphics2D gr) {
         /*
          * Draw all (visible/relevant) game objects taking into account their state
          */
@@ -251,6 +297,7 @@ public class CellPanel extends JPanel {
                 drawBox(gr, object.getPlayer().getColor(), objectMap.get(object));
         }
 
+        // Walls
         if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
             gr.setColor(new Color(80, 40, 10));
             Stroke oldStroke = gr.getStroke();
@@ -260,7 +307,8 @@ public class CellPanel extends JPanel {
         }
     }
 
-    public void drawDetails(Graphics2D gr) {
+    private void drawDetails(Graphics2D gr) {
+        cycle = (++cycle % FPS);
         gr.setStroke(new BasicStroke(STROKE_WIDTH));
         for(Pair<Integer, Integer> pair : objectMap.posSet()) {
             GameObject object = objectMap.get(pair);
@@ -284,8 +332,7 @@ public class CellPanel extends JPanel {
                     });
                 }
 
-                cycle = (++cycle % FPS);
-                double pieces = FPS / 4f;
+                double pieces = FPS / 4f; // 4 seconds per cycle
                 int part = (int)(cycle / pieces);
                 double remainder = (cycle / pieces) - part;
 
@@ -324,46 +371,6 @@ public class CellPanel extends JPanel {
         // TODO Fix bounding box for nonstandard sprite sizes (cf. CustomMethods.selectedSprite)
         if(selection.key() !=-1 && selection.value() != -1)
             drawBox(gr, player.getAlternativeColor(), selection);
-    }
-
-    //TODO Should "animations" be a deque or can it be a list?
-    public void cycleAnimation() {
-        if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
-            if(!animations.isEmpty()) {
-                Toolkit.getDefaultToolkit().sync();
-                if(animations.peek().isEmpty())
-                    animations.pop();
-                if(!animations.isEmpty())
-                    currentAnimationFrame = animations.peek().pop();
-            }
-            else {
-                setVisible(false);
-                gameState.set(Main.GameState.IDLE);
-            }
-        }
-    }
-
-    /**
-     * Generates an animation set based on the {@code GameObject}s presents in this {@code Cell}.
-     */
-    public void generateCycleAnimation() {
-        if(isVisible()) {
-            if(drawing == null)
-                doubleBuffer();
-
-//            java.util.List<Operational<?>> drawables = cell.getContent().stream().filter(Operational.class::isInstance).map(obj -> (Operational<?>) obj).collect(Collectors.toCollection(ArrayList::new));
-            java.util.List<GameObject> drawables = cell.getContent().stream().filter(Operational.class::isInstance).collect(Collectors.toCollection(ArrayList::new));
-
-            animations = new ArrayDeque<>(drawables.size()); // 4 frames per object + 1 for the initial frame
-            currentAnimationFrame = drawing;
-
-//            for (Operational<?> obj : drawables)
-//                    animations.addLast(new Animation(drawing, FPS));
-            for(GameObject obj : drawables)
-                obj.getSprite(true).ifPresent(img -> animations.addLast(new Animation(img, FPS)));
-
-        } else
-            gameState.set(Main.GameState.IDLE);
     }
 
     private void drawBox(Graphics2D gr, Color c, Pair<Integer, Integer> pos) {

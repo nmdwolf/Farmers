@@ -4,6 +4,7 @@ import core.OperationsList;
 import core.OperationCode;
 import core.Status;
 import core.contracts.Contract;
+import core.contracts.Logger;
 
 import java.util.ArrayList;
 
@@ -57,4 +58,15 @@ public interface Operational<U extends GameObject & Operational<U>> {
      * @param newStatus new status
      */
     void setStatus(Status newStatus);
+
+    /**
+     * Sets a new {@code Logger} for this object.
+     */
+    void initLogger();
+
+    /**
+     * Gives the current {@code Logger} of this object.
+     * @return current logger
+     */
+    Logger getLogger();
 }

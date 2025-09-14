@@ -26,9 +26,11 @@ public abstract class GameObject {
     private final Template template;
 
     private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
+    private boolean changeFlag;
 
     public GameObject(Template temp) {
         id = CustomMethods.getNewIdentifier();
+        changeFlag = false;
 
         this.degradeTime = temp.degradeTime;
         this.degradeAmount = temp.degradeAmount;
@@ -79,7 +81,7 @@ public abstract class GameObject {
     public abstract int getType();
 
     @NotNull
-    public Optional<BufferedImage> getSprite(boolean max) { return GameObject.getSprite(getClassLabel(), max); }
+    public Optional<BufferedImage> getSprite(boolean max) { return GameObject.getSprite(template.type, max); }
 
     public int getSize() { return size; }
     public void changeSpace(int amount) { size += amount; }
@@ -97,6 +99,11 @@ public abstract class GameObject {
     public int getSight() { return sight; }
     public void changeSight(int amount) { sight += amount; }
 
+    /**
+     * Starts a new cycle for this object.
+     * This method should reset all cycle-based parameters (e.g. Energy for {@code Operational} objects.
+     * @param cycle new cycle
+     */
     public void cycle(int cycle) { degrade(cycle); }
     public final int getStartCycle() { return startCycle; }
 
@@ -106,6 +113,24 @@ public abstract class GameObject {
     }
     public int getDegradeTime() { return degradeTime; }
     public int getDegradeAmount() { return degradeAmount; }
+
+    /**
+     * Indicates that something about this GameObject has changed.
+     * This will enable the game loop to repaint.
+     */
+    public void alertChange() {
+        changeFlag = true;
+    }
+
+    /**
+     * Indicates whether something about this GameObject has changed.
+     * @return if something has changed
+     */
+    public boolean hasChanged() {
+        boolean temp = changeFlag;
+        changeFlag = false;
+        return temp;
+    }
 
     /**
      * Retrieves the required Loadout of this Unit (if present).

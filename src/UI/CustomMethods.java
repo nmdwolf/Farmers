@@ -51,9 +51,38 @@ public class CustomMethods {
                 temp[y][x] = grid[x][y];
     }
 
+    /**
+     * Takes a {@code String} containing newline characters and adds a new line at every such character.
+     * @param g graphics object used to draw the string
+     * @param text string to display
+     * @param x horizontal coordinate of first character
+     * @param y vertical coordinate of first character
+     */
     public static void drawString(Graphics g, String text, int x, int y) {
         for (String line : text.split("\n"))
             g.drawString(line, x, y += g.getFontMetrics().getHeight());
+    }
+
+    public static void drawString(Graphics g, String text, int x, int y, int width) {
+        StringBuilder output = new StringBuilder();
+        StringBuilder temp = new StringBuilder();
+        for(char c : text.toCharArray()) {
+            temp.append(c);
+            if(g.getFont().getStringBounds(temp.toString(),
+                    ((Graphics2D)g).getFontRenderContext()).getWidth() >= (2 * width - 4 - 4 - 20)) { // TODO check if this is always valid
+                output.append(temp);
+                output.append("\n");
+                temp = new StringBuilder();
+            }
+        }
+        output.append(temp);
+    }
+
+    public static int maxLineWidth(Graphics g, String s) {
+        int maxWidth = 0;
+        for(String ss : s.split("\n"))
+            maxWidth = Math.max(maxWidth, (int)g.getFont().getStringBounds(ss, ((Graphics2D)g).getFontRenderContext()).getWidth());
+        return maxWidth;
     }
 
     /**
@@ -62,7 +91,7 @@ public class CustomMethods {
      * @return optimized Graphics2D object
      */
     public static Graphics2D optimizeGraphics(Graphics2D gr) {
-        gr.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        gr.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         gr.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
@@ -109,16 +138,20 @@ public class CustomMethods {
         double cos = Math.abs(Math.cos(angle));
         int w = img.getWidth();
         int h = img.getHeight();
+        int maxDim = (int) Math.ceil(Math.sqrt(w * w + h * h));
 
         // Calculate the new dimensions of the rotated image
-        int newW = (int) Math.floor(w * cos + h * sin);
-        int newH = (int) Math.floor(h * cos + w * sin);
+//        double newW = Math.floor(w * cos + h * sin);
+//        double newH = Math.floor(h * cos + w * sin);
+
+        int newW = maxDim; // Always using the maximum size ensures that the center coordinate is fixed
+        int newH = maxDim;
         BufferedImage rotated = new BufferedImage(newW, newH, img.getType());
 
         AffineTransform tf = new AffineTransform();
         tf.translate(newW / 2f, newH / 2f);
         tf.rotate(-angle);
-        tf.translate( - w / 2f, - h / 2f);
+        tf.translate( -w / 2f, -h / 2f);
 
         Graphics2D g2d = CustomMethods.optimizeGraphics(rotated.createGraphics());
         g2d.drawRenderedImage(img, tf);

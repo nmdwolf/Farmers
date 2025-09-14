@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-public class Scout extends Unit implements Evolvable {
+public class Scout extends Unit<Scout> implements Evolvable {
 
     public final static Award BUILT_AWARD = Award.createFreeAward("You can look for new lands.");
     public final static Award EVOLVE_AWARD = Award.createFreeAward("Exploring will be even easier now.");

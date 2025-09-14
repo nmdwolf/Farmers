@@ -2,7 +2,6 @@ package UI;
 
 import core.*;
 
-import core.Action;
 import core.player.AI;
 import core.player.Player;
 import objects.*;
@@ -21,13 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static core.GameConstants.*;
 
 public class Main extends JFrame{
 
-    private int current;
-    @NotNull private final Property<Integer> cycle;
+    @NotNull private final Property<Integer> cycle, current;
     @NotNull private final Property<Player> currentPlayer;
     @NotNull private final Property<String> audioSource;
     @NotNull private final Property<Boolean> shuffleMusic, playMusic;
@@ -72,37 +71,38 @@ public class Main extends JFrame{
         audioSource = new Property<>(MUSIC_FOLDER);
         shuffleMusic = new Property<>(SHUFFLE_MUSIC);
         playMusic = new Property<>(PLAY_MUSIC);
-        current = 0;
         cycle = new Property<>(1);
+        current = new Property<>(0);
         cells = new Grid(NUMBER_OF_CELLS);
         gameState = new Property<>(GameState.PLAYING);
 
         showPlayerInputDialog();
         currentPlayer.set(players.getFirst());
 
-        game = new GameFrame(this, cells, cycle, currentPlayer, audioSource, playMusic, shuffleMusic, gameState);
+        game = new GameFrame(this, cells, cycle, current, currentPlayer, audioSource, playMusic, shuffleMusic, gameState);
         game.initialize();
         startMusic();
+
+        current.bind(_ -> {
+            // All objects should 'work' at the end of every cycle.
+            // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
+            for (GameObject object : currentPlayer.getUnsafe().getObjects())
+                object.cycle(cycle.getUnsafe());
+        });
 
         // Add player change logic
         gameState.bind(state -> {
            if(state == GameState.IDLE)
                nextPlayer();
-           else if(state == GameState.ANIMATING) {
-               // All objects should 'work' at the end of every cycle.
-               // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
-               for (GameObject object : currentPlayer.getUnsafe().getObjects())
-                   object.cycle(cycle.getUnsafe());
-               current++;
-           }
         });
 
-        // TODO perhaps try to remove this additional thread. Since game runs essentially sequentially, this might not be necessary.
+        // The game loop: checks for new/removable objects, fires repaint events, etc.
         gameLoop = new Thread(() -> {
             while (gameState.getUnsafe() != GameState.CLOSE) {
+                boolean reload = false;
                 for(Player p : allPlayers) {
                     for(GameObject obj : p.getNewObjects()) {
-                        addObject(obj);
+                        reload = addObject(obj) || reload;
                         obj.setCell(obj.getCell());
                     }
 
@@ -111,16 +111,19 @@ public class Main extends JFrame{
                             p.removeObject(obj);
                         if(obj instanceof Animated<?> a)
                             a.step();
+
+                        // Checks whether the object has changed
+                        reload = reload || obj.hasChanged();
                     }
 
                     for(GameObject obj : p.getRemovableObjects())
-                        removeObject(obj);
+                        reload  = removeObject(obj) || reload;
                 }
 
                 if(gameState.getUnsafe() == GameState.ANIMATING)
                     game.cycleAnimation();
 
-                game.updateContent();
+                game.updateContent(reload);
 
                 try { Thread.sleep(1000 / FPS); } catch (InterruptedException e) { break; }
             }
@@ -137,10 +140,15 @@ public class Main extends JFrame{
     }
 
     private void nextPlayer() {
-        if (current == players.size())
+        for (GameObject object : currentPlayer.getUnsafe().getObjects()) {
+            if(object instanceof Operational<?> op)
+                op.initLogger();
+        }
+
+        if (current.getUnsafe() == players.size())
             playEndOfCycle();
 
-        currentPlayer.set(players.get(current));
+        currentPlayer.set(players.get(current.getUnsafe()));
         currentPlayer.getUnsafe().validateMissions();
 
         SwingUtilities.invokeLater(() -> game.hidePanels(true));
@@ -156,8 +164,7 @@ public class Main extends JFrame{
 
         cycle.set(cycle.getUnsafe() + 1);
         cells.cycle(cycle.getUnsafe());
-
-        current = 0;
+        current.set(0);
     }
 
     /**
@@ -165,7 +172,7 @@ public class Main extends JFrame{
      */
     public void startMusic() {
 
-        Action<String> audioAction = src -> {
+        Consumer<String> audioAction = src -> {
             if (audioThread != null) {
                 audioThread.interrupt();
                 dj.closeStream();
@@ -295,7 +302,7 @@ public class Main extends JFrame{
      * Removes a GameObject from the game.
      * @param obj object to remove
      */
-    public void removeObject(GameObject obj) {
+    public boolean removeObject(GameObject obj) {
 
         boolean removed = false;
 
@@ -315,6 +322,7 @@ public class Main extends JFrame{
         }
 
         obj.getCell().removeContent(obj);
+        return removed;
     }
 
     /**

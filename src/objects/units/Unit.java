@@ -2,6 +2,7 @@ package objects.units;
 
 import core.*;
 import core.contracts.Contract;
+import core.contracts.Logger;
 import objects.Animated;
 import objects.Construction;
 import core.Status;
@@ -22,6 +23,7 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
     private Status status, oldStatus;
     private final int cycleLength;
     private final ArrayList<Contract<U>> contracts;
+    private Logger logger;
 
     public Unit(UnitTemplate temp) {
         super(temp);
@@ -35,6 +37,7 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
         this.oldStatus = IDLE;
 
         contracts = new ArrayList<>();
+        initLogger();
 
         if(temp.cycleLength == 0)
             throw new IllegalArgumentException("Cycle length has to be nonzero.");
@@ -45,11 +48,11 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
     @Override
     public void cycle(int cycle) {
         super.cycle(cycle);
-        energy = maxEnergy;
-        changeHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
-
         if(getStatus() != Status.WALKING)
             work();
+
+        energy = maxEnergy;
+        changeHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
     }
 
     public int getEnergy() {
@@ -116,6 +119,9 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
     public void setStatus(Status newStatus) {
         oldStatus = status;
         status = newStatus;
+
+        if(oldStatus != newStatus)
+            alertChange();
     }
 
     /**
@@ -129,8 +135,12 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
 
             for (Iterator<Contract<U>> iterator = contracts.iterator(); iterator.hasNext(); ) {
                 Contract<U> c = iterator.next();
-                if (getEnergy() >= c.getEnergyCost() && c.work())
-                    iterator.remove();
+                while(getEnergy() >= c.getEnergyCost()) {
+                    if (c.work(logger)) {
+                        iterator.remove();
+                        break;
+                    }
+                }
             }
         }
 
@@ -195,4 +205,13 @@ public abstract class Unit<U extends Unit<U>> extends Construction implements An
                 "\nEnergy: " + energy + "/" + maxEnergy + super.toString();
     }
 
+    @Override
+    public void initLogger() {
+        logger = new Logger(this);
+    }
+
+    @Override
+    public Logger getLogger() {
+        return logger;
+    }
 }

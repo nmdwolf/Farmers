@@ -46,7 +46,7 @@ public class GameFrame extends JFrame {
     private int mouseX, mouseY;
 
     @NotNull private final Main parent;
-    @NotNull private final Property<Integer> cycle;
+    @NotNull private final Property<Integer> cycle, current;
     @NotNull private final Property<Boolean> clicked, cursorFlag;
     @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<InfoPanel.Mode> showResources;
@@ -59,10 +59,11 @@ public class GameFrame extends JFrame {
     private boolean gps;
     private final HashSet<Motion> motions;
 
-    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Player> player, @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic, @NotNull Property<Boolean> shuffleMusic, @NotNull Property<Main.GameState> gameState) {
+    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> current, @NotNull Property<Player> player, @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic, @NotNull Property<Boolean> shuffleMusic, @NotNull Property<Main.GameState> gameState) {
         parent = main;
         this.cells = cells;
         this.cycle = cycle;
+        this.current = current;
         this.player = player;
 
         // Initial values to avoid 0 issues
@@ -127,8 +128,8 @@ public class GameFrame extends JFrame {
         });
     }
 
-    public void updateContent() {
-        cellPanel.updateContent();
+    public void updateContent(boolean forceReload) {
+        cellPanel.updateContent(forceReload);
         SwingUtilities.invokeLater(() -> {
             refreshWindow();
             contentPanel.revalidate();
@@ -260,6 +261,7 @@ public class GameFrame extends JFrame {
                 hoverPath.set(null);
                 destination = null;
                 selected.set(null);
+                current.set(current.getUnsafe() + 1);
                 cellPanel.generateCycleAnimation();
                 gameState.set(Main.GameState.ANIMATING);
             }
@@ -569,13 +571,11 @@ public class GameFrame extends JFrame {
     }
 
     public void showMessagePanel(String text) {
-
         int lines = 1; // TODO Implement dynamic box height based on number of lines of text.
         StringBuilder output = new StringBuilder();
         StringBuilder temp = new StringBuilder();
         for(char c : text.toCharArray()) {
             temp.append(c);
-            // 2 * cellWidth - 4 - 4 - 20 = getWidth() - getInsets().left - getInsets().right - 2 * x-coord of gr.drawString
             if(font.getStringBounds(temp.toString(),
                     ((Graphics2D)getContentPane().getGraphics()).getFontRenderContext()).getWidth() >= (2 * cellWidth - 4 - 4 - 20)) {
                 output.append(temp);

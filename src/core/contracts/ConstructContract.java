@@ -11,7 +11,7 @@ public class ConstructContract<T extends Construction> extends Contract<Worker>{
     private final Foundation<T> foundation;
 
     public ConstructContract(Worker employee, T constructable) {
-        super(employee, constructable.getCompletion());
+        super(employee, constructable.getEnergyCost());
         this.constructable = constructable;
         foundation = new Foundation<>(constructable, this);
         foundation.initialize(employee.getPlayer(), employee.getCell(), constructable.getStartCycle());
@@ -37,16 +37,14 @@ public class ConstructContract<T extends Construction> extends Contract<Worker>{
     }
 
     @Override
-    public boolean work() {
-        super.work();
-        if(isStarted()) {
-            if (((Worker)getEmployee()).getEnergy() >= constructable.getEnergyCost()) {
-                constructable.construct();
-                foundation.changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
-                ((Worker)getEmployee()).changeEnergy(constructable.getEnergyCost());
-            }
+    public boolean work(Logger logger) {
+        if(super.work(logger)) {
+            constructable.construct();
+            foundation.changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
+            foundation.alertChange();
         }
 
+        logger.logConstruction(constructable.isCompleted());
         if(constructable.isCompleted()) {
             terminate();
             return true;

@@ -23,13 +23,18 @@ public class LaborContract extends Contract<Worker> {
     public String getResource() { return resource; }
 
     @Override
-    public boolean work() {
-        int amount = getEmployee().getYield(resource);
-        int gain = -cell.changeResource(resource, -amount);
-        getEmployee().getPlayer().changeResource(resource, gain);
-        getEmployee().step();
+    public boolean work(Logger logger) {
+        if(super.work(logger)) {
+            int amount = getEmployee().getYield(resource);
+            int gain = -cell.changeResource(resource, -amount);
+            getEmployee().getPlayer().changeResource(resource, gain);
+            getEmployee().step();
 
-        return (cell.getResource(resource) == 0);
+            boolean finished = (cell.getResource(resource) == 0);
+            logger.logLabour(resource, finished);
+            return finished;
+        }
+        return false;
     }
 
     @Override

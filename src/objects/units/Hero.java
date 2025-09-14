@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.*;
 import core.OperationsList;
+import core.contracts.Contract;
 import core.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 import objects.Aggressive;
@@ -21,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-public class Hero extends Unit implements Aggressive {
+public class Hero extends Unit<Hero> implements Aggressive {
 
     public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6)).get();
     public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6)).get();

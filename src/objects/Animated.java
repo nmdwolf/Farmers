@@ -8,6 +8,7 @@ public interface Animated<U extends GameObject & Operational<U>> extends Operati
      * Current step in the working cycle.
      * @return current working stage
      */
+    @Deprecated
     int getCurrentStep();
 
     /**
@@ -15,6 +16,7 @@ public interface Animated<U extends GameObject & Operational<U>> extends Operati
      * (This should be a multiple of 4.)
      * @return working cycle length
      */
+    @Deprecated
     int getCycleLength();
 
     int getAnimationDelay();

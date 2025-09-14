@@ -58,7 +58,7 @@ public class Foundation<T extends Construction> extends GameObject {
             gr.setColor(new Color(getPlayer().getColor().getRed(), getPlayer().getColor().getGreen(), getPlayer().getColor().getBlue(), 128));
             int minSize = Math.min(sprite.getWidth(), sprite.getHeight());
 
-            Area outerDisk = new Area(new Arc2D.Double(sprite.getWidth() == minSize ? 0 : (sprite.getWidth() - minSize) / 2f, sprite.getHeight() == minSize ? 0 : (sprite.getHeight() - minSize) / 2f, minSize, minSize, 0, -(int)(360. * constructable.getCompletion() / constructable.getConstructionTime()), Arc2D.PIE));
+            Area outerDisk = new Area(new Arc2D.Double(sprite.getWidth() == minSize ? 0 : (sprite.getWidth() - minSize) / 2f, sprite.getHeight() == minSize ? 0 : (sprite.getHeight() - minSize) / 2f, minSize, minSize, 0, -(int)(360. * constructable.getCompletionLevel() / constructable.getConstructionTime()), Arc2D.PIE));
 
             int innerSize = minSize / 2;
             Area innerDisk = new Area(new Ellipse2D.Double(sprite.getWidth() == minSize ? minSize / 4f : (sprite.getWidth() - minSize) / 2f + minSize / 4f, sprite.getHeight() == minSize ? minSize / 4f : (sprite.getHeight() - minSize) / 2f + minSize / 4f, innerSize, innerSize));

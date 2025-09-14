@@ -14,9 +14,14 @@ public class AttackContract<T extends GameObject & Operational<T> & Aggressive> 
     }
 
     @Override
-    public boolean work() {
-        ((Aggressive)getEmployee()).attack(target);
-        return super.work() && target.getHealth() <= 0;
+    public boolean work(Logger logger) {
+        if(super.work(logger)) {
+            getEmployee().attack(target);
+            boolean result = target.getHealth() <= 0;
+            logger.logAttack(result);
+            return result;
+        }
+        return false;
     }
 
     @Override

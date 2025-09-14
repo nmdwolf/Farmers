@@ -15,5 +15,6 @@
   "cost": {
     "resources": [],
     "amounts": []
-  }
+  },
+  "sprite": "hero"
 }
