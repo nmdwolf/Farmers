@@ -51,7 +51,7 @@ public interface GameConstants {
     boolean PLAY_MUSIC = false;
     boolean SHOW_CELL_ARROWS = true;
     boolean CUSTOM_CURSOR = true;
-    int FPS = 60;
+    int FPS = 30;
     String MUSIC_FOLDER = "src/music/FAVA - Lifetracks/";
     int SECONDS_PER_ANIMATION = 4;
 

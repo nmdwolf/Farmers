@@ -67,7 +67,6 @@ public class CellPanel extends JPanel {
                 super.mouseClicked(e);
                 if(gameState.getUnsafe() == Main.GameState.PLAYING) {
                     GameObject<?> obj = objectMap.get(selection);
-
                     if (target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
                         target.set(new Pair<>(obj, false));
                     else if (SwingUtilities.isLeftMouseButton(e)) {
@@ -366,11 +365,13 @@ public class CellPanel extends JPanel {
     private void drawSelection(Graphics2D gr) {
         // Draw box around currently selected object
         selected.ifPresent(obj -> {
-            gr.setColor(obj.getPlayer().getAlternativeColor());
-            gr.setStroke(new BasicStroke(STROKE_WIDTH));
-            obj.getSprite(true).ifPresentOrElse(
-                    img -> gr.drawRect(objectMap.get(obj).key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, objectMap.get(obj).value() * (SPRITE_SIZE_MAX + CELL_Y_MARGIN) + CELL_Y_MARGIN, img.getWidth(), img.getHeight()),
-                    () -> drawBox(gr, obj.getPlayer().getAlternativeColor(), objectMap.get(obj)));
+            if(objectMap.get(obj) != null) {
+                gr.setColor(obj.getPlayer().getAlternativeColor());
+                gr.setStroke(new BasicStroke(STROKE_WIDTH));
+                obj.getSprite(true).ifPresentOrElse(
+                        img -> gr.drawRect(objectMap.get(obj).key() * (SPRITE_SIZE_MAX + CELL_X_MARGIN) + CELL_X_MARGIN, objectMap.get(obj).value() * (SPRITE_SIZE_MAX + CELL_Y_MARGIN) + CELL_Y_MARGIN, img.getWidth(), img.getHeight()),
+                        () -> drawBox(gr, obj.getPlayer().getAlternativeColor(), objectMap.get(obj)));
+            }
         });
 
         // Draws the selection box for Unit/Building/Foundation objects

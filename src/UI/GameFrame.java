@@ -121,8 +121,10 @@ public class GameFrame extends JFrame {
         });
         target.bind(pair -> {
             if (pair.key() != null && !pair.value()) {
-                selected.ifPresent(fighter ->
-                    ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive) fighter).getAttackCost(), pair.key())));
+                selected.ifPresent(fighter -> {
+                    if(CustomMethods.objectDistance(fighter, pair.key()) <= ((Aggressive) fighter).getRange())
+                        ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive) fighter).getAttackCost(), pair.key()));
+                });
                 selected.set(null);
             }
         });
@@ -376,7 +378,7 @@ public class GameFrame extends JFrame {
                     if (SwingUtilities.isLeftMouseButton(e)) {
 
                         // Unselect GameObject on left click
-                        if (clicked.getUnsafe())
+                        if (clicked.getUnsafe() && !target.getUnsafe().value())
                             selected.set(null);
 
                         // If clicked on cell with objects, show info panel

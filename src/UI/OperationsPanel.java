@@ -6,7 +6,6 @@ import core.Pair;
 import objects.GameObject;
 import objects.Operational;
 import objects.buildings.Foundation;
-import objects.units.Worker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -101,7 +100,7 @@ public class OperationsPanel extends JPanel {
         setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         for(RoundedButton button : buttons)
-            button.resize(buttonSize);
+            button.resizeButton(buttonSize);
     }
 
     @Override

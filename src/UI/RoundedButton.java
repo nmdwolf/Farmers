@@ -15,27 +15,30 @@ public class RoundedButton extends JButton {
     private Color hover;
     private boolean ghost;
     private String text;
+    private final boolean hasHotkey;
 
     public RoundedButton(String text, Dimension dim, Color color) {
-        super();
+        super(text);
         hover = color;
         ghost = false;
         this.text = text;
+        this.hasHotkey = false;
 
         this.width = dim.width;
         this.height = dim.height;
 
         initialize();
-
-        setPreferredSize(dim);
     }
 
-    public RoundedButton(String text, int width, int height, Color color) {
+    public RoundedButton(String text, Dimension dim, Color color, boolean hasHotkey) {
         super(text);
         hover = color;
+        ghost = false;
+        this.text = text;
+        this.hasHotkey = hasHotkey;
 
-        this.width = width;
-        this.height = height;
+        this.width = dim.width;
+        this.height = dim.height;
 
         initialize();
     }
@@ -47,6 +50,7 @@ public class RoundedButton extends JButton {
         this.img = img;
         this.width = dim.width;
         this.height = dim.height;
+        this.hasHotkey = false;
 
         initialize();
     }
@@ -55,6 +59,7 @@ public class RoundedButton extends JButton {
         setBorder(new CustomBorder(Color.black, width, height));
         setContentAreaFilled(false);
         setFocusPainted(false);
+        setPreferredSize(new Dimension(this.width, this.height));
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -75,7 +80,7 @@ public class RoundedButton extends JButton {
         hover = color;
     }
 
-    public void resize(Dimension dim) {
+    public void resizeButton(Dimension dim) {
         this.width = dim.width;
         this.height = dim.height;
         setPreferredSize(dim);
@@ -96,6 +101,8 @@ public class RoundedButton extends JButton {
             else {
                 gr.setColor(Color.black);
                 gr.drawString(text, Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4));
+                if(!"".equals(text))
+                    gr.drawLine(Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4) + 2, Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2) + (int)gr.getFont().getStringBounds(text.substring(0, 1), gr.getFontRenderContext()).getWidth(), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4) + 2);
             }
         }
 

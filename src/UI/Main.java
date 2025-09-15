@@ -233,7 +233,7 @@ public class Main{
             addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
-        int x = 20;
+        int x = 21;
         int y = 20;
 //        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
 //        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
@@ -246,7 +246,7 @@ public class Main{
     /**
      * Adds a player to the current game.
      * Initializes resources and objects.
-     * @param p new Player
+     * @param p new player
      */
     public void addPlayer(Player p) {
 

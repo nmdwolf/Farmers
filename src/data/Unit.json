@@ -86,7 +86,7 @@
     "fighter": {
       "range": 2,
       "attack": 5,
-      "attackCost": 2
+      "attackCost": 1
     },
     "animationDelay": 1000,
     "size": 1,
