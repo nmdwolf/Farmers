@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-import java.util.function.Consumer;
 
 import static core.GameConstants.*;
 
@@ -29,11 +28,7 @@ public class Main{
 
     @NotNull private final Property<Integer> cycle, current;
     @NotNull private final Property<Player> currentPlayer;
-    @NotNull private final Property<String> audioSource;
-    @NotNull private final Property<Boolean> shuffleMusic, playMusic;
     @NotNull private final Property<GameState> gameState;
-    private Thread audioThread;
-    private DJ dj;
 
     /**
      * List of players.
@@ -69,20 +64,18 @@ public class Main{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
-        audioSource = new Property<>(MUSIC_FOLDER);
-        shuffleMusic = new Property<>(SHUFFLE_MUSIC);
-        playMusic = new Property<>(PLAY_MUSIC);
         cycle = new Property<>(1);
         current = new Property<>(0);
         cells = new Grid(NUMBER_OF_CELLS);
         gameState = new Property<>(GameState.PLAYING);
 
+        Settings settings = new Settings();
+
         showPlayerInputDialog();
         currentPlayer.set(players.getFirst());
 
-        game = new GameFrame(this, cells, cycle, current, currentPlayer, audioSource, playMusic, shuffleMusic, gameState);
+        game = new GameFrame(this, cells, cycle, current, currentPlayer, gameState, settings);
         game.initialize();
-        startMusic();
 
         current.bind(_ -> {
             // All objects should 'work' at the end of every cycle.
@@ -134,8 +127,6 @@ public class Main{
         // In case of shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             gameState.set(GameState.CLOSE);
-            if(dj != null)
-                dj.closeStream();
             gameLoop.interrupt();
         }));
     }
@@ -169,29 +160,6 @@ public class Main{
         cycle.set(cycle.getUnsafe() + 1);
         cells.cycle(cycle.getUnsafe());
         current.set(0);
-    }
-
-    /**
-     * Sets up a new {@code DJ} in charge of music.
-     */
-    public void startMusic() {
-
-        Consumer<String> audioAction = src -> {
-            if (audioThread != null) {
-                audioThread.interrupt();
-                dj.closeStream();
-            }
-
-            if(playMusic.getUnsafe()) {
-                dj = new DJ(src, shuffleMusic.getUnsafe());
-                audioThread = new Thread(dj);
-                audioThread.start();
-            }
-        };
-
-        audioSource.bind(audioAction); // Last property in settings panel needs binding (TODO fix this minor detail)
-//        shuffleMusic.bind(audioAction);
-        audioSource.set("src/music/FAVA - Lifetracks/"); // This call will also start playing the music on startup
     }
 
     /**

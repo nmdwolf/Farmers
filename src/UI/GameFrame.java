@@ -23,8 +23,6 @@ import static javax.swing.MenuSelectionManager.defaultManager;
 
 import static core.GameConstants.*;
 import static core.GameConstants.NUMBER_OF_CELLS_IN_VIEW;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER;
 
 public class GameFrame extends JFrame {
 
@@ -50,7 +48,7 @@ public class GameFrame extends JFrame {
 
     @NotNull private final Main parent;
     @NotNull private final Property<Integer> cycle, current;
-    @NotNull private final Property<Boolean> clicked, cursorFlag;
+    @NotNull private final Property<Boolean> clicked;
     @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<InfoPanel.Mode> showResources;
     @NotNull private final Property<GameObject<?>> selected;
@@ -62,12 +60,13 @@ public class GameFrame extends JFrame {
     private boolean gps;
     private final HashSet<Motion> motions;
 
-    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> current, @NotNull Property<Player> player, @NotNull Property<String> audioSource, @NotNull Property<Boolean> playMusic, @NotNull Property<Boolean> shuffleMusic, @NotNull Property<Main.GameState> gameState) {
+    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> current, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         parent = main;
         this.cells = cells;
         this.cycle = cycle;
         this.current = current;
         this.player = player;
+        settings.setGameFrame(this);
 
         // Initial values to avoid 0 issues
         screenWidth = INITIAL_SCREEN_SIZE;
@@ -77,10 +76,8 @@ public class GameFrame extends JFrame {
         poolSize = cellWidth;
 
         clicked = new Property<>(false);
-        cursorFlag = new Property<>(true);
         selected = new Property<>();
         target = new Property<>(new Pair<>(null, false));
-        Property<Boolean> cellArrowProperty = new Property<>(SHOW_CELL_ARROWS);
         clickPos = new Location(0, 0, 0);
         hoverPath = new Property<>();
         showResources = new Property<>(InfoPanel.Mode.OBJECT);
@@ -98,8 +95,8 @@ public class GameFrame extends JFrame {
         operationsPanel = new OperationsPanel(cellWidth, cellHeight);
         choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources, target);
         infoPanel = new InfoPanel(selected);
-        cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.getUnsafe(), selected, target, cellArrowProperty, gameState);
-        settingsPanel = new SettingsPanel(cursorFlag, audioSource, playMusic, shuffleMusic, cellArrowProperty);
+        cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.getUnsafe(), selected, target, gameState, settings);
+        settingsPanel = new SettingsPanel(settings);
         settingsScroller = settingsPanel.pack();
 
         layout = new SpringLayout();
@@ -555,14 +552,6 @@ public class GameFrame extends JFrame {
                 tintedGlassPanel.setVisible(false);
             }
         });
-
-        cursorFlag.bind(prop -> {
-            if(prop)
-                setCustomCursor();
-            else
-                setCursor(Cursor.getDefaultCursor());
-        });
-        cursorFlag.set(CUSTOM_CURSOR);
 
         settingsScroller.setVisible(false);
     }

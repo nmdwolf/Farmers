@@ -1,7 +1,6 @@
 package UI;
 
 import core.GameConstants;
-import core.Property;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -11,21 +10,11 @@ import static javax.swing.ScrollPaneConstants.*;
 
 public class SettingsPanel extends JPanel {
 
-    private final Property<Boolean> cursorFlag, playMusic, shuffleMusic, cellArrowProperty;
-    private final Property<String> audioSource;
-
     private final Settings settings;
 
-    public SettingsPanel(Property<Boolean> cursor, Property<String> audioSource, Property<Boolean> playMusic,
-                         Property<Boolean> shuffleMusic,
-                         Property<Boolean> cellArrowProperty) {
+    public SettingsPanel(Settings settings) {
 
-        settings = new Settings();
-        cursorFlag = cursor;
-        this.audioSource = audioSource;
-        this.playMusic = playMusic;
-        this.shuffleMusic = shuffleMusic;
-        this.cellArrowProperty = cellArrowProperty;
+        this.settings = settings;
         initialize();
     }
 
@@ -72,7 +61,7 @@ public class SettingsPanel extends JPanel {
         c.gridy = 1;
         audioBox.add(audioLabel, c);
 
-        JTextField audioInput = new JTextField(audioSource.getUnsafe(), 1);
+        JTextField audioInput = new JTextField(settings.getAudioSource(), 1);
         c.gridx = 1;
         c.gridy = 1;
         c.weightx = 0.9;
@@ -88,7 +77,7 @@ public class SettingsPanel extends JPanel {
 
         JCheckBox muteBox = new JCheckBox();
         muteBox.setOpaque(false);
-        muteBox.setSelected(!playMusic.getUnsafe());
+        muteBox.setSelected(!settings.playMusic());
         muteBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         c.gridx = 1;
         c.gridy = 2;
@@ -103,7 +92,7 @@ public class SettingsPanel extends JPanel {
 
         JCheckBox shuffleBox = new JCheckBox();
         shuffleBox.setOpaque(false);
-        shuffleBox.setSelected(shuffleMusic.getUnsafe());
+        shuffleBox.setSelected(settings.isShuffled());
         shuffleBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         c.gridx = 1;
         c.gridy = 3;
@@ -111,9 +100,9 @@ public class SettingsPanel extends JPanel {
 
         JButton applyAudio = new RoundedButton("Load", new Dimension(100, 30), Color.gray);
         applyAudio.addActionListener(_ -> {
-            playMusic.set(!muteBox.isSelected());
-            shuffleMusic.set(shuffleBox.isSelected());
-            audioSource.set(audioInput.getText());
+            settings.toggleMusic(!muteBox.isSelected());
+            settings.toggleShuffle(shuffleBox.isSelected());
+            settings.setAudioSource(audioInput.getText());
         });
         c.gridx = 0;
         c.gridy = 4;
@@ -146,9 +135,9 @@ public class SettingsPanel extends JPanel {
 
         JCheckBox cursorBox = new JCheckBox();
         cursorBox.setOpaque(false);
-        cursorBox.setSelected(cursorFlag.getUnsafe());
+        cursorBox.setSelected(settings.showCursor());
         cursorBox.setBorder(new EmptyBorder(4, 0, 0, 0));
-        cursorBox.addChangeListener(_ -> cursorFlag.set(cursorBox.isSelected()));
+        cursorBox.addChangeListener(_ -> settings.toggleCursor(cursorBox.isSelected()));
         c.gridx = 1;
         c.gridy = 1;
         c.weightx = .9;
@@ -164,9 +153,9 @@ public class SettingsPanel extends JPanel {
 
         JCheckBox cellArrowBox = new JCheckBox();
         cellArrowBox.setOpaque(false);
-        cellArrowBox.setSelected(cellArrowProperty.getUnsafe());
+        cellArrowBox.setSelected(settings.showArrows());
         cellArrowBox.setBorder(new EmptyBorder(4, 0, 0, 0));
-        cellArrowBox.addChangeListener(_ -> cellArrowProperty.set(cellArrowBox.isSelected()));
+        cellArrowBox.addChangeListener(_ -> settings.toggleArrows(cellArrowBox.isSelected()));
         c.gridx = 1;
         c.gridy = 2;
         visualBox.add(cellArrowBox, c);

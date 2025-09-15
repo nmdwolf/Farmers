@@ -41,14 +41,14 @@ public class CellPanel extends JPanel {
 
     private final Property<GameObject<?>> selected;
     private final Property<Pair<GameObject<?>, Boolean>> target;
-    private final Property<Boolean> cellArrowProperty;
     private final Property<Main.GameState> gameState;
+    private final Settings settings;
     private Player player;
     private BiMap objectMap;
     private Cell cell;
     private boolean reload;
 
-    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject<?>> selected, @NotNull Property<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Boolean> cellArrowProperty, @NotNull Property<Main.GameState> gameState) {
+    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject<?>> selected, @NotNull Property<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         cell = initialCell;
         player = initialPlayer;
         selection = new Pair<>(-1, -1);
@@ -59,7 +59,7 @@ public class CellPanel extends JPanel {
         reload = false;
         this.selected = selected;
         this.target = target;
-        this.cellArrowProperty = cellArrowProperty;
+        this.settings = settings;
         this.gameState = gameState;
 
         MouseAdapter adapter = new MouseAdapter() {
@@ -324,7 +324,7 @@ public class CellPanel extends JPanel {
 
             // Draws animation around working Units
             if(object.getPlayer().equals(player) && object instanceof Unit<?> u && u.getStatus() == Status.WORKING) {
-                if(cellArrowProperty.getUnsafe()) {
+                if(settings.showArrows()) {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
                         Pair<Integer, Integer> targetPair = objectMap.get(c.getFoundation());
                         if(targetPair != null)
