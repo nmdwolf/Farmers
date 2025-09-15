@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import static UI.CustomMethods.cellCoordinateTransform;
 import static core.GameConstants.*;
 
+// TODO Make the object sizes adaptive for screen resizing.
 public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;

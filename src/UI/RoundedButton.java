@@ -7,6 +7,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import static core.GameConstants.GRAY;
+import static core.GameConstants.STROKE_WIDTH;
 
 public class RoundedButton extends JButton {
 
@@ -16,25 +17,21 @@ public class RoundedButton extends JButton {
     private boolean ghost;
     private String text;
     private final boolean hasHotkey;
+    private final int borderWidth;
 
     public RoundedButton(String text, Dimension dim, Color color) {
-        super(text);
-        hover = color;
-        ghost = false;
-        this.text = text;
-        this.hasHotkey = false;
-
-        this.width = dim.width;
-        this.height = dim.height;
-
-        initialize();
+        this(text, dim, color, STROKE_WIDTH);
     }
 
-    public RoundedButton(String text, Dimension dim, Color color, boolean hasHotkey) {
-        super(text);
+    public RoundedButton(String text, Dimension dim, Color color, int borderWidth) {
+        this(text, dim, color, borderWidth, false);
+    }
+
+    public RoundedButton(String text, Dimension dim, Color color, int borderWidth, boolean hasHotkey) {
         hover = color;
         ghost = false;
         this.text = text;
+        this.borderWidth = borderWidth;
         this.hasHotkey = hasHotkey;
 
         this.width = dim.width;
@@ -44,19 +41,20 @@ public class RoundedButton extends JButton {
     }
 
     public RoundedButton(String text, BufferedImage img, Dimension dim, Color color) {
-        super(text);
         hover = color;
 
         this.img = img;
+        this.text = text;
         this.width = dim.width;
         this.height = dim.height;
+        this.borderWidth = STROKE_WIDTH;
         this.hasHotkey = false;
 
         initialize();
     }
 
     public void initialize() {
-        setBorder(new CustomBorder(Color.black, width, height));
+        setBorder(new CustomBorder(Color.black, borderWidth));
         setContentAreaFilled(false);
         setFocusPainted(false);
         setPreferredSize(new Dimension(this.width, this.height));
@@ -65,13 +63,13 @@ public class RoundedButton extends JButton {
             @Override
             public void mouseEntered(MouseEvent e) {
                 super.mouseMoved(e);
-                setBorder(new CustomBorder(ghost ? GRAY : hover, width, height));
+                setBorder(new CustomBorder(ghost ? GRAY : hover, borderWidth));
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 super.mouseMoved(e);
-                setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
+                setBorder(new CustomBorder(ghost ? GRAY : Color.black, borderWidth));
             }
         });
     }
@@ -84,7 +82,17 @@ public class RoundedButton extends JButton {
         this.width = dim.width;
         this.height = dim.height;
         setPreferredSize(dim);
-        setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
+        setBorder(new CustomBorder(ghost ? GRAY : Color.black, borderWidth));
+    }
+
+    public void enableGhost(boolean flag) {
+        ghost = flag;
+        setEnabled(!flag);
+        setBorder(new CustomBorder(ghost ? GRAY : Color.black, borderWidth));
+    }
+
+    public void updateText(String text) {
+        this.text = text;
     }
 
     @Override
@@ -100,22 +108,12 @@ public class RoundedButton extends JButton {
                 gr.drawImage(img, Math.round((width - img.getWidth()) / 2f), Math.round((height - img.getHeight()) / 2f), null);
             else {
                 gr.setColor(Color.black);
-                gr.drawString(text, Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4));
-                if(!"".equals(text))
+                gr.drawString(text, (width - g.getFontMetrics().stringWidth(text)) / 2, height / 2 + g.getFontMetrics().getHeight() / 4);
+                if(hasHotkey)
                     gr.drawLine(Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4) + 2, Math.floorDiv(width - g.getFontMetrics().stringWidth(text), 2) + (int)gr.getFont().getStringBounds(text.substring(0, 1), gr.getFontRenderContext()).getWidth(), Math.floorDiv(height, 2) + Math.floorDiv(g.getFontMetrics().getHeight(), 4) + 2);
             }
         }
 
         gr.dispose();
-    }
-
-    public void enableGhost(boolean flag) {
-        ghost = flag;
-        setEnabled(!flag);
-        setBorder(new CustomBorder(ghost ? GRAY : Color.black, width, height));
-    }
-
-    public void updateText(String text) {
-        this.text = text;
     }
 }

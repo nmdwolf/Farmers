@@ -24,6 +24,7 @@ public class Player {
     private Set<GameObject<?>> newObjects, removableObjects;
     private final HashSet<Upgrade> enabledUpgrades;
     private final HashSet<Cell> discovered, spotted;
+    private final HashSet<Player> allies;
     private final ResourceContainer resources, totalResources, gained, spent;
 
     private int pop, popCap, cycle;
@@ -46,6 +47,7 @@ public class Player {
         enabledUpgrades = new HashSet<>();
         discovered = new HashSet<>();
         spotted = new HashSet<>();
+        allies = new HashSet<>();
 
         resources = new ResourceContainer();
         resources.put("Food", START_FOOD);

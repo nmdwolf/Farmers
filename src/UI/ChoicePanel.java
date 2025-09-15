@@ -1,5 +1,6 @@
 package UI;
 
+import core.GameConstants;
 import core.OperationCode;
 import core.Pair;
 import core.Property;
@@ -34,12 +35,12 @@ public class ChoicePanel extends JPanel {
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
         buttons = new ArrayList<>(); // Move, Resource, Build, Upgrades, Evolutions
 
-        buttons.add(new RoundedButton("Move", buttonSize, Color.gray, true));
-        buttons.add(new RoundedButton("Work", buttonSize, Color.gray, true));
-        buttons.add(new RoundedButton("Construct", buttonSize, Color.gray, true));
-        buttons.add(new RoundedButton("Upgrade", buttonSize, Color.gray, true));
-        buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray, true));
-        buttons.add(new RoundedButton("Attack", buttonSize, Color.gray, true));
+        buttons.add(new RoundedButton("Move", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        buttons.add(new RoundedButton("Work", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        buttons.add(new RoundedButton("Construct", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        buttons.add(new RoundedButton("Upgrade", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        buttons.add(new RoundedButton("Attack", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
 
         addListeners();
         setLayout(cellWidth, cellHeight);

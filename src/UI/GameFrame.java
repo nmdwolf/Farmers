@@ -23,6 +23,8 @@ import static javax.swing.MenuSelectionManager.defaultManager;
 
 import static core.GameConstants.*;
 import static core.GameConstants.NUMBER_OF_CELLS_IN_VIEW;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER;
 
 public class GameFrame extends JFrame {
 
@@ -37,6 +39,7 @@ public class GameFrame extends JFrame {
     private final SpringLayout layout;
     private final JLayeredPane contentPanel;
     private final SettingsPanel settingsPanel;
+    private final JScrollPane settingsScroller;
     private final JPanel tintedGlassPanel;
     private Font font;
 
@@ -97,6 +100,8 @@ public class GameFrame extends JFrame {
         infoPanel = new InfoPanel(selected);
         cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.getUnsafe(), selected, target, cellArrowProperty, gameState);
         settingsPanel = new SettingsPanel(cursorFlag, audioSource, playMusic, shuffleMusic, cellArrowProperty);
+        settingsScroller = settingsPanel.pack();
+
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
         tintedGlassPanel = new JPanel() {
@@ -155,7 +160,7 @@ public class GameFrame extends JFrame {
         contentPanel.add(cellPanel, Integer.valueOf(0));
         contentPanel.add(infoPanel, Integer.valueOf(1));
         contentPanel.add(tintedGlassPanel, Integer.valueOf(2));
-        contentPanel.add(settingsPanel, Integer.valueOf(3));
+        contentPanel.add(settingsScroller, Integer.valueOf(3));
 
         setVisible(true);
         setExtendedState(MAXIMIZED_BOTH);
@@ -167,6 +172,7 @@ public class GameFrame extends JFrame {
         addMenu();
         initializeSettingsPanel();
 
+        hidePanels(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         contentPanel.requestFocus();
     }
@@ -455,12 +461,9 @@ public class GameFrame extends JFrame {
                         (clickPos.x() - player.getUnsafe().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (int)(screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
                 layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
-                settingsPanel.resizePanel(cellWidth, cellHeight);
-                layout.putConstraint(SpringLayout.WEST, settingsPanel, (int)(2 * cellWidth), SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, settingsPanel, (int)cellHeight, SpringLayout.NORTH, contentPanel);
-
-                hidePanels(true); // little cheat while setting up the game frame (DO NOT REMOVE!!)
-                refreshWindow();
+                settingsScroller.setPreferredSize(new Dimension((int)(4 * cellWidth), (int)(5 * cellHeight)));
+                layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * cellWidth), SpringLayout.WEST, contentPanel);
+                layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)cellHeight, SpringLayout.NORTH, contentPanel);
             }
         });
     }
@@ -527,20 +530,19 @@ public class GameFrame extends JFrame {
 
         JMenuItem viewItem = new JMenuItem("Audio & Visuals");
         viewItem.addActionListener(_ -> {
-            settingsPanel.setVisible(true);
+            settingsScroller.setVisible(true);
             contentPanel.requestFocus();
         });
         settingsMenu.add(viewItem);
     }
 
     /**
-     * Adds an {@code InfoPanel} to the game window.
+     * Adds a {@code SettingsPanel} to the game window.
      */
     private void initializeSettingsPanel() {
 
         tintedGlassPanel.setOpaque(false);
-
-        settingsPanel.addComponentListener(new ComponentAdapter() {
+        settingsScroller.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentShown(ComponentEvent e) {
                 super.componentShown(e);
@@ -562,7 +564,7 @@ public class GameFrame extends JFrame {
         });
         cursorFlag.set(CUSTOM_CURSOR);
 
-        settingsPanel.setVisible(false);
+        settingsScroller.setVisible(false);
     }
 
     public void setCustomCursor() {
@@ -612,7 +614,7 @@ public class GameFrame extends JFrame {
         });
 
         panel.setPreferredSize(new Dimension((int)(2 * cellWidth), 50 * lines));
-        panel.setBorder(new CustomBorder(Color.black, (int)(2 * cellWidth), 50 * lines));
+        panel.setBorder(new CustomBorder(Color.black));
         panel.setOpaque(false);
 
         player.bindSingle(_ -> getContentPane().remove(panel));
@@ -858,7 +860,7 @@ public class GameFrame extends JFrame {
         infoPanel.setVisible(false);
         operationsPanel.setVisible(false);
         choicePanel.setVisible(false);
-        settingsPanel.setVisible(false);
+        settingsScroller.setVisible(false);
         if(alsoCellPanel)
             cellPanel.setVisible(false);
     }

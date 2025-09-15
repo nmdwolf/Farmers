@@ -6,42 +6,49 @@ import core.Property;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 
-public class SettingsPanel extends JScrollPane {
+import static javax.swing.ScrollPaneConstants.*;
+
+public class SettingsPanel extends JPanel {
 
     private final Property<Boolean> cursorFlag, playMusic, shuffleMusic, cellArrowProperty;
     private final Property<String> audioSource;
-    private final JPanel canvas;
+
+    private final Settings settings;
 
     public SettingsPanel(Property<Boolean> cursor, Property<String> audioSource, Property<Boolean> playMusic,
                          Property<Boolean> shuffleMusic,
                          Property<Boolean> cellArrowProperty) {
-        super(new JPanel(), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+
+        settings = new Settings();
         cursorFlag = cursor;
         this.audioSource = audioSource;
         this.playMusic = playMusic;
         this.shuffleMusic = shuffleMusic;
         this.cellArrowProperty = cellArrowProperty;
-        canvas = new JPanel();
         initialize();
-        setViewportView(canvas);
+    }
+
+    public JScrollPane pack() {
+        JScrollPane pane = new JScrollPane(this, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+        pane.setOpaque(false);
+        pane.getViewport().setOpaque(false);
+        pane.setBorder(BorderFactory.createEmptyBorder());
+
+        return pane;
     }
 
     private void initialize() {
         setOpaque(false);
-        canvas.setAlignmentX(LEFT_ALIGNMENT);
-        canvas.setOpaque(false);
-        canvas.setLayout(new BoxLayout(canvas, BoxLayout.Y_AXIS));
-        canvas.setBorder(new EmptyBorder(10, 5, 10, 5));
+        setAlignmentX(LEFT_ALIGNMENT);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBorder(new CustomBorder(Color.black));
 
         createAudioSection();
-        canvas.add(new JSeparator(SwingConstants.HORIZONTAL));
+        add(new JSeparator(SwingConstants.HORIZONTAL));
 
         createVisualsSection();
-//        canvas.add(new JSeparator(SwingConstants.HORIZONTAL));
-
-        canvas.addMouseListener(new MouseAdapter() {});
+//        add(new JSeparator(SwingConstants.HORIZONTAL));
     }
 
     private void createAudioSection() {
@@ -80,6 +87,7 @@ public class SettingsPanel extends JScrollPane {
         audioBox.add(muteLabel, c);
 
         JCheckBox muteBox = new JCheckBox();
+        muteBox.setOpaque(false);
         muteBox.setSelected(!playMusic.getUnsafe());
         muteBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         c.gridx = 1;
@@ -94,13 +102,14 @@ public class SettingsPanel extends JScrollPane {
         audioBox.add(shuffleLabel, c);
 
         JCheckBox shuffleBox = new JCheckBox();
+        shuffleBox.setOpaque(false);
         shuffleBox.setSelected(shuffleMusic.getUnsafe());
         shuffleBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         c.gridx = 1;
         c.gridy = 3;
         audioBox.add(shuffleBox, c);
 
-        JButton applyAudio = new JButton("Load");
+        JButton applyAudio = new RoundedButton("Load", new Dimension(100, 30), Color.gray);
         applyAudio.addActionListener(_ -> {
             playMusic.set(!muteBox.isSelected());
             shuffleMusic.set(shuffleBox.isSelected());
@@ -110,11 +119,12 @@ public class SettingsPanel extends JScrollPane {
         c.gridy = 4;
         audioBox.add(applyAudio, c);
 
-        canvas.add(audioBox);
+        add(audioBox);
     }
 
     private void createVisualsSection() {
         JPanel visualBox = new JPanel();
+        visualBox.setOpaque(false);
         visualBox.setLayout(new GridBagLayout());
         visualBox.setBorder(new EmptyBorder(10, 10, 10, 10 + (int)UIManager.get("ScrollBar.width")));
 
@@ -135,6 +145,7 @@ public class SettingsPanel extends JScrollPane {
         visualBox.add(cursorLabel, c);
 
         JCheckBox cursorBox = new JCheckBox();
+        cursorBox.setOpaque(false);
         cursorBox.setSelected(cursorFlag.getUnsafe());
         cursorBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         cursorBox.addChangeListener(_ -> cursorFlag.set(cursorBox.isSelected()));
@@ -152,6 +163,7 @@ public class SettingsPanel extends JScrollPane {
         visualBox.add(cellArrowLabel, c);
 
         JCheckBox cellArrowBox = new JCheckBox();
+        cellArrowBox.setOpaque(false);
         cellArrowBox.setSelected(cellArrowProperty.getUnsafe());
         cellArrowBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         cellArrowBox.addChangeListener(_ -> cellArrowProperty.set(cellArrowBox.isSelected()));
@@ -159,14 +171,8 @@ public class SettingsPanel extends JScrollPane {
         c.gridy = 2;
         visualBox.add(cellArrowBox, c);
 
-        canvas.add(visualBox);
-        canvas.add(Box.createHorizontalGlue());
-    }
-
-    public void resizePanel(float cellWidth, float cellHeight) {
-        canvas.setPreferredSize(new Dimension((int)(4 * cellWidth), (int)(5 * cellHeight)));
-        setPreferredSize(canvas.getPreferredSize());
-        canvas.setBorder(new CustomBorder(Color.BLACK, getWidth(), getHeight()));
+        add(visualBox);
+        add(Box.createHorizontalGlue());
     }
 
     @Override
@@ -175,7 +181,7 @@ public class SettingsPanel extends JScrollPane {
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
         gr.setColor(GameConstants.GRAY);
-        gr.fillRect(2, 2, getWidth() - 4, getHeight() - 4);
+        gr.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 15, 15);
         gr.dispose();
     }
 }
