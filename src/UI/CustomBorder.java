@@ -2,7 +2,6 @@ package UI;
 
 import javax.swing.border.AbstractBorder;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 import static core.GameConstants.STROKE_WIDTH;
 

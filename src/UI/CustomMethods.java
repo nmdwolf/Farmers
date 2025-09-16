@@ -13,8 +13,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -166,7 +164,7 @@ public class CustomMethods {
         return new Pair<>(selectionX, selectionY);
     }
 
-    public static int objectDistance(GameObject obj1, GameObject obj2) {
+    public static int objectDistance(GameObject<?> obj1, GameObject<?> obj2) {
         Location loc1 = obj1.getCell().getLocation();
         Location loc2 = obj2.getCell().getLocation();
         return loc1.distanceTo(loc2);

@@ -9,14 +9,12 @@ public abstract class Contract<T extends GameObject<T> & Operational<T>> {
     private T employee;
     private final int energyCost;
     private boolean isStarted, idle;
-    private int workCount;
 
     public Contract(T employee, int energyCost) {
         this.employee = employee;
         this.energyCost = energyCost;
         isStarted = false;
         idle = true;
-        workCount = 0;
     }
 
     public T getEmployee() {
@@ -60,22 +58,10 @@ public abstract class Contract<T extends GameObject<T> & Operational<T>> {
         if(!isStarted)
             initialize();
 
-        if (isStarted && employee instanceof Energetic<?> energetic && energetic.getEnergy() >= energyCost) {
+        if (isStarted && employee instanceof Energetic<?> energetic && energetic.getEnergy() >= energyCost)
             energetic.changeEnergy(-energyCost);
-            workCount++;
-        }
 
         return isStarted;
-    }
-
-    /**
-     * Returns the amount of times this contract has been worked on and resets the counter.
-     * @return work count
-     */
-    public int popWorkCount() {
-        int temp = workCount;
-        workCount = 0;
-        return temp;
     }
 
     /**

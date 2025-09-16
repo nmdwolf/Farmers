@@ -1,10 +1,8 @@
 package core.upgrade;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import core.GameConstants;
-import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.Aggressive;
 import objects.Energetic;
@@ -34,7 +32,7 @@ public class BasicUpgrade extends Upgrade {
     private String target;
 
     @JsonCreator
-    public BasicUpgrade(@JsonProperty(required = true) ResourceContainer cost, @JsonProperty(defaultValue = "0") int cycle, @JsonProperty(required = true) String description, @JsonProperty(defaultValue = "false") boolean global) {
+    public BasicUpgrade(@JsonProperty(required = true) ResourceContainer cost, int cycle, @JsonProperty(required = true) String description, @JsonProperty(defaultValue = "false") boolean global) {
         super(cost, cycle, description, global);
     }
 

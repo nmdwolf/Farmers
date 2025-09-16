@@ -4,7 +4,6 @@ import core.Pair;
 import core.contracts.*;
 import objects.Animated;
 import objects.GameObject;
-import objects.Operational;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +23,7 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
         super(numOfFrames * obj.getLogger().size());
 
         object = obj;
-        image = Objects.requireNonNull(((GameObject<?>)object).getSprite(true).get());
+        image = Objects.requireNonNull(((GameObject<?>)object).getSprite(true).orElseThrow());
 
         Logger logger = obj.getLogger();
         length = numOfFrames;

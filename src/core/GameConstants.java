@@ -59,9 +59,9 @@ public interface GameConstants {
     Color GRAY = new Color(210, 210, 210);
     String[] PLAYER_COLORS = new String[]{"Blue", "Green", "Yellow"};
 
-    BufferedImage CLOUD = CustomMethods.loadSprite("src/img/cloud.png", GameConstants.SPRITE_SIZE * 2, GameConstants.SPRITE_SIZE).get();
+    BufferedImage CLOUD = CustomMethods.loadSprite("src/img/cloud.png", GameConstants.SPRITE_SIZE * 2, GameConstants.SPRITE_SIZE).orElseThrow();
     BufferedImage SUN = CustomMethods.loadSprite("src/img/sun.png", GameConstants.SPRITE_SIZE,
-            GameConstants.SPRITE_SIZE).get();
+            GameConstants.SPRITE_SIZE).orElseThrow();
     BufferedImage ARROWHEAD = CustomMethods.loadSprite("src/img/Arrowhead.png",
-            GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).get();
+            GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).orElseThrow();
 }

@@ -4,7 +4,7 @@ import objects.Aggressive;
 import objects.GameObject;
 import objects.Operational;
 
-public class AttackContract<T extends GameObject<T> & Operational<T> & Aggressive> extends Contract<T> {
+public class AttackContract<T extends GameObject<T> & Operational<T> & Aggressive<T>> extends Contract<T> {
 
     private final GameObject<?> target;
 

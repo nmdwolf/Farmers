@@ -122,8 +122,8 @@ public class GameFrame extends JFrame {
         target.bind(pair -> {
             if (pair.key() != null && !pair.value()) {
                 selected.ifPresent(fighter -> {
-                    if(CustomMethods.objectDistance(fighter, pair.key()) <= ((Aggressive) fighter).getRange())
-                        ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive) fighter).getAttackCost(), pair.key()));
+                    if(CustomMethods.objectDistance(fighter, pair.key()) <= ((Aggressive<?>) fighter).getRange())
+                        ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive<?>) fighter).getAttackCost(), pair.key()));
                 });
                 selected.set(null);
             }

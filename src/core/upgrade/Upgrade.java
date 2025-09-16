@@ -1,8 +1,6 @@
 package core.upgrade;
 
 import UI.CustomMethods;
-import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.GameObject;

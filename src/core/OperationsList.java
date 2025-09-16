@@ -1,7 +1,5 @@
 package core;
 
-import core.upgrade.Upgrade;
-
 import java.util.ArrayList;
 
 public class OperationsList extends ArrayList<Operation> {

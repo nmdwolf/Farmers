@@ -7,14 +7,14 @@ import java.util.List;
 
 public interface Civilization {
 
-    public String getName();
+    String getName();
 
-    public List<Upgrade> getUpgrades();
+    List<Upgrade> getUpgrades();
 
     /**
      * Takes a basic instance of a game object and adapts it to the civilization.
      * @param obj basic instance
      * @return civilization-adapted instance
      */
-    public GameObject<?> initObject(GameObject<?> obj);
+    GameObject<?> initObject(GameObject<?> obj);
 }

@@ -1,15 +1,9 @@
 package objects.units;
 
 import UI.CustomMethods;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import core.*;
 import core.OperationsList;
-import core.contracts.Contract;
 import core.player.Player;
-import core.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 import objects.Aggressive;
 import objects.GameObject;
@@ -19,14 +13,12 @@ import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Optional;
 
 public class Hero extends Unit<Hero> implements Aggressive<Hero> {
 
-    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6)).get();
-    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6)).get();
+    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6)).orElseThrow();
+    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6)).orElseThrow();
 
     private String name;
 

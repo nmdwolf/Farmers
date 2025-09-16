@@ -15,7 +15,7 @@ public abstract class ResourceBuilding<B extends ResourceBuilding<B>> extends Id
 
     @Override
     public ResourceContainer getSources() {
-        return getLoadout(objects.loadouts.Source.class).get().getSources();
+        return getLoadout(objects.loadouts.Source.class).orElseThrow().getSources();
     }
 
 }
