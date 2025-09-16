@@ -6,6 +6,7 @@ import core.player.Player;
 import objects.Aggressive;
 import objects.GameObject;
 import core.Status;
+import objects.Operational;
 import objects.buildings.TownHall;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public class GameFrame extends JFrame {
         this.cycle = cycle;
         this.current = current;
         this.player = player;
-        settings.setGameFrame(this);
+        settings.initialize(this);
 
         // Initial values to avoid 0 issues
         screenWidth = INITIAL_SCREEN_SIZE;
@@ -138,8 +139,6 @@ public class GameFrame extends JFrame {
             refreshWindow();
             contentPanel.revalidate();
             contentPanel.repaint();
-            for (String text : player.getUnsafe().getMessages())
-                showMessagePanel(text);
         });
     }
 
@@ -585,8 +584,9 @@ public class GameFrame extends JFrame {
                 super.paintComponent(g);
                 Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
-                gr.setColor(new Color(200, 150, 0, 76));
-                gr.fillRoundRect(0, 0, (int)(2 * cellWidth), getHeight(), 10, 10);
+//                gr.setColor(new Color(200, 150, 0, 76));
+                gr.setColor(new Color(200, 150, 0));
+                gr.fillRoundRect(1, 1, (int)(2 * cellWidth) - 2, getHeight() - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
                 gr.setColor(Color.black);
                 CustomMethods.drawString(gr, output.toString(), 10, 10);
 
@@ -608,7 +608,7 @@ public class GameFrame extends JFrame {
 
         player.bindSingle(_ -> getContentPane().remove(panel));
 
-        getContentPane().add(panel);
+        getContentPane().add(panel, Integer.valueOf(1));
         SpringLayout layout = (SpringLayout) getContentPane().getLayout();
         layout.putConstraint(SpringLayout.WEST, panel, (int)(screenWidth - 2 * cellWidth - 50), SpringLayout.WEST, getContentPane());
         layout.putConstraint(SpringLayout.NORTH, panel, 50, SpringLayout.NORTH, getContentPane());

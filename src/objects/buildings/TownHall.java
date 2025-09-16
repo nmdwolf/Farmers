@@ -6,6 +6,7 @@ import core.OperationsList;
 import core.player.Award;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
+import objects.Operational;
 import objects.Spacer;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
@@ -22,7 +23,7 @@ import java.util.Optional;
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
 
-public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable {
+public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, Evolvable {
 
     public final static BufferedImage BONFIRE_SPRITE = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE, SPRITE_SIZE).get();
     public final static BufferedImage TOWN_SPRITE = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE, SPRITE_SIZE).get();
@@ -30,7 +31,6 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
     public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
     public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
-    public final static Award BUILT_AWARD = Award.createFreeAward("A new city has been founded.");
 
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
     public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});
@@ -128,14 +128,11 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
                         });
                         default -> null;
                     });
+        } if(code == OperationCode.CONSTRUCTION) {
+            operations = getConstructions(cycle);
         } else
             operations = super.getOperations(cycle, code);
         return operations;
-    }
-
-    @Override
-    public Optional<Award> getConstructionAward() {
-        return Optional.of(BUILT_AWARD);
     }
 
     @Override

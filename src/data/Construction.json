@@ -31,7 +31,8 @@
       "resources": ["Wood", "Time"],
       "amounts": [200, 20]
     },
-    "sprite": "town"
+    "sprite": "town",
+    "award": "A new city has been founded."
   },
 
   {
@@ -103,5 +104,19 @@
       "amounts": [1, 10]
     },
     "sprite": "wall"
+  },
+
+  {
+    "type": "Barracks",
+    "health": 250,
+    "size": 2,
+    "sight": 1,
+    "energyCost": 1,
+    "degradeTime": 50,
+    "degradeAmount": 5,
+    "cost": {
+      "resources": ["Time", "Wood"],
+      "amounts": [2, 100]
+    }
   }
 ]

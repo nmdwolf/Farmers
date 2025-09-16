@@ -2,6 +2,7 @@ package UI;
 
 import core.Pair;
 import core.contracts.*;
+import objects.Animated;
 import objects.GameObject;
 import objects.Operational;
 
@@ -12,20 +13,20 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
 import java.util.Objects;
 
-public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
+public class Animation<T extends GameObject<T> & Animated<T>> extends ArrayDeque<Pair<BufferedImage, String>> {
 
-    private final GameObject<?> object;
+    private final T object;
     private final BufferedImage image;
     private final int length;
     private int code;
 
-    public Animation(GameObject<?> obj, int numOfFrames) {
-        super(numOfFrames * ((Operational<?>)obj).getLogger().size());
+    public Animation(T obj, int numOfFrames) {
+        super(numOfFrames * obj.getLogger().size());
 
         object = obj;
         image = Objects.requireNonNull(object.getSprite(true).get());
 
-        Logger logger = ((Operational<?>)obj).getLogger();
+        Logger logger = obj.getLogger();
         length = numOfFrames;
         int framesPerLog = numOfFrames / logger.size();
 

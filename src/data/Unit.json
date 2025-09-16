@@ -42,7 +42,8 @@
       }
     },
     "sprite": "villager",
-    "award": "A baby was born."
+    "award": "A baby was born.",
+    "constructions": ["House", "Lumberjack", "Farm"]
   },
 
   {

@@ -2,9 +2,7 @@ package objects;
 
 import core.OperationsList;
 import core.OperationCode;
-import core.Status;
 import core.contracts.Contract;
-import core.contracts.Logger;
 
 import java.util.ArrayList;
 
@@ -49,58 +47,4 @@ public interface Operational<U extends GameObject<U> & Operational<U>> {
      * Stops working on all contracts and stops moving.
      */
     void seizeActions();
-
-    /**
-     * Gives the currently remaining energy of this object.
-     * @return remaining energy
-     */
-    int getEnergy();
-
-    /**
-     * Gives the maximum energy this object has.
-     * This is the amount of energy this object has at the start of a new cycle (after calling {@code cycle()}.
-     * @return maximum energy
-     */
-    int getMaxEnergy();
-
-    /**
-     * Changes the currently available energy.
-     * @param amount energy change
-     */
-    void changeEnergy(int amount);
-
-    /**
-     * Changes the maximum energy of this object.
-     * @param amount energy change
-     */
-    void changeMaxEnergy(int amount);
-
-    /**
-     * Returns the current status of the GameObject.
-     * @return current status
-     */
-    Status getStatus();
-
-    /**
-     * Returns the old status of the GameObject.
-     * @return old status
-     */
-    Status getOldStatus();
-
-    /**
-     * Changes the current status of the GameObject.
-     * @param newStatus new status
-     */
-    void setStatus(Status newStatus);
-
-    /**
-     * Sets a new {@code Logger} for this object.
-     */
-    void initLogger();
-
-    /**
-     * Gives the current {@code Logger} of this object.
-     * @return current logger
-     */
-    Logger getLogger();
 }

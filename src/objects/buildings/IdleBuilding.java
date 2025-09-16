@@ -2,7 +2,7 @@ package objects.buildings;
 
 import objects.templates.ConstructionTemplate;
 
-public abstract class IdleBuilding extends Building {
+public abstract class IdleBuilding<B extends IdleBuilding<B>> extends Building<B> {
 
     public IdleBuilding(ConstructionTemplate temp) {
         super(temp);

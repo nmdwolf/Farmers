@@ -6,7 +6,7 @@ import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import java.util.ArrayList;
 
-public class House extends IdleBuilding implements Upgradable, Spacer {
+public class House extends IdleBuilding<House> implements Upgradable, Spacer {
 
     private int space;
 

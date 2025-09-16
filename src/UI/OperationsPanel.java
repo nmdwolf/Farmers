@@ -6,6 +6,7 @@ import core.Pair;
 import objects.GameObject;
 import objects.Operational;
 import objects.buildings.Foundation;
+import objects.units.Worker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,36 +64,37 @@ public class OperationsPanel extends JPanel {
         setOpaque(false);
     }
 
-    public void update(GameObject selected, OperationCode code, int cycle) {
+    public void update(GameObject<?> selected, OperationCode code, int cycle) throws IllegalArgumentException {
 
-        if(selected instanceof Operational operator) {
-            for (int i = 0; i < 16; i++) {
-                RoundedButton button = buttons[i];
-                button.setColor(selected.getPlayer().getAlternativeColor());
-                if (i != 7 && i != 15) {
-                    button.enableGhost(true);
-                    for (ActionListener listener : button.getActionListeners())
-                        if (listener != hide)
-                            button.removeActionListener(listener);
-                }
+        if(!(selected instanceof Operational<?> op))
+            throw new IllegalArgumentException("Selected object is not of type Operational.");
+
+        for (int i = 0; i < 16; i++) {
+            RoundedButton button = buttons[i];
+            button.setColor(selected.getPlayer().getAlternativeColor());
+            if (i != 7 && i != 15) {
+                button.enableGhost(true);
+                for (ActionListener listener : button.getActionListeners())
+                    if (listener != hide)
+                        button.removeActionListener(listener);
+            }
+        }
+
+        OperationsList operations = op.getOperations(cycle, code);
+        if(code == OperationCode.CONSTRUCTION && selected instanceof Worker worker) {
+            selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> worker.transferContract(pair.value())));
+        }
+
+        if(!operations.isEmpty()) {
+
+            for (int i = 0; i < operations.size(); i++) {
+                final int step = (i >= 7) ? i + 1 : i;
+                buttons[step].updateText(operations.getDescription(i));
+                buttons[step].enableGhost(false);
+                buttons[step].addActionListener(_ -> operations.get(step).perform(null));
             }
 
-            OperationsList operations = operator.getOperations(cycle, code);
-            if(code == OperationCode.CONSTRUCTION) {
-                selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> operator.transferContract(pair.value())));
-            }
-
-            if(!operations.isEmpty()) {
-
-                for (int i = 0; i < operations.size(); i++) {
-                    final int step = (i >= 7) ? i + 1 : i;
-                    buttons[step].updateText(operations.getDescription(i));
-                    buttons[step].enableGhost(false);
-                    buttons[step].addActionListener(_ -> operations.get(step).perform(null));
-                }
-
-                setVisible(true);
-            }
+            setVisible(true);
         }
     }
 

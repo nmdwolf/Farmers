@@ -5,6 +5,7 @@ import core.*;
 import core.player.AI;
 import core.player.Player;
 import objects.*;
+import objects.buildings.BasicBuilding;
 import objects.buildings.Building;
 import objects.buildings.TownHall;
 import objects.loadouts.*;
@@ -116,6 +117,10 @@ public class Main{
 
                 if(gameState.getUnsafe() == GameState.ANIMATING)
                     game.cycleAnimation();
+                else {
+                    for (String text : currentPlayer.getUnsafe().getMessages()) // Shows awards and others
+                        game.showMessagePanel(text);
+                }
 
                 game.updateContent(reload);
 
@@ -136,7 +141,7 @@ public class Main{
      */
     private void nextPlayer() {
         for (GameObject<?> object : currentPlayer.getUnsafe().getObjects()) {
-            if(object instanceof Operational<?> op)
+            if(object instanceof Energetic<?> op)
                 op.initLogger();
         }
 
@@ -225,7 +230,7 @@ public class Main{
 
         GameObject<?> base = new TownHall();
         base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
-        GameObject<?> lumberjack = Building.createBuilding("Lumberjack");
+        GameObject<?> lumberjack = BasicBuilding.createBuilding("Lumberjack");
         lumberjack.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
         GameObject<?> v1 = new Villager();
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
@@ -350,14 +355,15 @@ public class Main{
             throw new IllegalArgumentException("GameObject should be of type Unit.");
 
         if(target == obj.getCell())
-            return new Pair<>(new Motion(unit, new ArrayList<>(), 0), target.getLocation());
+            return null;
+//            return new Pair<>(new Motion(unit, new ArrayList<>(), 0), target.getLocation());
 
         if(target.distanceTo(unit.getCell()) > unit.getEnergy() || !unit.getPlayer().hasSpotted(target))
             return null;
 
-        // Complexity becomes cumbersome for units with high energy (noticeable lag).
-        // TODO Might need to use heuristics.
+        // TODO Might need to use heuristics. (Complexity becomes cumbersome for units with high energy, noticeable lag in this case.
         int maxDist = unit.getEnergy();
+        maxDist = NUMBER_OF_CELLS_IN_VIEW; // Temporary heuristic
 
         ArrayList<Location> toDo = new ArrayList<>();
         ArrayList<Location> done = new ArrayList<>();

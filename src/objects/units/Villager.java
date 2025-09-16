@@ -7,6 +7,7 @@ import core.OperationsList;
 import core.contracts.Contract;
 import objects.Constructor;
 import core.Status;
+import objects.buildings.BasicBuilding;
 import objects.buildings.Building;
 import objects.buildings.Wall;
 import objects.buildings.House;
@@ -42,7 +43,7 @@ public class Villager extends Worker implements Constructor {
             House h = new House();
             addContract(new ConstructContract<>(Villager.this, h));
         });
-        constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, Building.createBuilding("Lumberjack"))));
+        constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("Lumberjack"))));
         constructions.put("Wall", _ -> {
             Wall w = new Wall();
             addContract(new ConstructContract<>(Villager.this, w));

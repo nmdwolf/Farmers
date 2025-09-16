@@ -8,43 +8,45 @@ import static core.GameConstants.*;
 
 public class Settings {
 
-    private final Property<Boolean> cursorFlag, playMusic, shuffleMusic, showArrows;
-    private final Property<String> audioSource;
+    private final Property<Boolean> playMusic, shuffleMusic, showArrows;
+    private String audioSource;
+    private boolean customCursor;
     private GameFrame frame;
 
     private Thread audioThread;
     private DJ dj;
 
     public Settings() {
-
-        audioSource = new Property<>(MUSIC_FOLDER);
         showArrows = new Property<>(SHOW_CELL_ARROWS);
-        cursorFlag = new Property<>(CUSTOM_CURSOR);
         playMusic = new Property<>(PLAY_MUSIC);
         shuffleMusic = new Property<>(SHUFFLE_MUSIC);
+        audioSource = MUSIC_FOLDER;
+        customCursor = CUSTOM_CURSOR;
+    }
+
+    public void initialize(GameFrame frame) {
+        this.frame = frame;
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if(dj != null)
                 dj.closeStream();
         }));
-        setAudioSource(MUSIC_FOLDER);
-    }
 
-    public void setGameFrame(GameFrame frame) {
-        this.frame = frame;
+        toggleCursor(customCursor);
+        setAudioSource(audioSource);
     }
 
     public void toggleCursor(boolean flag) {
-        cursorFlag.set(flag);
+        customCursor = flag;
 
-        if(flag)
+        if(customCursor)
             frame.setCustomCursor();
         else
             frame.setCursor(Cursor.getDefaultCursor());
     }
 
-    public boolean showCursor() {
-        return cursorFlag.getUnsafe();
+    public boolean customCursor() {
+        return customCursor;
     }
 
     public void toggleMusic(boolean flag) {
@@ -72,7 +74,7 @@ public class Settings {
     }
 
     public void setAudioSource(String src) {
-        audioSource.set(src);
+        audioSource = src;
 
         if (audioThread != null) {
             audioThread.interrupt();
@@ -80,13 +82,13 @@ public class Settings {
         }
 
         if(playMusic()) {
-            dj = new DJ(src, isShuffled());
+            dj = new DJ(audioSource, isShuffled());
             audioThread = new Thread(dj);
             audioThread.start();
         }
     }
 
     public String getAudioSource() {
-        return audioSource.getUnsafe();
+        return audioSource;
     }
 }

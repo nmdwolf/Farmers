@@ -4,6 +4,7 @@ import core.*;
 import core.contracts.AttackContract;
 import core.contracts.ConstructContract;
 import core.player.Player;
+import objects.Energetic;
 import objects.GameObject;
 import core.Status;
 import objects.Operational;
@@ -37,7 +38,7 @@ public class CellPanel extends JPanel {
     private int poolSize, unitRow, buildingRow, enemyRow, cycle;
     private BufferedImage drawing;
     private Pair<BufferedImage, String> currentAnimationFrame;
-    private ArrayDeque<Animation> animations;
+    private ArrayDeque<Animation<?>> animations;
 
     private final Property<GameObject<?>> selected;
     private final Property<Pair<GameObject<?>, Boolean>> target;
@@ -215,8 +216,8 @@ public class CellPanel extends JPanel {
 
             java.util.List<GameObject<?>> drawables = cell.getContent().stream()
                     .filter(obj -> obj.getPlayer().equals(player))
-                    .filter(Operational.class::isInstance)
-                    .filter(obj -> ((Operational<?>) obj).getLogger().size() > 0)
+                    .filter(Energetic.class::isInstance)
+                    .filter(obj -> ((Energetic<?>) obj).getLogger().size() > 0)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             animations = new ArrayDeque<>(drawables.size());

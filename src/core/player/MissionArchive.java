@@ -26,7 +26,7 @@ public class MissionArchive extends ArrayDeque<Mission> {
         add(new Mission() {
             @Override
             public boolean validate(Player p) {
-                return p.getObjects().stream().filter(obj -> obj instanceof Villager).count() == 2;
+                return p.getObjects().stream().filter(obj -> obj instanceof Villager).count() == 5;
             }
 
             @Override

@@ -135,7 +135,7 @@ public class SettingsPanel extends JPanel {
 
         JCheckBox cursorBox = new JCheckBox();
         cursorBox.setOpaque(false);
-        cursorBox.setSelected(settings.showCursor());
+        cursorBox.setSelected(settings.customCursor());
         cursorBox.setBorder(new EmptyBorder(4, 0, 0, 0));
         cursorBox.addChangeListener(_ -> settings.toggleCursor(cursorBox.isSelected()));
         c.gridx = 1;

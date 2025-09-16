@@ -1,5 +1,6 @@
 package core.contracts;
 
+import objects.Energetic;
 import objects.GameObject;
 import objects.Operational;
 
@@ -59,8 +60,8 @@ public abstract class Contract<T extends GameObject<T> & Operational<T>> {
         if(!isStarted)
             initialize();
 
-        if (isStarted && employee.getEnergy() >= energyCost) {
-            employee.changeEnergy(-energyCost);
+        if (isStarted && employee instanceof Energetic<?> energetic && energetic.getEnergy() >= energyCost) {
+            energetic.changeEnergy(-energyCost);
             workCount++;
         }
 
