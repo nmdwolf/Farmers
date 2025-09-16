@@ -4,6 +4,7 @@ import UI.CustomMethods;
 import core.contracts.ConstructContract;
 import objects.Construction;
 import objects.GameObject;
+import objects.units.Worker;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

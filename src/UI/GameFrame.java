@@ -47,6 +47,7 @@ public class GameFrame extends JFrame {
     private int mouseX, mouseY;
 
     @NotNull private final Main parent;
+    @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<Integer> cycle, playerCounter;
     @NotNull private final Property<Boolean> clicked;
     @NotNull private final Property<InfoPanel.Mode> showResources;
@@ -61,6 +62,7 @@ public class GameFrame extends JFrame {
 
     public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         parent = main;
+        this.gameState = gameState;
         this.cells = cells;
         this.cycle = cycle;
         this.playerCounter = playerCounter;
@@ -122,7 +124,7 @@ public class GameFrame extends JFrame {
         target.bind(pair -> {
             if (pair.key() != null && !pair.value()) {
                 selected.ifPresent(fighter -> {
-                    if(CustomMethods.objectDistance(fighter, pair.key()) <= ((Aggressive<?>) fighter).getRange())
+                    if(CustomMethods.objectDistance(fighter, pair.key()) <= ((Aggressive<?>) fighter).getRange()) // TODO Fix this
                         ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive<?>) fighter).getAttackCost(), pair.key()));
                 });
                 selected.set(null);
@@ -259,11 +261,13 @@ public class GameFrame extends JFrame {
         contentPanel.getActionMap().put("next_player", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                hoverPath.set(null);
-                destination = null;
-                selected.set(null);
-                playerCounter.set(playerCounter.getUnsafe() + 1);
-                cellPanel.generateCycleAnimation();
+                if(gameState.getUnsafe() == Main.GameState.PLAYING) {
+                    hoverPath.set(null);
+                    destination = null;
+                    selected.set(null);
+                    playerCounter.set(playerCounter.getUnsafe() + 1);
+                    cellPanel.generateCycleAnimation();
+                }
             }
         });
         contentPanel.getActionMap().put("left", new AbstractAction() {

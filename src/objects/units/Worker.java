@@ -3,6 +3,7 @@ package objects.units;
 import core.*;
 import core.contracts.LaborContract;
 import core.OperationsList;
+import objects.buildings.Foundation;
 import objects.loadouts.Booster;
 import objects.loadouts.Gatherer;
 import objects.templates.UnitTemplate;
@@ -43,8 +44,10 @@ public abstract class Worker extends Unit<Worker> implements objects.Gatherer {
         if(code == OperationCode.RESOURCE) {
             for (String res : getPlayer().getResources().keySet()) {
                 if(getYield(res) > 0)
-                    operations.put(res, _ -> addContract(new LaborContract(Worker.this, res, getCell())));
+                    operations.put(res, _ -> addContract(new LaborContract(this, res, getCell())));
             }
+        } else if(code == OperationCode.CONSTRUCTION) {
+            getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> this.transferContract(pair.value())));
         }
         return operations;
     }

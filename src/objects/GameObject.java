@@ -13,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
@@ -62,7 +63,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @return available upgrades
      */
     public ArrayList<Upgrade> getUpgrades() {
-        return CustomMethods.extractUpgrades(getPlayer(), upgrades);
+        return upgrades.stream().filter(u -> u.isVisible(player)).collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**

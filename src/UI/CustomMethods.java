@@ -2,8 +2,6 @@ package UI;
 
 import core.Location;
 import core.Pair;
-import core.player.Player;
-import core.upgrade.Upgrade;
 import objects.GameObject;
 
 import javax.imageio.ImageIO;
@@ -12,9 +10,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static core.GameConstants.*;
 import static core.GameConstants.CELL_Y_MARGIN;
@@ -33,14 +29,6 @@ public class CustomMethods {
     }
 
     public static int getNewAwardIdentifier() { return AWARD_COUNT++; }
-
-    /**
-     * Removes all upgrades that are already enabled (in place).
-     * @param list list of potential upgrades
-     */
-    public static ArrayList<Upgrade> extractUpgrades(Player player, ArrayList<Upgrade> list) {
-        return list.stream().filter(u -> u.isVisible(player)).collect(Collectors.toCollection(ArrayList::new));
-    }
 
     public static void printTranspose(int[][] grid, String toReplace, String replacement) {
         int[][] temp = new int[grid.length][grid[0].length];

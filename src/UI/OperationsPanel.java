@@ -85,22 +85,16 @@ public class OperationsPanel extends JPanel {
                 if (u.isPossible(selected.getPlayer()))
                     operations.put(u.getDescription(), _ -> u.upgrade(selected.getPlayer()));
             }
-        } else {
+        } else
             operations = ((Operational<?>)selected).getOperations(cycle, code);
-            if (code == OperationCode.CONSTRUCTION && selected instanceof Worker worker) {
-                selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> worker.transferContract(pair.value())));
-            }
-        }
 
         if(!operations.isEmpty()) {
-
             for (int i = 0; i < operations.size(); i++) {
                 final int step = (i >= 7) ? i + 1 : i;
                 buttons[step].updateText(operations.getDescription(i));
                 buttons[step].enableGhost(false);
                 buttons[step].addActionListener(_ -> operations.get(step).perform(null));
             }
-
             setVisible(true);
         }
     }
