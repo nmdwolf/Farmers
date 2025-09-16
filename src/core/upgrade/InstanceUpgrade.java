@@ -1,16 +1,17 @@
 package core.upgrade;
 
 import UI.CustomMethods;
+import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 
-public abstract class InstanceUpgrade<T extends GameObject> extends Upgrade{
+public abstract class InstanceUpgrade<T extends GameObject<T>> extends Upgrade{
 
     private final T object;
     public final int id;
 
     public InstanceUpgrade(T obj, ResourceContainer res, int cycleThreshold) {
-        super(obj.getPlayer(), res, cycleThreshold);
+        super(res, cycleThreshold, "", false);
         object = obj;
         id = CustomMethods.getNewUpgradeIdentifier();
     }
@@ -21,7 +22,14 @@ public abstract class InstanceUpgrade<T extends GameObject> extends Upgrade{
     }
 
     @Override
-    public void apply(GameObject object) {}
+    public void apply(GameObject<?> object) {}
+
+    @Override
+    public void upgrade(Player p) {
+        super.upgrade(p);
+        if(!p.equals(getObject().getPlayer()))
+            throw new IllegalArgumentException("The specified player should match this instance's owner.");
+    }
 
     public T getObject() { return object; }
 }

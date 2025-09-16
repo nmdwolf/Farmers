@@ -66,7 +66,7 @@ public class ChoicePanel extends JPanel {
             buttons.get(2).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
             buttons.get(2).setVisible(true);
         }
-        if(selected instanceof Upgrader) {
+        if(!selected.getUpgrades().isEmpty()) {
             buttons.get(3).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
             buttons.get(3).setVisible(true);
         }

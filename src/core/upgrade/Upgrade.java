@@ -1,45 +1,82 @@
 package core.upgrade;
 
+import UI.CustomMethods;
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 
 public abstract class Upgrade {
 
-    private final int cycleVisibilityThreshold;
-    private final ResourceContainer resources;
-    private final Player player;
+    private final int threshold;
+    private final ResourceContainer cost;
+    private final int ID;
+    private final String description;
+    private final boolean global;
 
-    public Upgrade(Player player, ResourceContainer res, int cycleThreshold) {
-        cycleVisibilityThreshold = cycleThreshold;
-        this.player = player;
-        resources = res;
-    }
+    public Upgrade(ResourceContainer cost, int cycleThreshold, String description, boolean global) {
+        ID = CustomMethods.getNewUpgradeIdentifier();
 
-    public boolean isPossible() {
-        return player.hasResources(resources);
-    }
-
-    public abstract int getID();
-
-    public void upgrade() {
-        player.changeResources(resources);
-        player.enableUpgrade(this);
-        for(GameObject obj : getPlayer().getObjects())
-            apply(obj);
+        threshold = cycleThreshold;
+        this.description = description;
+        this.cost = cost;
+        this.global = global;
     }
 
     /**
-     * Method used to apply core.upgrade post-hoc
-     * @param object upgradable object
+     * Gives the description of this {@code Upgrade}.
+     * @return description
      */
-    public abstract void apply(GameObject object);
-
-    public boolean isVisible() {
-        return player.getCycle() >= cycleVisibilityThreshold && !player.hasUpgrade(this);
+    public String getDescription() {
+        return description;
     }
 
-    public Player getPlayer() { return player; }
+    /**
+     * Gives the cost of this {@code Upgrade}.
+     * @return cost
+     */
+    public ResourceContainer getCost() {
+        return cost;
+    }
+
+    /**
+     * Checks whether the owning {@code Player} has sufficient resources to acquire this {@code Upgrade}.
+     * @return whether player has sufficient resources
+     */
+    public boolean isPossible(Player p) {
+        return p.hasResources(cost);
+    }
+
+    /**
+     * Gives the unique identifier of this {@code Upgrade}.
+     * @return unique identifier
+     */
+    public int getID() {
+        return ID;
+    }
+
+    /**
+     * Applies this upgrade to all existing objects of the owner in case this is a global upgrade.
+     */
+    public void upgrade(Player p) {
+        if(global) {
+            p.changeResources(cost.negative());
+            p.enableUpgrade(this);
+            for (GameObject<?> obj : p.getObjects())
+                apply(obj);
+        }
+    }
+
+    /**
+     * Method used to apply upgrades post-hoc
+     * @param object upgradable object
+     */
+    public abstract void apply(GameObject<?> object);
+
+    public boolean isVisible(Player p) {
+        return p.getCycle() >= threshold && !p.hasUpgrade(this);
+    }
 
     @Override
     public boolean equals(Object obj) {

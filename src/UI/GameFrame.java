@@ -6,7 +6,6 @@ import core.player.Player;
 import objects.Aggressive;
 import objects.GameObject;
 import core.Status;
-import objects.Operational;
 import objects.buildings.TownHall;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -48,9 +47,8 @@ public class GameFrame extends JFrame {
     private int mouseX, mouseY;
 
     @NotNull private final Main parent;
-    @NotNull private final Property<Integer> cycle, current;
+    @NotNull private final Property<Integer> cycle, playerCounter;
     @NotNull private final Property<Boolean> clicked;
-    @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<InfoPanel.Mode> showResources;
     @NotNull private final Property<GameObject<?>> selected;
     @NotNull private final Property<Pair<GameObject<?>, Boolean>> target;
@@ -61,11 +59,11 @@ public class GameFrame extends JFrame {
     private boolean gps;
     private final HashSet<Motion> motions;
 
-    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> current, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
+    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         parent = main;
         this.cells = cells;
         this.cycle = cycle;
-        this.current = current;
+        this.playerCounter = playerCounter;
         this.player = player;
         settings.initialize(this);
 
@@ -82,7 +80,6 @@ public class GameFrame extends JFrame {
         clickPos = new Location(0, 0, 0);
         hoverPath = new Property<>();
         showResources = new Property<>(InfoPanel.Mode.OBJECT);
-        this.gameState = gameState;
         gps = false;
         motions = new HashSet<>();
 
@@ -265,9 +262,8 @@ public class GameFrame extends JFrame {
                 hoverPath.set(null);
                 destination = null;
                 selected.set(null);
-                current.set(current.getUnsafe() + 1);
+                playerCounter.set(playerCounter.getUnsafe() + 1);
                 cellPanel.generateCycleAnimation();
-                gameState.set(Main.GameState.ANIMATING);
             }
         });
         contentPanel.getActionMap().put("left", new AbstractAction() {

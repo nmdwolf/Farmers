@@ -3,6 +3,7 @@ package core.upgrade;
 import core.player.Civilization;
 import objects.GameObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Nomads implements Civilization {
@@ -13,11 +14,11 @@ public class Nomads implements Civilization {
 
     @Override
     public List<Upgrade> getUpgrades() {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
-    public GameObject initObject(GameObject obj) {
+    public GameObject<?> initObject(GameObject<?> obj) {
         return obj;
     }
 }

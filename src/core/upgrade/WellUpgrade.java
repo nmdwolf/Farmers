@@ -1,5 +1,6 @@
 package core.upgrade;
 
+import core.player.Player;
 import core.resources.ResourceContainer;
 import UI.CustomMethods;
 import objects.buildings.TownHall;
@@ -19,7 +20,8 @@ public class WellUpgrade extends InstanceUpgrade<TownHall> {
     }
 
     @Override
-    public void upgrade() {
+    public void upgrade(Player p) {
+        super.upgrade(p);
         getObject().addLoadout(LoadoutFactory.createLoadout("gatherer", new HashMap<>() {{
             put("resources", new String[]{"Water"});
             put("amounts", new int[]{WATER_SOURCE});

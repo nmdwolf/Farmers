@@ -4,6 +4,7 @@ import core.*;
 import core.contracts.AttackContract;
 import core.contracts.ConstructContract;
 import core.player.Player;
+import objects.Animated;
 import objects.Energetic;
 import objects.GameObject;
 import core.Status;
@@ -38,7 +39,7 @@ public class CellPanel extends JPanel {
     private int poolSize, unitRow, buildingRow, enemyRow, cycle;
     private BufferedImage drawing;
     private Pair<BufferedImage, String> currentAnimationFrame;
-    private ArrayDeque<Animation<?>> animations;
+    private ArrayDeque<Animation> animations;
 
     private final Property<GameObject<?>> selected;
     private final Property<Pair<GameObject<?>, Boolean>> target;
@@ -216,15 +217,17 @@ public class CellPanel extends JPanel {
 
             java.util.List<GameObject<?>> drawables = cell.getContent().stream()
                     .filter(obj -> obj.getPlayer().equals(player))
-                    .filter(Energetic.class::isInstance)
-                    .filter(obj -> ((Energetic<?>) obj).getLogger().size() > 0)
+                    .filter(Animated.class::isInstance)
+                    .filter(obj -> ((Animated<?>) obj).getLogger().size() > 0)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             animations = new ArrayDeque<>(drawables.size());
             currentAnimationFrame = new Pair<>(drawing, ""); // Start with current cell (without selection boxes)
 
-            for(GameObject<?> obj : drawables)
-                obj.getSprite(true).ifPresent(_ -> animations.addLast(new Animation(obj, SECONDS_PER_ANIMATION * FPS)));
+            for(var obj : drawables)
+                obj.getSprite(true).ifPresent(_ -> animations.addLast(new Animation(((Animated<?>) obj), SECONDS_PER_ANIMATION * FPS)));
+
+            gameState.set(Main.GameState.ANIMATING);
 
         } else
             gameState.set(Main.GameState.IDLE);

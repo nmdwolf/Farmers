@@ -14,7 +14,20 @@
       "resources": ["Wood", "Time"],
       "amounts": [50, 5]
     },
-    "award": "You finally gave your people some shelter."
+    "award": "You finally gave your people some shelter.",
+    "upgrades": [
+      {
+        "description": "Leather",
+        "cost": {
+          "resources": ["Food", "Water"],
+          "amounts": [200, 100]
+        },
+        "cycle": 10,
+        "health": 20,
+        "global": true,
+        "target": "unit"
+      }
+    ]
   },
 
   {

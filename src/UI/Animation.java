@@ -13,24 +13,24 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
 import java.util.Objects;
 
-public class Animation<T extends GameObject<T> & Animated<T>> extends ArrayDeque<Pair<BufferedImage, String>> {
+public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
 
-    private final T object;
+    private final Animated<?> object;
     private final BufferedImage image;
     private final int length;
     private int code;
 
-    public Animation(T obj, int numOfFrames) {
+    public Animation(Animated<?> obj, int numOfFrames) {
         super(numOfFrames * obj.getLogger().size());
 
         object = obj;
-        image = Objects.requireNonNull(object.getSprite(true).get());
+        image = Objects.requireNonNull(((GameObject<?>)object).getSprite(true).get());
 
         Logger logger = obj.getLogger();
         length = numOfFrames;
         int framesPerLog = numOfFrames / logger.size();
 
-        StringBuilder description = new StringBuilder(object.getClassLabel() + " worked on " + logger.size() + " contract" + ((logger.size() > 1) ? 's' : "") + ".");
+        StringBuilder description = new StringBuilder(((GameObject<?>)object).getClassLabel() + " worked on " + logger.size() + " contract" + ((logger.size() > 1) ? 's' : "") + ".");
 
         while(logger.size() > 0) {
             Logger.Log log = logger.pop();

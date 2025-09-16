@@ -31,29 +31,22 @@ public class Sumerian implements Civilization {
     }
 
     @Override
-    public GameObject initObject(GameObject obj) {
+    public GameObject<?> initObject(GameObject<?> obj) {
         return obj;
     }
 
-    private class WritingUpgrade extends Upgrade {
-
-        public final static int WRITING_ID = CustomMethods.getNewUpgradeIdentifier();
+    private static class WritingUpgrade extends Upgrade {
 
         public final static int CYCLE_THRESHOLD = 10;
         public final static ResourceContainer WRITING_COST = new ResourceContainer("Wood", 100);
 
         public WritingUpgrade() {
-            super(player, WRITING_COST, CYCLE_THRESHOLD);
+            super(WRITING_COST, CYCLE_THRESHOLD, "Writing", true);
         }
 
         @Override
-        public void apply(GameObject object) {
+        public void apply(GameObject<?> object) {
             object.changeMaxHealth(10);
-        }
-
-        @Override
-        public int getID() {
-            return WRITING_ID;
         }
     }
 }

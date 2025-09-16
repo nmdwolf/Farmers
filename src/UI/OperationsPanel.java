@@ -3,6 +3,7 @@ package UI;
 import core.OperationCode;
 import core.OperationsList;
 import core.Pair;
+import core.upgrade.Upgrade;
 import objects.GameObject;
 import objects.Operational;
 import objects.buildings.Foundation;
@@ -66,9 +67,6 @@ public class OperationsPanel extends JPanel {
 
     public void update(GameObject<?> selected, OperationCode code, int cycle) throws IllegalArgumentException {
 
-        if(!(selected instanceof Operational<?> op))
-            throw new IllegalArgumentException("Selected object is not of type Operational.");
-
         for (int i = 0; i < 16; i++) {
             RoundedButton button = buttons[i];
             button.setColor(selected.getPlayer().getAlternativeColor());
@@ -80,9 +78,18 @@ public class OperationsPanel extends JPanel {
             }
         }
 
-        OperationsList operations = op.getOperations(cycle, code);
-        if(code == OperationCode.CONSTRUCTION && selected instanceof Worker worker) {
-            selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> worker.transferContract(pair.value())));
+        OperationsList operations;
+        if(code == OperationCode.UPGRADE) {
+            operations = new OperationsList();
+            for(Upgrade u : selected.getUpgrades()) {
+                if (u.isPossible(selected.getPlayer()))
+                    operations.put(u.getDescription(), _ -> u.upgrade(selected.getPlayer()));
+            }
+        } else {
+            operations = ((Operational<?>)selected).getOperations(cycle, code);
+            if (code == OperationCode.CONSTRUCTION && selected instanceof Worker worker) {
+                selected.getCell().getContent().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> worker.transferContract(pair.value())));
+            }
         }
 
         if(!operations.isEmpty()) {

@@ -7,31 +7,19 @@ import core.resources.ResourceContainer;
 
 public class LookoutUpgrade extends Upgrade {
 
-    public final static int LOOKOUT_ID = CustomMethods.getNewUpgradeIdentifier();
-
     public final static int CYCLE_THRESHOLD = 10;
-    public final static ResourceContainer LOOKOUT_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{100, 100, 100, 100});
+    public final static ResourceContainer LOOKOUT_COST = new ResourceContainer(new String[]{"Food", "Water", "Time"}, new int[]{100, 100, 100});
 
-    public LookoutUpgrade(Player p) {
-        super(p, LOOKOUT_COST, CYCLE_THRESHOLD);
+    public LookoutUpgrade() {
+        super(LOOKOUT_COST, CYCLE_THRESHOLD, "Lookout", true);
     }
 
     @Override
-    public void upgrade() {
-        super.upgrade();
-        getPlayer().unlockView();
+    public void upgrade(Player p) {
+        super.upgrade(p);
+        p.unlockView();
     }
 
     @Override
-    public void apply(GameObject object) {}
-
-    @Override
-    public int getID() {
-        return LOOKOUT_ID;
-    }
-
-    @Override
-    public String toString() {
-        return "Lookout";
-    }
+    public void apply(GameObject<?> object) {}
 }

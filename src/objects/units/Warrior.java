@@ -8,7 +8,7 @@ import objects.loadouts.Fighter;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
 
-public class Warrior extends Unit<Warrior> implements Aggressive {
+public class Warrior extends Unit<Warrior> implements Aggressive<Warrior> {
 
     public Warrior(UnitTemplate template) {
         super(template);
@@ -37,6 +37,11 @@ public class Warrior extends Unit<Warrior> implements Aggressive {
     @Override
     public void changeAttack(int amount) {
         getLoadout(Fighter.class).ifPresent(l -> l.changeAttack(amount));
+    }
+
+    @Override
+    public void changeRange(int amount) {
+        getLoadout(Fighter.class).ifPresent(l -> l.changeRange(amount));
     }
 
     @Override

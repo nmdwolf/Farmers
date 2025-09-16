@@ -4,11 +4,13 @@ import core.*;
 
 import UI.*;
 import core.player.Player;
+import core.upgrade.Upgrade;
 import objects.loadouts.Loadout;
 import objects.templates.Template;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -21,6 +23,7 @@ public abstract class GameObject<G extends GameObject<G>> {
 
     private final int id;
     private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
+    private final ArrayList<Upgrade> upgrades;
     private Cell cell;
     private Player player;
     private final Template template;
@@ -42,6 +45,7 @@ public abstract class GameObject<G extends GameObject<G>> {
         maxHealth = temp.health;
 
         loadouts = new HashMap<>(temp.getLoadouts());
+        upgrades = temp.getUpgrades();
         template = temp;
     }
 
@@ -51,6 +55,14 @@ public abstract class GameObject<G extends GameObject<G>> {
      */
     public Template getTemplate() {
         return template;
+    }
+
+    /**
+     * Gives a list of possible upgrades that this {@code GameObject} can perform.
+     * @return available upgrades
+     */
+    public ArrayList<Upgrade> getUpgrades() {
+        return CustomMethods.extractUpgrades(getPlayer(), upgrades);
     }
 
     /**

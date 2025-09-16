@@ -8,9 +8,7 @@ import core.contracts.Contract;
 import objects.Constructor;
 import core.Status;
 import objects.buildings.BasicBuilding;
-import objects.buildings.Building;
 import objects.buildings.Wall;
-import objects.buildings.House;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
@@ -39,10 +37,8 @@ public class Villager extends Worker implements Constructor {
     @Override
     public OperationsList getConstructions(int cycle) {
         OperationsList constructions = new OperationsList();
-        constructions.put("House", _ -> {
-            House h = new House();
-            addContract(new ConstructContract<>(Villager.this, h));
-        });
+        constructions.put("House", _ ->
+            addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("House"))));
         constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("Lumberjack"))));
         constructions.put("Wall", _ -> {
             Wall w = new Wall();

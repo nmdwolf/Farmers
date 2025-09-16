@@ -3,8 +3,9 @@ package objects.loadouts;
 import com.fasterxml.jackson.annotation.*;
 import objects.Aggressive;
 import objects.GameObject;
+import objects.units.Warrior;
 
-public class Fighter extends Loadout implements Aggressive {
+public class Fighter extends Loadout implements Aggressive<Warrior> {
 
     private int attack, attackCost, range;
 
@@ -34,6 +35,9 @@ public class Fighter extends Loadout implements Aggressive {
 
     @Override
     public void changeAttack(int amount) { attack += amount; }
+
+    @Override
+    public void changeRange(int amount) { range += amount; }
 
     @Override
     public String toString() {

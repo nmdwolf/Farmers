@@ -40,19 +40,6 @@ public class OperationsList extends ArrayList<Operation> {
             put(list.getDescription(i), list.get(i));
     }
 
-    /**
-     * Adds an Upgrade as an Operation if the Upgrade is visible
-     * @param s textual information about the core.upgrade
-     * @param u core.upgrade
-     */
-    public void putUpgrade(String s, Upgrade u) {
-        if(u != null && u.isVisible())
-            put(s, _ -> {
-                if(u.isPossible())
-                    u.upgrade();
-            });
-    }
-
     public Operation remove(int i) {
         descriptions.remove(i);
         return super.remove(i);

@@ -11,6 +11,7 @@ public interface GameConstants {
     int NUMBER_OF_CELLS = 100;
     int NUMBER_OF_CELLS_IN_VIEW = 8;
     int INITIAL_SCREEN_SIZE = 500;
+    int START_CYCLE = 1;
 
     int UNIT_TYPE = 0;
     int BUILDING_TYPE = 1;

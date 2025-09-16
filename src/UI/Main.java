@@ -27,7 +27,7 @@ import static core.GameConstants.*;
 
 public class Main{
 
-    @NotNull private final Property<Integer> cycle, current;
+    @NotNull private final Property<Integer> cycle, playerCounter;
     @NotNull private final Property<Player> currentPlayer;
     @NotNull private final Property<GameState> gameState;
 
@@ -65,8 +65,8 @@ public class Main{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
-        cycle = new Property<>(1);
-        current = new Property<>(0);
+        cycle = new Property<>(START_CYCLE);
+        playerCounter = new Property<>(0);
         cells = new Grid(NUMBER_OF_CELLS);
         gameState = new Property<>(GameState.PLAYING);
 
@@ -75,13 +75,13 @@ public class Main{
         showPlayerInputDialog();
         currentPlayer.set(players.getFirst());
 
-        game = new GameFrame(this, cells, cycle, current, currentPlayer, gameState, settings);
+        game = new GameFrame(this, cells, cycle, playerCounter, currentPlayer, gameState, settings);
         game.initialize();
 
-        current.bind(_ -> {
+        playerCounter.bind(_ -> {
             // All objects should 'work' at the end of every cycle.
             // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
-            for (GameObject<?> object : currentPlayer.getUnsafe().getObjects())
+            for (var object : currentPlayer.getUnsafe().getObjects())
                 object.cycle(cycle.getUnsafe());
         });
 
@@ -144,11 +144,12 @@ public class Main{
             if(object instanceof Energetic<?> op)
                 op.initLogger();
         }
+        currentPlayer.ifPresent(Player::cycle);
 
-        if (current.getUnsafe() == players.size())
+        if (playerCounter.getUnsafe() == players.size())
             playEndOfCycle();
 
-        currentPlayer.set(players.get(current.getUnsafe()));
+        currentPlayer.set(players.get(playerCounter.getUnsafe()));
         currentPlayer.getUnsafe().validateMissions();
 
         SwingUtilities.invokeLater(() -> game.hidePanels(true));
@@ -164,7 +165,7 @@ public class Main{
 
         cycle.set(cycle.getUnsafe() + 1);
         cells.cycle(cycle.getUnsafe());
-        current.set(0);
+        playerCounter.set(0);
     }
 
     /**
@@ -230,8 +231,9 @@ public class Main{
 
         GameObject<?> base = new TownHall();
         base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
-        GameObject<?> lumberjack = BasicBuilding.createBuilding("Lumberjack");
-        lumberjack.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
+        GameObject<?> building = BasicBuilding.createBuilding("House");
+//        GameObject<?> building = BasicBuilding.createBuilding("Lumberjack");
+        building.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
         GameObject<?> v1 = new Villager();
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         GameObject<?> v2 = new Villager();
@@ -241,7 +243,7 @@ public class Main{
         hero.initialize(p, p.getViewPoint(), cycle.getUnsafe());
 
         p.addObject(base);
-        p.addObject(lumberjack);
+        p.addObject(building);
         p.addObject(v1);
         p.addObject(v2);
         p.addObject(hero);

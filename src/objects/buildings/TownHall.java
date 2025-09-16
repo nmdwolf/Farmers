@@ -4,7 +4,9 @@ import core.*;
 import UI.CustomMethods;
 import core.OperationsList;
 import core.player.Award;
+import core.player.Player;
 import core.resources.ResourceContainer;
+import core.upgrade.Upgrade;
 import objects.Evolvable;
 import objects.Operational;
 import objects.Spacer;
@@ -18,6 +20,7 @@ import core.upgrade.WellUpgrade;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static core.GameConstants.SPRITE_SIZE;
@@ -48,6 +51,13 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
         super((ConstructionTemplate) TemplateFactory.getTemplate("Townhall"), BASE_X, BASE_Y);
         this.space = BASE_SPACE;
         level = 1;
+    }
+
+    @Override
+    public void initialize(Player player, Cell cell, int cycle) {
+        super.initialize(player, cell, cycle);
+        getUpgrades().add(new LookoutUpgrade());
+        getUpgrades().add(new WellUpgrade(this));
     }
 
     @Override
@@ -109,24 +119,20 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
     @Override
     public OperationsList getOperations(int cycle, OperationCode code) {
         OperationsList operations = new OperationsList();
-        if(code == OperationCode.UPGRADE) {
-            LookoutUpgrade lookout = new LookoutUpgrade(getPlayer());
-            operations.putUpgrade(lookout.toString(), lookout);
-
-            WellUpgrade well = new WellUpgrade(this);
-            operations.putUpgrade(well.toString(), well);
-        } else if(code == OperationCode.EVOLVE) {
-            operations.putUpgrade("Evolve",
-                    switch (getLevel()) {
-                        case 1 -> new EvolveUpgrade<>(TownHall.this, LEVEL1_RESOURCES, 0, _ -> {
-                            changeMaxHealth(200);
-                            changeSpaceBoost(2);
-                        });
-                        case 2 -> new EvolveUpgrade<>(TownHall.this, LEVEL2_RESOURCES, 0, _ -> {
-                            changeMaxHealth(300);
-                            changeSpaceBoost(3);
-                        });
-                        default -> null;
+        if(code == OperationCode.EVOLVE) {
+            operations.put("Evolve",
+                    _ -> {
+                        switch (getLevel()) {
+                            case 1 -> new EvolveUpgrade<>(TownHall.this, LEVEL1_RESOURCES, 0, _ -> {
+                                changeMaxHealth(200);
+                                changeSpaceBoost(2);
+                            }).upgrade(getPlayer());
+                            case 2 -> new EvolveUpgrade<>(TownHall.this, LEVEL2_RESOURCES, 0, _ -> {
+                                changeMaxHealth(300);
+                                changeSpaceBoost(3);
+                            }).upgrade(getPlayer());
+                            default -> {}
+                        };
                     });
         } if(code == OperationCode.CONSTRUCTION) {
             operations = getConstructions(cycle);

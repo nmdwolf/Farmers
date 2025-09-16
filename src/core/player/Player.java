@@ -34,6 +34,7 @@ public class Player {
     public Player(String name, Color color, Color alternativeColor, Cell start) {
         this.name = name;
         this.color = color;
+        cycle = START_CYCLE;
         missionArchive = new MissionArchive(this);
         awardArchive = new AwardArchive(this);
         civ = new Nomads();
@@ -60,6 +61,22 @@ public class Player {
         totalResources = new ResourceContainer(resources); // TODO What is this variable used for?
         spent = new ResourceContainer();
         gained = new ResourceContainer();
+    }
+
+    /**
+     * Gives the set of allies of this {@code Player}.
+     * @return set of allies
+     */
+    public HashSet<Player> getAllies() {
+        return allies;
+    }
+
+    /**
+     * Adds an ally to this {@code Player}.
+     * @param p new ally
+     */
+    public void addAlly(Player p) {
+        allies.add(p);
     }
 
     public Set<GameObject<?>> getObjects() {
@@ -176,7 +193,9 @@ public class Player {
         return spent.get(type);
     }
 
-    public void cycle() { cycle++; }
+    public void cycle() {
+        cycle++;
+    }
 
     public int getCycle() { return cycle; }
 
