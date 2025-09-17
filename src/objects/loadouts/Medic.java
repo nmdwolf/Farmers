@@ -10,7 +10,7 @@ public class Medic extends Loadout implements Healer {
     private int heal;
 
     @JsonCreator
-    public Medic(@JsonProperty(required = true) int heal) {
+    public Medic(@JsonProperty(required = true, value = "medic") int heal) {
         super("medic");
         this.heal = heal;
     }

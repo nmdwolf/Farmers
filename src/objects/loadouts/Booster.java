@@ -26,6 +26,11 @@ public class Booster extends Loadout implements objects.Booster {
     }
 
     @Override
+    public ResourceContainer getYield() {
+        return yield;
+    }
+
+    @Override
     public String toString() {
         return "Boost radius: " + radius + "\n" +
                 "Boosts: " + yield;

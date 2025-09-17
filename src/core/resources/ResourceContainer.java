@@ -55,11 +55,17 @@ public class ResourceContainer extends HashMap<String, Integer> {
 
     /**
      * Adds the given {@code ResourceContainer} to the current resource container (this is performed in place).
-     * @param resources resources to be added
+     * @param summand resources to be added
      */
-    public void add(ResourceContainer resources) {
-        for(String res : resources.keySet())
-            put(res, get(res) + resources.get(res));
+    public void add(ResourceContainer summand) {
+        for(String res : summand.keySet())
+            put(res, get(res) + summand.get(res));
+    }
+
+    public ResourceContainer addAndReturn(ResourceContainer summand) {
+        ResourceContainer sum = new ResourceContainer(this);
+        sum.add(summand);
+        return sum;
     }
 
     public ResourceContainer negative() {

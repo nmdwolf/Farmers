@@ -6,6 +6,7 @@ import UI.*;
 import core.player.Player;
 import core.upgrade.Upgrade;
 import objects.loadouts.Loadout;
+import objects.loadouts.LoadoutFactory;
 import objects.templates.Template;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +24,7 @@ public abstract class GameObject<G extends GameObject<G>> {
     private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>(), maxiSprites = new HashMap<>();
 
     private final int id;
-    private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
+    private final HashMap<String, Loadout> loadouts;
     private final ArrayList<Upgrade> upgrades;
     private Cell cell;
     private Player player;
@@ -45,7 +46,14 @@ public abstract class GameObject<G extends GameObject<G>> {
         this.health = temp.health;
         maxHealth = temp.health;
 
-        loadouts = new HashMap<>(temp.getLoadouts());
+        loadouts = new HashMap<>();
+        var props = new HashMap<>(temp.getLoadouts());
+        for(String type : props.keySet()) {
+            Loadout l = LoadoutFactory.createLoadout(type, props.get(type));
+            loadouts.put(type, l);
+            l.setOwner(this);
+        }
+
         upgrades = temp.getUpgrades();
         template = temp;
     }
@@ -259,7 +267,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @param <T> Class of the required Loadout
      */
     public <T extends Loadout> Optional<T> getLoadout(Class<T> loadoutClass) {
-        return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass)));
+        return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass.getSimpleName().toLowerCase())));
     }
 
     /**
@@ -267,7 +275,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @param l new Loadout to be added
      */
     public void addLoadout(@NotNull Loadout l) {
-        loadouts.put(l.getClass(), l);
+        loadouts.put(l.getClass().getSimpleName().toLowerCase(), l);
     }
 
     // BASE METHODS INHERITED FROM OBJECT

@@ -47,12 +47,12 @@ public class Main{
 
     public static void main(String[] args) {
 
-        LoadoutFactory.registerLoadout("fighter", Fighter.class);
-        LoadoutFactory.registerLoadout("gatherer", Gatherer.class);
-        LoadoutFactory.registerLoadout("heal", Medic.class);
-        LoadoutFactory.registerLoadout("source", Source.class);
-        LoadoutFactory.registerLoadout("space", Spacer.class);
-        LoadoutFactory.registerLoadout("booster", Booster.class);
+        LoadoutFactory.registerLoadout(Fighter.class);
+        LoadoutFactory.registerLoadout(Gatherer.class);
+        LoadoutFactory.registerLoadout(Medic.class);
+        LoadoutFactory.registerLoadout(Source.class);
+        LoadoutFactory.registerLoadout(Spacer.class);
+        LoadoutFactory.registerLoadout(Booster.class);
 
         TemplateFactory.loadTemplates(ConstructionTemplate.class);
         TemplateFactory.loadTemplates(UnitTemplate.class);
@@ -231,8 +231,8 @@ public class Main{
 
         GameObject<?> base = new TownHall();
         base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
-        GameObject<?> building = BasicBuilding.createBuilding("House");
-//        GameObject<?> building = BasicBuilding.createBuilding("Lumberjack");
+//        GameObject<?> building = BasicBuilding.createBuilding("House");
+        GameObject<?> building = BasicBuilding.createBuilding("Lumberjack");
         building.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
         GameObject<?> v1 = new Villager();
         v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());

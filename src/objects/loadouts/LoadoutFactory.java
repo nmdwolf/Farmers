@@ -23,8 +23,8 @@ public class LoadoutFactory {
         return creators.containsKey(type);
     }
 
-    public static <T extends Loadout> void registerLoadout(String type, Class<T> loadOutClass) {
-        creators.put(type, map -> {
+    public static <T extends Loadout> void registerLoadout(Class<T> loadOutClass) {
+        creators.put(loadOutClass.getSimpleName().toLowerCase(), map -> {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
             return mapper.convertValue(map, loadOutClass);

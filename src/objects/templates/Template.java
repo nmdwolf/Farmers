@@ -16,7 +16,7 @@ import java.util.HashMap;
 
 public class Template {
 
-    private final HashMap<Class<? extends Loadout>, Loadout> loadouts;
+    private final HashMap<String, Object> loadouts;
 
     @JsonIgnore
     private final ArrayList<Upgrade> upgrades;
@@ -29,16 +29,16 @@ public class Template {
         upgrades = new ArrayList<>();
     }
 
-    public HashMap<Class<? extends Loadout>, Loadout> getLoadouts() {
+    public HashMap<String, Object> getLoadouts() {
         return loadouts;
     }
 
     /**
      * Adds a Loadout to this Template.
-     * @param l new Loadout to be added
+     * @param properties Loadout properties to be added
      */
-    public void addLoadout(@NotNull Loadout l) {
-        loadouts.put(l.getClass(), l);
+    public void addLoadout(String type, @NotNull Object properties) {
+        loadouts.put(type, properties);
     }
 
     @JsonIgnore
@@ -47,12 +47,12 @@ public class Template {
     }
 
     @JsonAnySetter
-    public void registerExtra(String attr, Object property) {
+    public void registerExtra(String attr, Object properties) {
         if(LoadoutFactory.isRegistered(attr))
-            addLoadout(LoadoutFactory.createLoadout(attr, property));
+            addLoadout(attr, properties);
 
         if(attr.equals("upgrades")) {
-            var array = (ArrayList<HashMap<String, Object>>) property;
+            var array = (ArrayList<HashMap<String, Object>>) properties;
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
             for (var map : array)
