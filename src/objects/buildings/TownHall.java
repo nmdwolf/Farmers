@@ -81,11 +81,11 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
     }
 
     @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite() {
         return switch (getLevel()) {
-            case 0 -> Optional.of(max ? BONFIRE_SPRITE_MAX : BONFIRE_SPRITE);
-            case 1 -> Optional.of(max ? TOWN_SPRITE_MAX : TOWN_SPRITE);
-            default -> Optional.of(max ? CASTLE_SPRITE_MAX : CASTLE_SPRITE);
+            case 0 -> Optional.of(BONFIRE_SPRITE_MAX);
+            case 1 -> Optional.of(TOWN_SPRITE_MAX);
+            default -> Optional.of(CASTLE_SPRITE_MAX);
         };
     }
 

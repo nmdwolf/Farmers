@@ -1,29 +1,30 @@
 package objects.loadouts;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Spacer extends Loadout implements objects.Spacer {
 
-    private int spacer;
+    private int space;
 
     @JsonCreator
-    public Spacer(int spacer) {
+    public Spacer(@JsonProperty(required = true, value = "spacer") int space) {
         super("spacer");
-        this.spacer = spacer;
+        this.space = space;
     }
 
     @Override
     public int getSpaceBoost() {
-        return spacer;
+        return space;
     }
 
     @Override
     public void changeSpaceBoost(int amount) {
-        spacer += amount;
+        space += amount;
     }
 
     @Override
     public String toString() {
-        return "Space: " + spacer;
+        return "Space: " + space;
     }
 }

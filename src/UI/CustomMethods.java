@@ -19,6 +19,7 @@ import static core.GameConstants.SPRITE_SIZE_MAX;
 public class CustomMethods {
 
     private static int ID_COUNT, UPGRADE_COUNT, AWARD_COUNT;
+    private static int spriteSize = SPRITE_SIZE_MAX;
 
     public static int getNewIdentifier() {
         return ID_COUNT++;
@@ -147,8 +148,8 @@ public class CustomMethods {
     }
 
     public static Pair<Integer, Integer> cellCoordinateTransform(int x, int y) {
-        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(SPRITE_SIZE_MAX + CELL_X_MARGIN));
-        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(SPRITE_SIZE_MAX + CELL_Y_MARGIN));
+        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(spriteSize + CELL_X_MARGIN));
+        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(spriteSize + CELL_Y_MARGIN));
         return new Pair<>(selectionX, selectionY);
     }
 
@@ -156,5 +157,9 @@ public class CustomMethods {
         Location loc1 = obj1.getCell().getLocation();
         Location loc2 = obj2.getCell().getLocation();
         return loc1.distanceTo(loc2);
+    }
+
+    public static void setSpriteSize(int size) {
+        spriteSize = size;
     }
 }

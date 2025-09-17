@@ -12,6 +12,11 @@ public class Settings {
     private String audioSource;
     private boolean customCursor;
     private GameFrame frame;
+    private int screenWidth;
+    private int screenHeight;
+    private float cellWidth;
+    private float cellHeight;
+    private int spriteSize;
 
     private Thread audioThread;
     private DJ dj;
@@ -22,6 +27,10 @@ public class Settings {
         shuffleMusic = new Property<>(SHUFFLE_MUSIC);
         audioSource = MUSIC_FOLDER;
         customCursor = CUSTOM_CURSOR;
+        screenWidth = INITIAL_SCREEN_SIZE;
+        screenHeight = INITIAL_SCREEN_SIZE;
+        cellWidth = Math.round(screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW);
+        cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
     }
 
     public void initialize(GameFrame frame) {
@@ -90,5 +99,45 @@ public class Settings {
 
     public String getAudioSource() {
         return audioSource;
+    }
+
+    public float getCellHeight() {
+        return cellHeight;
+    }
+
+    public float getCellWidth() {
+        return cellWidth;
+    }
+
+    public int getScreenHeight() {
+        return screenHeight;
+    }
+
+    public void setScreenHeight(int screenHeight) {
+        this.screenHeight = screenHeight;
+        cellHeight = screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW;
+        setSpriteSize();
+    }
+
+    public int getScreenWidth() {
+        return screenWidth;
+    }
+
+    public void setScreenWidth(int screenWidth) {
+        this.screenWidth = screenWidth;
+        cellWidth = screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW;
+        setSpriteSize();
+    }
+
+    public float getPoolSize() {
+        return Math.min(Math.round(cellWidth / 2f), Math.round(cellHeight / 2f));
+    }
+
+    private void setSpriteSize() {
+        spriteSize = (int)Math.min(cellWidth, cellHeight) / 2;
+    }
+
+    public int getSpriteSize() {
+        return spriteSize;
     }
 }

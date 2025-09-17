@@ -41,12 +41,11 @@ public class GameFrame extends JFrame {
     private final JPanel tintedGlassPanel;
     private Font font;
 
-    private int screenWidth, screenHeight;
-    private float cellWidth, cellHeight, poolSize;
     @NotNull private final Property<Player> player;
     private int mouseX, mouseY;
 
     @NotNull private final Main parent;
+    @NotNull private final Settings settings;
     @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<Integer> cycle, playerCounter;
     @NotNull private final Property<Boolean> clicked;
@@ -58,23 +57,18 @@ public class GameFrame extends JFrame {
     @NotNull private final Property<Location[]> hoverPath;
     @NotNull private final Grid cells;
     private boolean gps;
+    private Timer resizeTimer;
     private final HashSet<Motion> motions;
 
     public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         parent = main;
+        this.settings = settings;
         this.gameState = gameState;
         this.cells = cells;
         this.cycle = cycle;
         this.playerCounter = playerCounter;
         this.player = player;
         settings.initialize(this);
-
-        // Initial values to avoid 0 issues
-        screenWidth = INITIAL_SCREEN_SIZE;
-        screenHeight = INITIAL_SCREEN_SIZE;
-        cellWidth = (float)INITIAL_SCREEN_SIZE / NUMBER_OF_CELLS_IN_VIEW;
-        cellHeight = (float)INITIAL_SCREEN_SIZE / NUMBER_OF_CELLS_IN_VIEW;
-        poolSize = cellWidth;
 
         clicked = new Property<>(false);
         selected = new Property<>();
@@ -92,8 +86,8 @@ public class GameFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
-        operationsPanel = new OperationsPanel(cellWidth, cellHeight);
-        choicePanel = new ChoicePanel(operationsPanel, cellWidth, cellHeight, _ -> hidePanels(true), showResources, target);
+        operationsPanel = new OperationsPanel(settings.getCellWidth(), settings.getCellHeight());
+        choicePanel = new ChoicePanel(operationsPanel, settings.getCellWidth(), settings.getCellHeight(), _ -> hidePanels(true), showResources, target);
         infoPanel = new InfoPanel(selected);
         cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.getUnsafe(), selected, target, gameState, settings);
         settingsPanel = new SettingsPanel(settings);
@@ -133,10 +127,10 @@ public class GameFrame extends JFrame {
     }
 
     public void updateContent(boolean forceReload) {
-        cellPanel.updateContent(forceReload);
         SwingUtilities.invokeLater(() -> {
             refreshWindow();
             contentPanel.revalidate();
+            cellPanel.updateContent(forceReload);
             contentPanel.repaint();
         });
     }
@@ -159,7 +153,7 @@ public class GameFrame extends JFrame {
 
         setVisible(true);
         setExtendedState(MAXIMIZED_BOTH);
-        resetScales();
+        reorder();
 
         setCustomCursor();
         addMouseInputs();
@@ -201,7 +195,7 @@ public class GameFrame extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                if(cellWidth > 0 && cellHeight > 0) {
+                if(settings.getCellWidth() > 0 && settings.getCellHeight() > 0) {
                     Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
 
                     drawCells(gr);
@@ -210,7 +204,7 @@ public class GameFrame extends JFrame {
                     gr.setColor(player.getUnsafe().getAlternativeColor());
                     gr.setStroke(new BasicStroke(2));
                     Cell p = posToCellCoord(mouseX, mouseY, 0);
-                    gr.drawRect((int)(p.getX() * cellWidth), (int)(p.getY() * cellHeight), (int)cellWidth, (int)cellHeight);
+                    gr.drawRect((int)(p.getX() * settings.getCellWidth()), (int)(p.getY() * settings.getCellHeight()), (int)settings.getCellWidth(), (int)settings.getCellHeight());
                     drawPaths(gr);
 
                     gr.dispose();
@@ -327,7 +321,7 @@ public class GameFrame extends JFrame {
                 // Moves info panel to make sure that the underlying cells are reachable.
                 selected.get().ifPresent( obj -> {
                     if(infoPanel != null)
-                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
+                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
 
                     if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getUnsafe().getViewPoint().getLocation()).isEndOfMap()) {
                         Pair<Motion, Location> motion = parent.getShortestAdmissiblePath(obj, mousePos.fetch(player.getUnsafe().getViewPoint().getLocation()));
@@ -429,37 +423,21 @@ public class GameFrame extends JFrame {
      * Adds a {@code ComponentListener} to the game window that reacts to window resizing.
      */
     private void addResizeListener() {
+        resizeTimer = new Timer(100, _ -> {
+            SwingUtilities.invokeLater(() -> {
+                reorder();
+                updateContent(true);
+            });
+
+        });
+        resizeTimer.setRepeats(false);
+
         // Rescale game elements on screen resize
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
-                resetScales();
-
-                tintedGlassPanel.setPreferredSize(new Dimension(screenWidth, screenHeight));
-                layout.putConstraint(SpringLayout.WEST, tintedGlassPanel, 0, SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, tintedGlassPanel, 0, SpringLayout.NORTH, contentPanel);
-
-                choicePanel.resizePanel(cellWidth, cellHeight);
-                layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, choicePanel, (int)(screenHeight - 3 * cellHeight), SpringLayout.NORTH, contentPanel);
-
-                operationsPanel.resizePanel(cellWidth, cellHeight);
-                layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((screenWidth - 3 * cellWidth) / 2f), SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, operationsPanel, (int)(screenHeight - 3 * cellHeight), SpringLayout.NORTH, contentPanel);
-
-                cellPanel.setPreferredSize(new Dimension((int)((NUMBER_OF_CELLS_IN_VIEW - 2) * cellWidth + 40), ( int)((NUMBER_OF_CELLS_IN_VIEW - 2) * cellHeight + 40)));
-                layout.putConstraint(SpringLayout.WEST, cellPanel, (int)(cellWidth - 20), SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, cellPanel, (int)(cellHeight - 20), SpringLayout.NORTH, contentPanel);
-
-                infoPanel.resizePanel(cellWidth, cellHeight);
-                layout.putConstraint(SpringLayout.WEST, infoPanel,
-                        (clickPos.x() - player.getUnsafe().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (int)(screenWidth - 2 * cellWidth - 30), SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
-
-                settingsScroller.setPreferredSize(new Dimension((int)(4 * cellWidth), (int)(5 * cellHeight)));
-                layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * cellWidth), SpringLayout.WEST, contentPanel);
-                layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)cellHeight, SpringLayout.NORTH, contentPanel);
+                resizeTimer.restart();
             }
         });
     }
@@ -569,7 +547,7 @@ public class GameFrame extends JFrame {
         for(char c : text.toCharArray()) {
             temp.append(c);
             if(font.getStringBounds(temp.toString(),
-                    ((Graphics2D)getContentPane().getGraphics()).getFontRenderContext()).getWidth() >= (2 * cellWidth - 4 - 4 - 20)) {
+                    ((Graphics2D)getContentPane().getGraphics()).getFontRenderContext()).getWidth() >= (2 * settings.getCellWidth() - 4 - 4 - 20)) {
                 output.append(temp);
                 output.append("\n");
                 temp = new StringBuilder();
@@ -586,7 +564,7 @@ public class GameFrame extends JFrame {
 
 //                gr.setColor(new Color(200, 150, 0, 76));
                 gr.setColor(new Color(200, 150, 0));
-                gr.fillRoundRect(1, 1, (int)(2 * cellWidth) - 2, getHeight() - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
+                gr.fillRoundRect(1, 1, (int)(2 * settings.getCellWidth()) - 2, getHeight() - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
                 gr.setColor(Color.black);
                 CustomMethods.drawString(gr, output.toString(), 10, 10);
 
@@ -602,7 +580,7 @@ public class GameFrame extends JFrame {
             }
         });
 
-        panel.setPreferredSize(new Dimension((int)(2 * cellWidth), 50 * lines));
+        panel.setPreferredSize(new Dimension((int)(2 * settings.getCellWidth()), 50 * lines));
         panel.setBorder(new CustomBorder(Color.black));
         panel.setOpaque(false);
 
@@ -610,7 +588,7 @@ public class GameFrame extends JFrame {
 
         getContentPane().add(panel, Integer.valueOf(1));
         SpringLayout layout = (SpringLayout) getContentPane().getLayout();
-        layout.putConstraint(SpringLayout.WEST, panel, (int)(screenWidth - 2 * cellWidth - 50), SpringLayout.WEST, getContentPane());
+        layout.putConstraint(SpringLayout.WEST, panel, (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 50), SpringLayout.WEST, getContentPane());
         layout.putConstraint(SpringLayout.NORTH, panel, 50, SpringLayout.NORTH, getContentPane());
     }
 
@@ -619,14 +597,6 @@ public class GameFrame extends JFrame {
      * @param gr Graphics object of the game panel
      */
     private void drawCells(Graphics2D gr) {
-
-        /*
-         * Redraw background image
-         */
-        for (int i = 0; i < NUMBER_OF_CELLS_IN_VIEW - 1; i++) {
-            gr.fillRect((int)((i + 1) * cellWidth - 1), 0, 1, screenHeight - getInsets().top);
-            gr.fillRect(0, (int)((i + 1) * cellHeight - 1), screenWidth, 1);
-        }
 
         /*
          * Draw all (visible) cells
@@ -639,38 +609,38 @@ public class GameFrame extends JFrame {
 
                 if (cell.isField()) {
                     gr.setColor(new Color(200, 120, 0, 100));
-                    gr.fillRect((int)(x * cellWidth), (int)(y * cellHeight), (int)(cellWidth - 1), (int)(cellHeight - 1));
+                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)(settings.getCellWidth() + 2), (int)(settings.getCellHeight() + 2));
                 }
 
                 if (cell.isForest()) {
                     gr.setColor(new Color(20, 150, 20));
-    //                        gr.fillArc(x * cellWidth - Math.round(poolSize / 2f), y * cellHeight - Math.round(poolSize / 2f), poolSize, poolSize, 270, 90);
-                    gr.fillArc((int)(x * cellWidth - poolSize), (int)((y + 1) * cellHeight - poolSize - 1), (int)(2 * poolSize), (int)(2 * poolSize), 0, 90);
+    //                        gr.fillArc(x * settings.getCellWidth() - Math.round(settings.getPoolSize() / 2f), y * settings.getCellHeight() - Math.round(settings.getPoolSize() / 2f), settings.getPoolSize(), settings.getPoolSize(), 270, 90);
+                    gr.fillArc((int)(x * settings.getCellWidth() - settings.getPoolSize()), (int)((y + 1) * settings.getCellHeight() - settings.getPoolSize() - 1), (int)(2 * settings.getPoolSize()), (int)(2 * settings.getPoolSize()), 0, 90);
                 }
 
                 if (cell.isRiver()) {
                     gr.setColor(new Color(0, 100, 255));
                     if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
-                        gr.fillRoundRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), (int)(cellWidth + poolSize), (int)(cellHeight + poolSize), (int)poolSize, (int)poolSize);
+                        gr.fillRoundRect(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), (int)(settings.getCellWidth() + settings.getPoolSize()), (int)(settings.getCellHeight() + settings.getPoolSize()), (int)settings.getPoolSize(), (int)settings.getPoolSize());
                     else {
                         boolean singleFlag = true;
                         if (cell.getX() < NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
-                            gr.fillRect(Math.round((x + 0.5f) * cellWidth), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), Math.round(cellWidth / 2f) + 1, (int)poolSize);
+                            gr.fillRect(Math.round((x + 0.5f) * settings.getCellWidth()), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), Math.round(settings.getCellWidth() / 2f) + 1, (int)settings.getPoolSize());
                         if (cell.getX() > 0 && cell.fetch(-1, 0, 0).isRiver())
-                            gr.fillRect((int)(x * cellWidth - 1), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), Math.round(cellWidth / 2f), (int)poolSize);
+                            gr.fillRect((int)(x * settings.getCellWidth() - 1), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), Math.round(settings.getCellWidth() / 2f), (int)settings.getPoolSize());
                         if (cell.getY() < NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight), (int)poolSize, Math.round(cellHeight / 2f));
+                            gr.fillRect(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), Math.round((y + 0.5f) * settings.getCellHeight()), (int)settings.getPoolSize(), Math.round(settings.getCellHeight() / 2f));
                             singleFlag = false;
                         }
                         if (cell.getY() > 0 && cell.fetch(0, -1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), (int)(y * cellHeight), (int)poolSize, Math.round(cellHeight / 2f));
+                            gr.fillRect(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), (int)(y * settings.getCellHeight()), (int)settings.getPoolSize(), Math.round(settings.getCellHeight() / 2f));
                             singleFlag = false;
                         }
 
                         if (singleFlag)
-                            gr.fillOval(Math.round((x + 0.5f) * cellWidth - poolSize), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), (int)(poolSize * 2), (int)poolSize);
+                            gr.fillOval(Math.round((x + 0.5f) * settings.getCellWidth() - settings.getPoolSize()), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), (int)(settings.getPoolSize() * 2), (int)settings.getPoolSize());
                         else
-                            gr.fillOval(Math.round((x + 0.5f) * cellWidth - (poolSize / 2f)), Math.round((y + 0.5f) * cellHeight - (poolSize / 2f)), (int)poolSize, (int)poolSize);
+                            gr.fillOval(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), (int)settings.getPoolSize(), (int)settings.getPoolSize());
                     }
                 }
             }
@@ -699,7 +669,7 @@ public class GameFrame extends JFrame {
 
     private void drawPath(Graphics2D gr, Location[] path, Cell current) {
         // Draws the initial marker
-        gr.fillOval(Math.round((current.getX() + 0.5f) * cellWidth) - 5, Math.round((current.getY() + 0.5f) * cellHeight) - 5, 10, 10);
+        gr.fillOval(Math.round((current.getX() + 0.5f) * settings.getCellWidth()) - 5, Math.round((current.getY() + 0.5f) * settings.getCellHeight()) - 5, 10, 10);
 
         Stroke oldStroke = gr.getStroke();
         gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
@@ -711,22 +681,22 @@ public class GameFrame extends JFrame {
             Location next = path[i + 1];
 
             if (previous.x() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (int)(current.getX() * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)(current.getX() * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
             else if (previous.x() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (int)((current.getX() + 1) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)((current.getX() + 1) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
             else if (previous.y() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (int)(current.getY() * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)(current.getY() * settings.getCellHeight()));
             else if (previous.y() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (int)((current.getY() + 1) * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)((current.getY() + 1) * settings.getCellHeight()));
 
             if (next.x() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (int)((current.getX() + 1) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)((current.getX() + 1) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
             else if (next.x() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), (int)(current.getX() * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)(current.getX() * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
             else if (next.y() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (int)((current.getY() + 1) * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)((current.getY() + 1) * settings.getCellHeight()));
             else if (next.y() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * cellWidth), Math.round((current.getY() + 0.5f) * cellHeight), Math.round((current.getX() + 0.5f) * cellWidth), (int)(current.getY() * cellHeight));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)(current.getY() * settings.getCellHeight()));
         }
 
         Location finalMove = path[path.length - 1];
@@ -734,9 +704,9 @@ public class GameFrame extends JFrame {
 
         // Draws the destination circle with corresponding distance
         gr.setStroke(oldStroke);
-        gr.drawOval(Math.round((current.getX() + 0.5f) * cellWidth) - 10, Math.round((current.getY() + 0.5f) * cellHeight) - 10, 20, 20);
+        gr.drawOval(Math.round((current.getX() + 0.5f) * settings.getCellWidth()) - 10, Math.round((current.getY() + 0.5f) * settings.getCellHeight()) - 10, 20, 20);
         String distanceText = String.valueOf(travelDistance);
-        gr.drawString(distanceText, (current.getX() + 0.5f) * cellWidth - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * cellHeight + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
+        gr.drawString(distanceText, (current.getX() + 0.5f) * settings.getCellWidth() - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * settings.getCellHeight() + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
     }
 
     /**
@@ -753,30 +723,30 @@ public class GameFrame extends JFrame {
                 gr.setColor(player.getUnsafe().getColor());
                 List<Player> playersInCell = new ArrayList<>(cell.getContent().stream().map(GameObject::getPlayer).distinct().toList());
                 if(playersInCell.contains(player.getUnsafe())) {
-                    gr.fillOval((int)(x * cellWidth + 5), (int)(y * cellHeight + 5), 10, 10);
+                    gr.fillOval((int)(x * settings.getCellWidth() + 5), (int)(y * settings.getCellHeight() + 5), 10, 10);
                     playersInCell.remove(player.getUnsafe());
                 }
 
                 if(cell.isEndOfMap()) {
                     gr.setColor(Color.black);
-                    gr.fillRect((int)(x * cellWidth - 1), (int)(y * cellHeight - 1), (int)cellWidth + 10, (int)cellHeight + 1);
+                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
                 } else if (!player.getUnsafe().hasSpotted(cell)) {
                     gr.setColor(Color.lightGray);
-                    gr.fillRect((int)(x * cellWidth - 1), (int)(y * cellHeight - 1), (int)cellWidth + 1, (int)cellHeight + 1);
+                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
                 } else if (!player.getUnsafe().hasDiscovered(cell)) {
                     gr.setColor(new Color(192, 192, 192, 200));
-                    gr.fillRect((int)(x * cellWidth - 1), (int)(y * cellHeight - 1), (int)cellWidth + 1, (int)cellHeight + 1);
+                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
                 } else {
                     if (cell.getHeatLevel() <= COLD_LEVEL)
-                        gr.drawImage(CLOUD, (int)((x + 1) * cellWidth - CLOUD.getWidth() - 5),
-                                (int)(y * cellHeight + 5), null);
+                        gr.drawImage(CLOUD, (int)((x + 1) * settings.getCellWidth() - CLOUD.getWidth() - 5),
+                                (int)(y * settings.getCellHeight() + 5), null);
                     else if (cell.getHeatLevel() >= HOT_LEVEL)
-                        gr.drawImage(SUN, (int)((x + 1) * cellWidth - SUN.getWidth() - 5),
-                                (int)(y * cellHeight + 5), null);
+                        gr.drawImage(SUN, (int)((x + 1) * settings.getCellWidth() - SUN.getWidth() - 5),
+                                (int)(y * settings.getCellHeight() + 5), null);
 
                     for(int i = 0; i < playersInCell.size(); i++) {
                         gr.setColor(playersInCell.get(i).getColor());
-                        gr.drawOval((int)(x * cellWidth + 5 + 15 * (i + 1)), (int)(y * cellHeight + 5), 10, 10);
+                        gr.drawOval((int)(x * settings.getCellWidth() + 5 + 15 * (i + 1)), (int)(y * settings.getCellHeight() + 5), 10, 10);
                     }
                 }
             }
@@ -784,7 +754,6 @@ public class GameFrame extends JFrame {
 
         // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistic).
         if(gps) {
-
             Cell vp = player.getUnsafe().getViewPoint();
             Cell nearestTownHall =
                     player.getUnsafe().getObjects().stream()
@@ -797,8 +766,8 @@ public class GameFrame extends JFrame {
             Stroke oldStroke =  gr.getStroke();
             gr.setStroke(new BasicStroke(5));
             Location drawLoc = nearestTownHall.getLocation().add(vp.getLocation().negative());
-            gr.drawRoundRect((int)(drawLoc.x() * cellWidth - 10), (int)(drawLoc.y() * cellHeight - 10), (int)cellWidth + 20,
-                    (int)cellHeight + 20, 20, 20);
+            gr.drawRoundRect((int)(drawLoc.x() * settings.getCellWidth() - 10), (int)(drawLoc.y() * settings.getCellHeight() - 10), (int)settings.getCellWidth() + 20,
+                    (int)settings.getCellHeight() + 20, 20, 20);
             gr.setStroke(oldStroke);
 
             if (drawLoc.x() >= NUMBER_OF_CELLS_IN_VIEW)
@@ -810,6 +779,12 @@ public class GameFrame extends JFrame {
                 gr.fillOval(contentPanel.getWidth() / 2 - 10, contentPanel.getHeight() - 60, 20, 20);
             else if(drawLoc.y() < 0)
                 gr.fillOval(contentPanel.getWidth() / 2 - 10, 40, 20, 20);
+        }
+
+        gr.setColor(Color.lightGray);
+        for (int i = 0; i < NUMBER_OF_CELLS_IN_VIEW - 1; i++) {
+            gr.fillRect((int)((i + 1) * settings.getCellWidth() - 1), 0, 1, settings.getScreenHeight());
+            gr.fillRect(0, (int)((i + 1) * settings.getCellHeight() - 1), settings.getScreenWidth(), 1);
         }
     }
 
@@ -838,11 +813,41 @@ public class GameFrame extends JFrame {
      * Recalculates screen size and rescales derived dimensions.
      */
     public void resetScales() {
-        screenWidth = getContentPane().getWidth();
-        screenHeight = getContentPane().getHeight();
-        cellWidth = Math.round(screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW);
-        cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
-        poolSize = Math.min(Math.round(cellWidth / 2f), Math.round(cellHeight / 2f));
+        settings.setScreenWidth(getContentPane().getWidth());
+        settings.setScreenHeight(getContentPane().getHeight());
+        CustomMethods.setSpriteSize(settings.getSpriteSize());
+        GameObject.resizeSprites(settings.getSpriteSize());
+    }
+
+    private void reorder() {
+        resetScales();
+
+        tintedGlassPanel.setPreferredSize(new Dimension(settings.getScreenWidth(), settings.getScreenHeight()));
+        layout.putConstraint(SpringLayout.WEST, tintedGlassPanel, 0, SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, tintedGlassPanel, 0, SpringLayout.NORTH, contentPanel);
+
+        choicePanel.resizePanel((int)settings.getCellWidth(), (int)settings.getCellHeight());
+        layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((settings.getScreenWidth() - 3 * settings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, choicePanel, Math.round(settings.getScreenHeight() - 3 * settings.getCellHeight()), SpringLayout.NORTH, contentPanel);
+
+        operationsPanel.resizePanel((int)settings.getCellWidth(), (int)settings.getCellHeight());
+        layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((settings.getScreenWidth() - 3 * settings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, operationsPanel, Math.round(settings.getScreenHeight() - 3 * settings.getCellHeight()), SpringLayout.NORTH, contentPanel);
+
+        cellPanel.setPreferredSize(new Dimension((int)((NUMBER_OF_CELLS_IN_VIEW - 2) * settings.getCellWidth() + 40), ( int)((NUMBER_OF_CELLS_IN_VIEW - 2) * settings.getCellHeight() + 40)));
+        layout.putConstraint(SpringLayout.WEST, cellPanel, (int)(settings.getCellWidth() - 20), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, cellPanel, (int)(settings.getCellHeight() - 20), SpringLayout.NORTH, contentPanel);
+
+        infoPanel.resizePanel((int)settings.getCellWidth(), (int)settings.getCellHeight());
+        layout.putConstraint(SpringLayout.WEST, infoPanel,
+                (clickPos.x() - player.getUnsafe().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
+
+        settingsScroller.setPreferredSize(new Dimension((int)(4 * settings.getCellWidth()), (int)(5 * settings.getCellHeight())));
+        layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * settings.getCellWidth()), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)settings.getCellHeight(), SpringLayout.NORTH, contentPanel);
+
+        contentPanel.revalidate();
     }
 
     public void hidePanels(boolean alsoCellPanel) {
@@ -863,7 +868,7 @@ public class GameFrame extends JFrame {
      */
     @NotNull
     private Cell posToCellCoord(int x, int y, int h) {
-        return cells.get(new Location((int)(x / cellWidth), (int)(y / cellHeight), h));
+        return cells.get(new Location((int)(x / settings.getCellWidth()), (int)(y / settings.getCellHeight()), h));
     }
 
     /**

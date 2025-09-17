@@ -16,12 +16,12 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
 
 public abstract class GameObject<G extends GameObject<G>> {
 
-    private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>(), maxiSprites = new HashMap<>();
+    private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>();
+    private final static HashMap<String, String> spriteLocations = new HashMap<>();
 
     private final int id;
     private final HashMap<String, Loadout> loadouts;
@@ -149,11 +149,10 @@ public abstract class GameObject<G extends GameObject<G>> {
 
     /**
      * Retrieves the sprite corresponding to this object's class identifier (if available).
-     * @param max size
      * @return sprite (if available)
      */
     @NotNull
-    public Optional<BufferedImage> getSprite(boolean max) { return GameObject.getSprite(template.type, max); }
+    public Optional<BufferedImage> getSprite() { return GameObject.getSprite(template.type); }
 
     /**
      * Gives the amount of space occupied by this object.
@@ -304,20 +303,22 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @param fileName sprite location
      */
     public static void registerSprite(String name, String fileName) {
-        sprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE, SPRITE_SIZE));
-        maxiSprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX));
+        spriteLocations.put(name, fileName);
+        sprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX));
+    }
+
+    public static void resizeSprites(int size) {
+        var names = sprites.keySet();
+        for(String name : names)
+            sprites.put(name, CustomMethods.loadSprite("src/img/" + spriteLocations.get(name) + ".png", size, size));
     }
 
     /**
      * Retrieves a sprite corresponding to the specified class identifier (if available).
      * @param name class identifier
-     * @param max size of sprite
      * @return sprite (if available)
      */
-    public static Optional<BufferedImage> getSprite(String name, boolean max) {
-        if(max)
-            return maxiSprites.get(name);
-        else
-            return sprites.get(name);
+    public static Optional<BufferedImage> getSprite(String name) {
+        return sprites.get(name);
     }
 }

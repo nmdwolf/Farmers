@@ -17,7 +17,6 @@ import java.util.Optional;
 
 public class Hero extends Unit<Hero> implements Aggressive<Hero> {
 
-    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE, (int)(GameConstants.SPRITE_SIZE / 0.6)).orElseThrow();
     public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6)).orElseThrow();
 
     private String name;
@@ -48,8 +47,8 @@ public class Hero extends Unit<Hero> implements Aggressive<Hero> {
     }
 
     @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        return Optional.of(max ? SPRITE_MAX : SPRITE);
+    public @NotNull Optional<BufferedImage> getSprite() {
+        return Optional.of(SPRITE_MAX);
     }
 
     @Override

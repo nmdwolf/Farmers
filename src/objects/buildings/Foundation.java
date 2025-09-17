@@ -48,9 +48,9 @@ public class Foundation<T extends Construction<T>> extends GameObject<T> {
     }
 
     @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite() {
         if(constructable.hasVisibleFoundation()) {
-            BufferedImage sprite = max ? FOUNDATION_SPRITE_MAX : FOUNDATION_SPRITE;
+            BufferedImage sprite = FOUNDATION_SPRITE_MAX;
             BufferedImage img = new BufferedImage(sprite.getWidth(), sprite.getHeight(), sprite.getType());
 
             Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());

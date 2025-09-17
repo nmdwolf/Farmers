@@ -23,7 +23,7 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
         super(numOfFrames * obj.getLogger().size());
 
         object = obj;
-        image = Objects.requireNonNull(((GameObject<?>)object).getSprite(true).orElseThrow());
+        image = Objects.requireNonNull(((GameObject<?>)object).getSprite().orElseThrow());
 
         Logger logger = obj.getLogger();
         length = numOfFrames;

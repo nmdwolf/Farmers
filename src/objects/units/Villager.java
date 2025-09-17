@@ -18,7 +18,6 @@ import java.util.Optional;
 
 public class Villager extends Worker implements Constructor {
 
-    public final static BufferedImage WORKING_SPRITE = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).orElseThrow();
     public final static BufferedImage WORKING_SPRITE_MAX = CustomMethods.loadSprite("src/img/villager_working.png", GameConstants.SPRITE_SIZE_MAX, GameConstants.SPRITE_SIZE_MAX).orElseThrow();
 
     public Villager() {
@@ -48,11 +47,11 @@ public class Villager extends Worker implements Constructor {
     }
 
     @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
+    public @NotNull Optional<BufferedImage> getSprite() {
         if(getStatus() != Status.WORKING)
-            return super.getSprite(max);
+            return super.getSprite();
         else
-            return Optional.of(max ? WORKING_SPRITE_MAX : WORKING_SPRITE);
+            return Optional.of(WORKING_SPRITE_MAX);
     }
 
     @Override

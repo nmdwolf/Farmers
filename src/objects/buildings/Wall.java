@@ -14,11 +14,9 @@ import static core.GameConstants.SPRITE_SIZE;
 import static core.GameConstants.SPRITE_SIZE_MAX;
 
 // TODO Implement direction
-public class Wall extends IdleBuilding implements Obstruction, Directional {
+public class Wall extends IdleBuilding<Wall> implements Obstruction, Directional {
 
     public final static Award BUILT_AWARD = Award.createFreeAward("Your people are protected.");
-    public final static BufferedImage SPRITE = CustomMethods.loadSprite("src/img/Wall.png", SPRITE_SIZE, SPRITE_SIZE).get();
-    public final static BufferedImage SPRITE_MAX = CustomMethods.loadSprite("src/img/Wall.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).get();
 
     public Wall() {
         super((ConstructionTemplate) TemplateFactory.getTemplate("Wall"));
@@ -27,11 +25,6 @@ public class Wall extends IdleBuilding implements Obstruction, Directional {
     @Override
     public String getToken() {
         return "||";
-    }
-
-    @Override
-    public @NotNull Optional<BufferedImage> getSprite(boolean max) {
-        return Optional.of(max ? SPRITE_MAX : SPRITE);
     }
 
     @Override
