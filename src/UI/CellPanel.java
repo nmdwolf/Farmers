@@ -123,7 +123,7 @@ public class CellPanel extends JPanel {
             int buildingCounter = 0;
             int enemyCounter = 0;
             objectMap = new BiMap();
-            for (GameObject<?> object : cell.getContent()) {
+            for (GameObject<?> object : cell.getObjects()) {
                 if (object.getPlayer().equals(player)) {
                     if (object instanceof Unit)
                         objectMap.put(new Pair<>(unitCounter++, unitRow), object);
@@ -213,7 +213,7 @@ public class CellPanel extends JPanel {
             if(drawing == null)
                 doubleBuffer();
 
-            java.util.List<GameObject<?>> drawables = cell.getContent().stream()
+            java.util.List<GameObject<?>> drawables = cell.getObjects().stream()
                     .filter(obj -> obj.getPlayer().equals(player))
                     .filter(Animated.class::isInstance)
                     .filter(obj -> ((Animated<?>) obj).getLogger().size() > 0)
@@ -306,11 +306,30 @@ public class CellPanel extends JPanel {
         }
 
         // Walls
-        if(objectMap.objSet().stream().anyMatch(obj -> player.equals(obj.getPlayer()) && obj instanceof Wall)) {
+        var walls = objectMap.objSet().stream()
+                .filter(obj -> player.equals(obj.getPlayer()))
+                .filter(Wall.class::isInstance)
+                .map(obj -> ((Wall)obj).getDirection())
+                .distinct()
+                .toList();
+        if(!walls.isEmpty()) {
             gr.setColor(new Color(80, 40, 10));
             Stroke oldStroke = gr.getStroke();
             gr.setStroke(new BasicStroke(20));
-            gr.drawOval(getWidth() / 6, getHeight() / 6, 2 * getWidth() / 3, 2 * getHeight() / 3);
+
+            if(walls.size() == 4)
+                gr.drawOval(getWidth() / 6, getHeight() / 6, 2 * getWidth() / 3, 2 * getHeight() / 3);
+            else {
+                for(Direction d : walls) {
+                    switch(d) {
+                        case NORTH -> gr.drawLine(1, 1, getWidth() - 3, 1);
+                        case SOUTH -> gr.drawLine(1, getHeight() - 3, getWidth() - 3, getHeight() - 3);
+                        case WEST -> gr.drawLine(1, 1, 1, getHeight() - 3);
+                        case EAST -> gr.drawLine(getWidth() - 3, 1, getWidth() - 3, getHeight() - 3);
+                    }
+                }
+            }
+
             gr.setStroke(oldStroke);
         }
     }

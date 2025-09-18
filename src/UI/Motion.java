@@ -10,11 +10,11 @@ public class Motion {
     private int step;
 
     private final int length;
-    private final Unit object;
+    private final Unit<?> object;
     private final ArrayList<Location> locations;
     private Location current;
 
-    public Motion(Unit obj, ArrayList<Location> path, int effectiveLength) throws IllegalArgumentException {
+    public Motion(Unit<?> obj, ArrayList<Location> path, int effectiveLength) throws IllegalArgumentException {
         if(path.size() > 1 && path.get(0) == path.get(1))
             throw new IllegalArgumentException("Path should not contain starting location.");
 
@@ -40,7 +40,7 @@ public class Motion {
 
     public int length() { return length; }
 
-    public Unit getObject() { return object; }
+    public Unit<?> getObject() { return object; }
 
     public Location[] getPath() {
         Location[] totalPath = new Location[locations.size()];

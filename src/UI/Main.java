@@ -348,6 +348,7 @@ public class Main{
      * @throws IllegalArgumentException if target is {@code null} or object is not a Unit
      * @throws IllegalStateException if no valid path could be found
      */
+    @Deprecated
     public Pair<Motion, Location> getShortestAdmissiblePath(GameObject<?> obj, Cell target) throws IllegalArgumentException, IllegalStateException {
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
@@ -375,14 +376,14 @@ public class Main{
             int[][] grid = new int[2 * maxDist + 1][2 * maxDist + 1];
             for (int x = -maxDist; x < maxDist + 1; x++) {
                 for (int y = -maxDist; y < maxDist + 1; y++) {
-                    grid[maxDist + x][maxDist + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : unit.getEnergy() * 2;
+                    grid[maxDist + x][maxDist + y] = ((x == y) && (x == 0)) ? target.getTravelCost(Direction.NORTH) : unit.getEnergy() * 2;
                     if (Math.abs(x + y) == 1 && x * y == 0)
                         toDo.add(new Location(target.getX() + x, target.getY() + y, target.getZ()));
                 }
             }
 
             while (!toDo.isEmpty()) {
-                done.addAll(toDo);
+                done.addAll(toDo); // TODO necessary ??
                 ArrayList<Location> tempList = new ArrayList<>();
                 for (Iterator<Location> it = toDo.iterator(); it.hasNext(); ) {
                     Location loc = it.next();
@@ -397,7 +398,7 @@ public class Main{
                                 min = Math.min(grid[maxDist + (loc.x() - target.getX()) + x][maxDist + (loc.y() - target.getY()) + y], min);
 
                     grid[maxDist + (loc.x() - target.getX())][maxDist + (loc.y() - target.getY())] =
-                            min + cells.get(loc).getTravelCost() + (currentPlayer.getUnsafe().hasSpotted(cells.get(loc))
+                            min + cells.get(loc).getTravelCost(Direction.NORTH) + (currentPlayer.getUnsafe().hasSpotted(cells.get(loc))
                                     ? 0 : maxDist);
                     done.add(loc);
 
@@ -418,7 +419,7 @@ public class Main{
 
             int deltaX = unit.getCell().getX() - target.getX();
             int deltaY = unit.getCell().getY() - target.getY();
-            int cost = grid[maxDist + deltaX][maxDist + deltaY] - unit.getCell().getTravelCost();
+            int cost = grid[maxDist + deltaX][maxDist + deltaY] - unit.getCell().getTravelCost(Direction.NORTH);
 
             if (cost > unit.getEnergy())
                 return null;
@@ -451,81 +452,6 @@ public class Main{
             return new Pair<>(new Motion(unit, path, cost), target.getLocation());
         } else
             return null;
-    }
-
-    /**
-     * Calculates the required energy to travel from the current {@code Location} to the target {@code Location}
-     * based on Dijkstra's algorithm in L1-distance.
-     * @param obj travelling object
-     * @param target target location
-     * @return required energy cost
-     */
-    @Deprecated
-    private int calculateTravelCost(GameObject<?> obj, Cell target) {
-        if(obj instanceof Unit<?> unit) {
-            int locX = unit.getMaxEnergy();
-            int locY = unit.getMaxEnergy();
-//            int locLevel = object.getMaxEnergy();
-
-            ArrayList<Cell> toDo = new ArrayList<>();
-            ArrayList<Cell> done = new ArrayList<>();
-            done.add(target);
-
-            if (target.distanceTo(unit.getCell()) > unit.getMaxEnergy())
-                return NUMBER_OF_CELLS;
-
-            if (unit.getCell().getZ() == target.getZ()) {
-                int[][] grid = new int[2 * unit.getMaxEnergy() + 1][2 * unit.getMaxEnergy() + 1];
-                for (int x = -locX; x < locX + 1; x++) {
-                    for (int y = -locY; y < locY + 1; y++) {
-                        grid[locX + x][locY + y] = ((x == y) && (x == 0)) ? target.getTravelCost() : 9;
-                        if (Math.abs(x + y) == 1 && x * y == 0)
-                            toDo.add(cells.get(target.getLocation().add(x, y, 0)));
-                    }
-                }
-
-                while (!toDo.isEmpty()) {
-                    done.addAll(toDo);
-                    ArrayList<Cell> tempList = new ArrayList<>();
-                    for (Iterator<Cell> it = toDo.iterator(); it.hasNext(); ) {
-                        Cell loc = it.next();
-
-                        if (!cells.containsKey(loc.getLocation()))
-                            continue;
-
-                        int min = NUMBER_OF_CELLS;
-                        for (int x = (target.getX() - loc.getX() == locX ? 0 : -1); x < (loc.getX() - target.getX() == locX ? 1 : 2); x++)
-                            for (int y = (target.getY() - loc.getY() == locY ? 0 : -1); y < (loc.getY() - target.getY() == locY ? 1 : 2); y++)
-                                if (x + y != 0 && x * y == 0)
-                                    min = Math.min(grid[locX + (loc.getX() - target.getX()) + x][locY + (loc.getY() - target.getY()) + y], min);
-
-                        grid[locX + (loc.getX() - target.getX())][locY + (loc.getY() - target.getY())] = min + loc.getTravelCost();
-
-                        done.add(loc);
-                        for (int x = -1; x < 2; x++) {
-                            for (int y = -1; y < 2; y++) {
-                                if (x * y == 0) {
-                                    Cell next = cells.get(loc.getLocation().add(x, y, 0));
-                                    if (target.distanceTo(next) <= unit.getMaxEnergy() && !done.contains(next) && !tempList.contains(next))
-                                        tempList.add(next);
-                                }
-                            }
-                        }
-
-                        it.remove();
-                    }
-                    toDo = tempList;
-                }
-
-                int deltaX = unit.getCell().getX() - target.getX();
-                int deltaY = unit.getCell().getY() - target.getY();
-
-//            printTranspose(grid);
-
-                return grid[locX + deltaX][locY + deltaY] - unit.getCell().getTravelCost();
-            }
-        }
-        return NUMBER_OF_CELLS;
     }
 
     /**

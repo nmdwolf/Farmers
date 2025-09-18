@@ -4,9 +4,11 @@ import core.*;
 import core.contracts.AttackContract;
 import core.player.Player;
 import objects.Aggressive;
+import objects.Energetic;
 import objects.GameObject;
 import core.Status;
 import objects.buildings.TownHall;
+import objects.buildings.Wall;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,6 +62,8 @@ public class GameFrame extends JFrame {
     private Timer resizeTimer;
     private final HashSet<Motion> motions;
 
+    private int distance;
+
     public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         parent = main;
         this.settings = settings;
@@ -108,6 +112,8 @@ public class GameFrame extends JFrame {
         selected.bind(_ -> {
             hidePanels(false);
             selected.get().ifPresent(obj -> {
+                if(obj instanceof Energetic<?> en) // Calculate path finding costs
+                    cells.populateDistanceMatrix(cells.get(clickPos), player.getUnsafe(), en.getEnergy());
                 showResources.set(InfoPanel.Mode.OBJECT);
                 infoPanel.setVisible(true);
                 if(obj.getPlayer().equals(player.getUnsafe()))
@@ -118,7 +124,7 @@ public class GameFrame extends JFrame {
         target.bind(pair -> {
             if (pair.key() != null && !pair.value()) {
                 selected.ifPresent(fighter -> {
-                    if(CustomMethods.objectDistance(fighter, pair.key()) <= ((Aggressive<?>) fighter).getRange()) // TODO Fix this
+                    if(Grid.objectDistance(fighter, pair.key()) <= ((Aggressive<?>) fighter).getRange()) // TODO Fix this
                         ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive<?>) fighter).getAttackCost(), pair.key()));
                 });
                 selected.set(null);
@@ -317,22 +323,26 @@ public class GameFrame extends JFrame {
                 mouseX = e.getX(); // TODO Merge clickPos and mousePos variables!
                 mouseY = e.getY();
                 Cell mousePos = posToCellCoord(mouseX, mouseY, player.getUnsafe().getViewPoint().getZ());
+                Cell absoluteMousePos = mousePos.fetch(player.getUnsafe().getViewPoint().getLocation());
 
                 // Moves info panel to make sure that the underlying cells are reachable.
                 selected.get().ifPresent( obj -> {
                     if(infoPanel != null)
                         layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
 
-                    if((obj instanceof Unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !mousePos.fetch(player.getUnsafe().getViewPoint().getLocation()).isEndOfMap()) {
-                        Pair<Motion, Location> motion = parent.getShortestAdmissiblePath(obj, mousePos.fetch(player.getUnsafe().getViewPoint().getLocation()));
+                    if((obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !absoluteMousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
+                        ArrayList<Location> path = cells.getShortestAdmissiblePath(absoluteMousePos);
 
-                        if (motion != null && motion.key().length() > 0) {
-                            hoverPath.set(motion.key().getRelativePath());
-                            destination = motion.value();
-                            travelDistance = motion.key().length();
-                        } else {
-                            hoverPath.set(null);
-                            destination = null;
+                        if (path != null) {
+                            Motion motion = new Motion(unit, path, cells.getPathDistance(absoluteMousePos));
+                            if(motion.length() > 0) {
+                                hoverPath.set(motion.getRelativePath());
+                                destination = absoluteMousePos.getLocation();
+                                travelDistance = cells.getPathDistance(absoluteMousePos);
+                            } else {
+                                hoverPath.set(null);
+                                destination = null;
+                            }
                         }
                     }
                 });
@@ -391,25 +401,22 @@ public class GameFrame extends JFrame {
                         selected.get().ifPresent(obj -> {
 
                             if(obj instanceof Unit<?> unit) {
-                                Pair<Motion, Location> motion =
-                                        parent.getShortestAdmissiblePath(unit, cells.get(clickPos));
+                                ArrayList<Location> path = cells.getShortestAdmissiblePath(cells.get(clickPos));
 
-                                if(motion != null) {
+                                if (path != null) {
+                                    Motion motion = new Motion(unit, path, cells.getPathDistance(cells.get(clickPos)));
                                     hoverPath.set(null);
                                     destination = null;
                                     if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= unit.getSize()
-                                            && motion.key().length() != 0) {
-                                        unit.changeEnergy(-motion.key().length());
-                                        motionToThread(motion.key());
+                                            && motion.length() != 0) {
+                                        unit.changeEnergy(-travelDistance);
+                                        motionToThread(motion);
                                     }
                                 }
                             }
                         });
                         selected.set(null);
                     }
-
-                    // Redraw game panel
-                    refreshWindow();
                 } else
                     clickPos = oldPos;
             }
@@ -721,7 +728,7 @@ public class GameFrame extends JFrame {
                 Cell cell = cells.get(vp.getLocation().add(x, y, 0));
 
                 gr.setColor(player.getUnsafe().getColor());
-                List<Player> playersInCell = new ArrayList<>(cell.getContent().stream().map(GameObject::getPlayer).distinct().toList());
+                List<Player> playersInCell = new ArrayList<>(cell.getObjects().stream().map(GameObject::getPlayer).distinct().toList());
                 if(playersInCell.contains(player.getUnsafe())) {
                     gr.fillOval((int)(x * settings.getCellWidth() + 5), (int)(y * settings.getCellHeight() + 5), 10, 10);
                     playersInCell.remove(player.getUnsafe());
@@ -736,6 +743,25 @@ public class GameFrame extends JFrame {
                 } else if (!player.getUnsafe().hasDiscovered(cell)) {
                     gr.setColor(new Color(192, 192, 192, 200));
                     gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
+
+                    gr.setColor(new Color(80, 40, 10));
+                    Stroke oldStroke = gr.getStroke();
+                    int strokeWidth = 10;
+                    gr.setStroke(new BasicStroke(strokeWidth));
+                    var walls = cell.getObjects().stream()
+                            .filter(Wall.class::isInstance)
+                            .map(obj -> ((Wall)obj).getDirection())
+                            .distinct()
+                            .toList();
+                    for(Direction d : walls) {
+                        switch(d) {
+                            case NORTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2);
+                            case SOUTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+                            case WEST -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+                            case EAST -> gr.drawLine((int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+                        }
+                    }
+                    gr.setStroke(oldStroke);
                 } else {
                     if (cell.getHeatLevel() <= COLD_LEVEL)
                         gr.drawImage(CLOUD, (int)((x + 1) * settings.getCellWidth() - CLOUD.getWidth() - 5),

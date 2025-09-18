@@ -27,4 +27,9 @@ public record Location(int x, int y, int z) {
     public Location add(Location loc) {
         return new Location(this.x + loc.x, this.y + loc.y, this.z + loc.z);
     }
+
+    public static int distance(Location loc1, Location loc2) {
+        Location diff = loc1.add(loc2.negative());
+        return Math.abs(diff.x) + Math.abs(diff.y) + Math.abs(diff.z);
+    }
 }

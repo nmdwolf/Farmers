@@ -39,8 +39,20 @@ public class Villager extends Worker implements Constructor {
         constructions.put("House", _ ->
             addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("House"))));
         constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("Lumberjack"))));
-        constructions.put("Wall", _ -> {
-            Wall w = new Wall();
+        constructions.put("Wall (N)", _ -> {
+            Wall w = new Wall(Direction.NORTH);
+            addContract(new ConstructContract<>(Villager.this, w));
+        });
+        constructions.put("Wall (S)", _ -> {
+            Wall w = new Wall(Direction.SOUTH);
+            addContract(new ConstructContract<>(Villager.this, w));
+        });
+        constructions.put("Wall (W)", _ -> {
+            Wall w = new Wall(Direction.WEST);
+            addContract(new ConstructContract<>(Villager.this, w));
+        });
+        constructions.put("Wall (E)", _ -> {
+            Wall w = new Wall(Direction.EAST);
             addContract(new ConstructContract<>(Villager.this, w));
         });
         return constructions;
@@ -54,6 +66,7 @@ public class Villager extends Worker implements Constructor {
             return Optional.of(WORKING_SPRITE_MAX);
     }
 
+    // TODO Update cell panel on abandon (Test: Start construction and, then, start another one with same worker)
     @Override
     public void addContract(Contract<Worker> c) throws IllegalArgumentException {
         // Removes current Contract(s), if any

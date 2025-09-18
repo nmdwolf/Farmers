@@ -116,7 +116,8 @@
       "resources": ["Time", "Wood"],
       "amounts": [1, 10]
     },
-    "sprite": "wall"
+    "sprite": "wall",
+    "award": "Your people are protected."
   },
 
   {

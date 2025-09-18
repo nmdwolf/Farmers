@@ -1,8 +1,6 @@
 package UI;
 
-import core.Location;
 import core.Pair;
-import objects.GameObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -151,12 +149,6 @@ public class CustomMethods {
         int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(spriteSize + CELL_X_MARGIN));
         int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(spriteSize + CELL_Y_MARGIN));
         return new Pair<>(selectionX, selectionY);
-    }
-
-    public static int objectDistance(GameObject<?> obj1, GameObject<?> obj2) {
-        Location loc1 = obj1.getCell().getLocation();
-        Location loc2 = obj2.getCell().getLocation();
-        return loc1.distanceTo(loc2);
     }
 
     public static void setSpriteSize(int size) {

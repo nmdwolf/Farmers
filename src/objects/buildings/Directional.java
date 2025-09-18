@@ -1,8 +1,8 @@
 package objects.buildings;
 
-public interface Directional {
+import core.Direction;
 
-    enum Direction { NORTH, SOUTH, EAST, WEST; }
+public interface Directional {
 
     Direction getDirection();
 

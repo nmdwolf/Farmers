@@ -12,15 +12,13 @@ public class Cell {
 
     private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel;
     private final ResourceContainer resources;
-    private final int cellX, cellY, cellZ;
+    private final Location loc;
 
     private Cell east, west, north, south, up, down;
     private final HashSet<GameObject<?>> content;
 
     public Cell(int x, int y, int z, int s, int b) {
-        this.cellX = x;
-        this.cellY = y;
-        this.cellZ = z;
+        this.loc = new Location(x, y, z);
         this.content = new HashSet<>();
         unitSpace = s;
         buildingSpace = b;
@@ -76,7 +74,7 @@ public class Cell {
         buildingOccupied += amount;
     }
 
-    public int getTravelCost() {
+    public int getTravelCost(Direction direction) {
         int cost = travelCost;
         if(resources.get("Water") >= WATER_THRESHOLD)
             cost += 2;
@@ -128,7 +126,7 @@ public class Cell {
         content.remove(obj);
     }
 
-    public HashSet<GameObject<?>> getContent() { return content; }
+    public HashSet<GameObject<?>> getObjects() { return content; }
 
     /**
      * Changes parameters of the cell when the season switches
@@ -153,21 +151,22 @@ public class Cell {
     }
 
     public int getX() {
-        return cellX;
+        return loc.x();
     }
 
     public int getY() {
-        return cellY;
+        return loc.y();
     }
 
     public int getZ() {
-        return cellZ;
+        return loc.z();
     }
 
     public void link(Cell cell) {
-        int dx = cell.cellX - cellX;
-        int dy = cell.cellY - cellY;
-        int dz = cell.cellZ - cellZ;
+        Location diff = cell.getLocation().add(loc.negative());
+        int dx = diff.x();
+        int dy = diff.y();
+        int dz = diff.z();
 
         if(Math.abs(dx) + Math.abs(dy) + Math.abs(dz) != 1)
             throw new IllegalArgumentException("Distance should be exactly 1!");
@@ -227,20 +226,21 @@ public class Cell {
     }
 
     public int distanceTo(Cell cell) {
-        return Math.abs(cellX - cell.getX()) + Math.abs(cellY - cell.getY()) + Math.abs(cellZ - cell.getZ());
+        return Location.distance(cell.getLocation(), loc);
     }
 
+    // TODO Replace cellX, cellY and cellZ by a Location object
     public Location getLocation() {
-        return new Location(cellX, cellY, cellZ);
+        return loc;
     }
 
     public boolean isEndOfMap() {
-        return cellX == 0 || cellX == NUMBER_OF_CELLS - 1 || cellY == 0 || cellY == NUMBER_OF_CELLS - 1;
+        return loc.x() == 0 || loc.x() == NUMBER_OF_CELLS - 1 || loc.y() == 0 || loc.y() == NUMBER_OF_CELLS - 1;
     }
 
     @Override
     public String toString() {
-        return "Location(" + cellX + ", " + cellY + ", " + cellZ + ")";
+        return "Location(" + loc.x() + ", " + loc.y() + ", " + loc.z() + ")";
     }
 
     public String getDescription() {
@@ -257,7 +257,7 @@ public class Cell {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Cell cell)
-            return (cellX == cell.cellX) && (cellY == cell.cellY) && (cellZ == cell.cellZ);
+            return loc.equals(cell.loc);
         return false;
     }
 
