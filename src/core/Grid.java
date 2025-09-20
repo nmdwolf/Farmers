@@ -66,6 +66,7 @@ public class Grid extends HashMap<Location, Cell> {
      * @param currentPlayer current player (used for determining undiscovered cells, which act as obstacles)
      * @param maxDist maximum distance
      */
+    // TODO Not fully optimal as priorities are not updated
     public void populateDistanceMatrix(Cell src, Player currentPlayer, int maxDist) {
         this.src = src;
         pathCosts = new int[2 * maxDist + 1][2 * maxDist + 1];
@@ -95,19 +96,22 @@ public class Grid extends HashMap<Location, Cell> {
             if(currentPlayer.hasSpotted(current))
                 for (int x = (src.getX() - current.getX() == maxDist ? 0 : -1); x < (current.getX() - src.getX() == maxDist ? 1 : 2); x++)
                     for (int y = (src.getY() - current.getY() == maxDist ? 0 : -1); y < (current.getY() - src.getY() == maxDist ? 1 : 2); y++)
-                        if (Math.abs(x) + Math.abs(y) == 1 && currentPlayer.hasSpotted(current.fetch(x, y, 0))) // Only check direct neighbours that have been spotted
-                                pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y] = Math.min(pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y],
+                        if (Math.abs(x) + Math.abs(y) == 1 && currentPlayer.hasSpotted(current.fetch(x, y, 0))) { // Only check direct neighbours that have been spotted
+                            pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y] = Math.min(pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y],
                                     currentCost == Integer.MAX_VALUE ? currentCost : currentCost + current.fetch(x, y, 0).getTravelCost(Direction.NORTH));
+                        }
 
             for (int x = -1; x < 2; x++) {
                 for (int y = -1; y < 2; y++) {
                     if (x * y == 0) {
                         Location candidate = current.getLocation().add(x, y, 0);
-                        Cell next = get(candidate);
-                        if (src.getLocation().distanceTo(candidate) <= maxDist
-                                && !done.contains(next)
-                                && !toExplore.contains(next)) {
-                            toExplore.add(next);
+                        if(containsKey(candidate)) {
+                            Cell next = get(candidate);
+                            if (src.getLocation().distanceTo(candidate) <= maxDist
+                                    && !done.contains(next)
+                                    && !toExplore.contains(next)) {
+                                toExplore.add(next);
+                            }
                         }
                     }
                 }

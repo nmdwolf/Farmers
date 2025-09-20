@@ -263,7 +263,6 @@ public class GameFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if(gameState.getUnsafe() == Main.GameState.PLAYING) {
                     hoverPath.set(null);
-                    destination = null;
                     selected.set(null);
                     playerCounter.set(playerCounter.getUnsafe() + 1);
                     cellPanel.generateCycleAnimation();
@@ -330,21 +329,20 @@ public class GameFrame extends JFrame {
                     if(infoPanel != null)
                         layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
 
-                    if((obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !absoluteMousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
+                    if((obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
                         ArrayList<Location> path = cells.getShortestAdmissiblePath(absoluteMousePos);
 
                         if (path != null) {
                             Motion motion = new Motion(unit, path, cells.getPathDistance(absoluteMousePos));
                             if(motion.length() > 0) {
                                 hoverPath.set(motion.getRelativePath());
-                                destination = absoluteMousePos.getLocation();
                                 travelDistance = cells.getPathDistance(absoluteMousePos);
-                            } else {
+                            } else
                                 hoverPath.set(null);
-                                destination = null;
-                            }
                         }
                     }
+
+                    destination = mousePos.getLocation();
                 });
             }
 
@@ -373,7 +371,6 @@ public class GameFrame extends JFrame {
 
                 if(!cells.get(clickPos).isEndOfMap()) {
                     hoverPath.set(null);
-                    destination = null;
 
                     // Any existing panels should be hidden on click
                     hidePanels(true);
@@ -406,7 +403,6 @@ public class GameFrame extends JFrame {
                                 if (path != null) {
                                     Motion motion = new Motion(unit, path, cells.getPathDistance(cells.get(clickPos)));
                                     hoverPath.set(null);
-                                    destination = null;
                                     if (cells.get(clickPos).getUnitSpace() - cells.get(clickPos).getUnitOccupied() >= unit.getSize()
                                             && motion.length() != 0) {
                                         unit.changeEnergy(-travelDistance);
