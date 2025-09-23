@@ -1,9 +1,6 @@
 package core.player;
 
-import core.Cell;
-import core.Location;
-import core.Pair;
-import core.Status;
+import core.*;
 import core.contracts.LaborContract;
 import UI.Main;
 import UI.Motion;
@@ -22,14 +19,16 @@ public class AI extends Player {
     public final static int SEARCH_LIMIT = 5;
 
     private final Main main;
+    private final Grid grid;
 
     private TownHall base;
     private final HashMap<Cell, ArrayList<String>> harvested;
 
-    public AI(String name, Color color, Color alternativeColor, Cell start, Main game) {
+    public AI(String name, Color color, Color alternativeColor, Cell start, Main game, Grid grid) {
         super(name, color, alternativeColor, start);
         harvested = new HashMap<>();
         main = game;
+        this.grid = grid;
     }
 
     public void makeMove(int cycle) {
@@ -68,24 +67,25 @@ public class AI extends Player {
                 }
 
                 if (needsToMove) {
+                    grid.populateDistanceMatrix(newLoc, this, obj.getEnergy());
                     int x = rand.nextInt(obj.getEnergy());
                     int y = rand.nextInt(obj.getEnergy() - x);
                     newLoc = obj.getCell().fetch(x, y, 0);
-                    Pair<Motion, Location> motion = main.getShortestAdmissiblePath(obj, newLoc);
+                    var path = grid.getShortestAdmissiblePath(newLoc);
 
                     int counter = 0;
                     while ((newLoc.getUnitSpace() - newLoc.getUnitOccupied() < obj.getSize()
-                            || motion == null || harvested.containsKey(newLoc)) && counter++ <= SEARCH_LIMIT) {
+                            || path == null || harvested.containsKey(newLoc)) && counter++ <= SEARCH_LIMIT) {
                         x = rand.nextInt(obj.getEnergy());
                         y = rand.nextInt(obj.getEnergy() - x);
                         newLoc = obj.getCell().fetch(x, y, 0);
-                        motion = main.getShortestAdmissiblePath(obj, newLoc);
+                        path = grid.getShortestAdmissiblePath(newLoc);
                     }
 
-                    if(motion != null) {
-                        obj.changeEnergy(-motion.key().length());
-//                        motionToThread(motion.key());
-                        main.moveObject(motion.key().getObject(), motion.key().getPath()[motion.key().getPath().length - 1]);
+                    if(path != null) {
+                        Motion motion = new Motion(obj, path, grid.getPathDistance(newLoc));
+                        obj.changeEnergy(-motion.length());
+                        main.moveObject(motion.getObject(), motion.getPath()[motion.getPath().length - 1]);
 
                         harvested.put(newLoc, new ArrayList<>());
                         harvested.get(newLoc).add("Food");

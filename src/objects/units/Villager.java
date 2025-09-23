@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Villager extends Worker implements Constructor {
 
@@ -39,22 +40,18 @@ public class Villager extends Worker implements Constructor {
         constructions.put("House", _ ->
             addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("House"))));
         constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("Lumberjack"))));
-        constructions.put("Wall (N)", _ -> {
-            Wall w = new Wall(Direction.NORTH);
-            addContract(new ConstructContract<>(Villager.this, w));
-        });
-        constructions.put("Wall (S)", _ -> {
-            Wall w = new Wall(Direction.SOUTH);
-            addContract(new ConstructContract<>(Villager.this, w));
-        });
-        constructions.put("Wall (W)", _ -> {
-            Wall w = new Wall(Direction.WEST);
-            addContract(new ConstructContract<>(Villager.this, w));
-        });
-        constructions.put("Wall (E)", _ -> {
-            Wall w = new Wall(Direction.EAST);
-            addContract(new ConstructContract<>(Villager.this, w));
-        });
+
+        var directions = getCell().getObjects().stream()
+                .filter(Wall.class::isInstance)
+                .map(obj -> ((Wall)obj).getDirection())
+                .collect(Collectors.toSet());
+        for(Direction dir : Direction.values()) {
+            if(!directions.contains(dir))
+                constructions.put("Wall (" + dir.name().charAt(0) + ")", _ -> {
+                    Wall w = new Wall(dir);
+                    addContract(new ConstructContract<>(Villager.this, w));
+                });
+        }
         return constructions;
     }
 

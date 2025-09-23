@@ -211,7 +211,7 @@ public class Main{
         int y = 20;
 //        int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
 //        int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-        addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this));
+        addPlayer(new AI("Thor", Color.red, Color.yellow, cells.get(new Location(x, y, 0)), this, cells));
 
         allPlayers.addAll(players);
         allPlayers.addAll(ais);
@@ -271,11 +271,8 @@ public class Main{
             added = true;
         }
 
-        if(added) {
+        if(added)
             obj.getLoadout(Spacer.class).ifPresent(spacer -> obj.getCell().changeUnitSpace(spacer.getSpaceBoost()));
-            if(obj instanceof Obstruction)
-                obj.getCell().changeTravelCost(100);
-        }
 
         return added;
     }
@@ -337,121 +334,6 @@ public class Main{
                             obj.getPlayer().spot(target.fetch(x, y, z));
             obj.setCell(target);
         }
-    }
-
-    /**
-     * Calculates the shortest path from the given object's {@code Location} to the target {@code Location}
-     * using Dijkstra's algorithm in L1-distance.
-     * @param obj travelling object
-     * @param target target location
-     * @return shortest path (in L1-distance)
-     * @throws IllegalArgumentException if target is {@code null} or object is not a Unit
-     * @throws IllegalStateException if no valid path could be found
-     */
-    @Deprecated
-    public Pair<Motion, Location> getShortestAdmissiblePath(GameObject<?> obj, Cell target) throws IllegalArgumentException, IllegalStateException {
-        if(target == null)
-            throw new IllegalArgumentException("Target should not be null.");
-
-        // TODO Rephrase through getType()? Does lose type safety and pattern matching
-        if(!(obj instanceof Unit<?> unit))
-            throw new IllegalArgumentException("GameObject should be of type Unit.");
-
-        if(target == obj.getCell())
-            return null;
-//            return new Pair<>(new Motion(unit, new ArrayList<>(), 0), target.getLocation());
-
-        if(target.distanceTo(unit.getCell()) > unit.getEnergy() || !unit.getPlayer().hasSpotted(target))
-            return null;
-
-        // TODO Might need to use heuristics. (Complexity becomes cumbersome for units with high energy, noticeable lag in this case.
-        int maxDist = unit.getEnergy();
-        maxDist = NUMBER_OF_CELLS_IN_VIEW; // Temporary heuristic
-
-        ArrayList<Location> toDo = new ArrayList<>();
-        ArrayList<Location> done = new ArrayList<>();
-        done.add(new Location(target.getX(), target.getY(), target.getZ()));
-
-        if (unit.getCell().getZ() == target.getZ()) {
-            int[][] grid = new int[2 * maxDist + 1][2 * maxDist + 1];
-            for (int x = -maxDist; x < maxDist + 1; x++) {
-                for (int y = -maxDist; y < maxDist + 1; y++) {
-                    grid[maxDist + x][maxDist + y] = ((x == y) && (x == 0)) ? target.getTravelCost(Direction.NORTH) : unit.getEnergy() * 2;
-                    if (Math.abs(x + y) == 1 && x * y == 0)
-                        toDo.add(new Location(target.getX() + x, target.getY() + y, target.getZ()));
-                }
-            }
-
-            while (!toDo.isEmpty()) {
-                done.addAll(toDo); // TODO necessary ??
-                ArrayList<Location> tempList = new ArrayList<>();
-                for (Iterator<Location> it = toDo.iterator(); it.hasNext(); ) {
-                    Location loc = it.next();
-
-                    if (!cells.containsKey(loc))
-                        continue;
-
-                    int min = maxDist * 2;
-                    for (int x = (target.getX() - loc.x() == maxDist ? 0 : -1); x < (loc.x() - target.getX() == maxDist ? 1 : 2); x++)
-                        for (int y = (target.getY() - loc.y() == maxDist ? 0 : -1); y < (loc.y() - target.getY() == maxDist ? 1 : 2); y++)
-                            if (x + y != 0 && x * y == 0)
-                                min = Math.min(grid[maxDist + (loc.x() - target.getX()) + x][maxDist + (loc.y() - target.getY()) + y], min);
-
-                    grid[maxDist + (loc.x() - target.getX())][maxDist + (loc.y() - target.getY())] =
-                            min + cells.get(loc).getTravelCost(Direction.NORTH) + (currentPlayer.getUnsafe().hasSpotted(cells.get(loc))
-                                    ? 0 : maxDist);
-                    done.add(loc);
-
-                    for (int x = -1; x < 2; x++) {
-                        for (int y = -1; y < 2; y++) {
-                            if (x * y == 0) {
-                                Location next = new Location(loc.x() + x, loc.y() + y, loc.z());
-                                if (target.getLocation().distanceTo(next) <= unit.getEnergy() && !done.contains(next) && !tempList.contains(next))
-                                    tempList.add(next);
-                            }
-                        }
-                    }
-
-                    it.remove();
-                }
-                toDo = tempList;
-            }
-
-            int deltaX = unit.getCell().getX() - target.getX();
-            int deltaY = unit.getCell().getY() - target.getY();
-            int cost = grid[maxDist + deltaX][maxDist + deltaY] - unit.getCell().getTravelCost(Direction.NORTH);
-
-            if (cost > unit.getEnergy())
-                return null;
-
-            ArrayList<Location> path = new ArrayList<>();
-            Location current = unit.getCell().getLocation();
-
-            while (!current.equals(target.getLocation())) {
-                int min = unit.getEnergy() * 2;
-                Location temp = null;
-                for (int x = (target.getX() - current.x() == maxDist ? 0 : -1); x < (current.x() - target.getX() == maxDist ? 1 : 2); x++) {
-                    for (int y = (target.getY() - current.y() == maxDist ? 0 : -1); y < (current.y() - target.getY() == maxDist ? 1 : 2); y++) {
-                        if (x + y != 0 && x * y == 0) {
-                            if (grid[maxDist + (current.x() - target.getX()) + x][maxDist + (current.y() - target.getY()) + y] < min
-                                    && grid[maxDist + (current.x() - target.getX()) + x][maxDist + (current.y() - target.getY()) + y] < grid[maxDist + (current.x() - target.getX())][maxDist + (current.y() - target.getY())]) {
-                                min = Math.min(grid[maxDist + (current.x() - target.getX()) + x][maxDist + (current.y() - target.getY()) + y], min);
-                                temp = new Location(x, y, 0);
-                            }
-                        }
-                    }
-                }
-
-                if(temp == null)
-                    throw new IllegalStateException("No valid path could be found.");
-
-                current = current.add(temp.x(), temp.y(), 0);
-                path.add(temp);
-            }
-
-            return new Pair<>(new Motion(unit, path, cost), target.getLocation());
-        } else
-            return null;
     }
 
     /**

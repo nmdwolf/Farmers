@@ -1,9 +1,7 @@
 package core;
 
-import UI.Motion;
 import core.player.Player;
 import objects.GameObject;
-import objects.units.Unit;
 
 import java.util.*;
 
@@ -11,7 +9,8 @@ import static core.GameConstants.*;
 
 public class Grid extends HashMap<Location, Cell> {
 
-    private int[][] pathCosts, totalCosts;
+    private int[][] pathCosts;
+    private HashMap<Cell, Cell> predecessors;
     private Cell src;
 
     public Grid(int size) {
@@ -70,6 +69,7 @@ public class Grid extends HashMap<Location, Cell> {
     public void populateDistanceMatrix(Cell src, Player currentPlayer, int maxDist) {
         this.src = src;
         pathCosts = new int[2 * maxDist + 1][2 * maxDist + 1];
+        predecessors = new HashMap<>();
 
 //        PriorityQueue<Cell> toExplore = new PriorityQueue<>(Comparator.comparing(
 //                cell -> pathCosts[maxDist + (cell.getLocation().x() - src.getX())][maxDist + (cell.getY() - src.getY())] + distance(cell, src)));
@@ -90,15 +90,18 @@ public class Grid extends HashMap<Location, Cell> {
             done.add(current);
             int currentCost = pathCosts[maxDist + (current.getX() - src.getX())][maxDist + (current.getY() - src.getY())];
 
-            if (!containsKey(current.getLocation()))
+            if (!containsValue(current))
                 continue;
 
             if(currentPlayer.hasSpotted(current))
                 for (int x = (src.getX() - current.getX() == maxDist ? 0 : -1); x < (current.getX() - src.getX() == maxDist ? 1 : 2); x++)
                     for (int y = (src.getY() - current.getY() == maxDist ? 0 : -1); y < (current.getY() - src.getY() == maxDist ? 1 : 2); y++)
                         if (Math.abs(x) + Math.abs(y) == 1 && currentPlayer.hasSpotted(current.fetch(x, y, 0))) { // Only check direct neighbours that have been spotted
-                            pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y] = Math.min(pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y],
-                                    currentCost == Integer.MAX_VALUE ? currentCost : currentCost + current.fetch(x, y, 0).getTravelCost(Direction.NORTH));
+                            int diff = pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y] - currentCost;
+                            if(diff > current.fetch(x, y, 0).getTravelCost(Direction.toDirection(x, y, 0))) {
+                                pathCosts[maxDist + (current.getX() - src.getX()) + x][maxDist + (current.getY() - src.getY()) + y] = currentCost + current.fetch(x, y, 0).getTravelCost(Direction.toDirection(x, y, 0).opposite());
+                                predecessors.put(current.fetch(x, y, 0), current);
+                            }
                         }
 
             for (int x = -1; x < 2; x++) {
@@ -134,13 +137,8 @@ public class Grid extends HashMap<Location, Cell> {
         if(target == null)
             throw new IllegalArgumentException("Target should not be null.");
 
-        // TODO Rephrase through getType()? Does lose type safety and pattern matching
-//        if(!(obj instanceof Unit<?> unit))
-//            throw new IllegalArgumentException("GameObject should be of type Unit.");
-
         if(target.equals(src))
             return null;
-//            return new Pair<>(new Motion(unit, new ArrayList<>(), 0), target.getLocation());
 
         int maxDist = (pathCosts.length - 1) / 2;
         if(src.distanceTo(target) > maxDist)
@@ -159,25 +157,10 @@ public class Grid extends HashMap<Location, Cell> {
             Location current = target.getLocation();
 
             while (!current.equals(src.getLocation())) {
-                int min = pathCosts[maxDist + (current.x() - src.getX())][maxDist + (current.y() - src.getY())];
-                Location temp = null;
-                for (int x = (src.getX() - target.getX() == maxDist ? 0 : -1); x < (target.getX() - src.getX() == maxDist ? 1 : 2); x++) {
-                    for (int y = (src.getY() - target.getY() == maxDist ? 0 : -1); y < (target.getY() - src.getY() == maxDist ? 1 : 2); y++) {
-                        if (Math.abs(x) + Math.abs(y) == 1 &&
-                            pathCosts[maxDist + (current.x() - src.getX()) + x][maxDist + (current.y() - src.getY()) + y] < min)
-                        {
-                            min = pathCosts[maxDist + (current.x() - src.getX()) + x][maxDist + (current.y() - src.getY()) + y];
-                            temp = new Location(x, y, 0);
-                        }
-                    }
-                }
-
-                if(temp == null)
-                    throw new IllegalStateException("No valid path could be found.");
-
-                current = current.add(temp);
-                path.addFirst(temp.negative());
+                path.addFirst(current.add(predecessors.get(get(current)).getLocation().negative()));
+                current = predecessors.get(get(current)).getLocation();
             }
+
             return path;
         } else
             return null;

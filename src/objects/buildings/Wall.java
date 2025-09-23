@@ -16,8 +16,18 @@ public class Wall extends IdleBuilding<Wall> implements Obstruction, Directional
     }
 
     @Override
+    public int getObstructionCost() {
+        return 20;
+    }
+
+    @Override
     public String getToken() {
         return "||";
+    }
+
+    @Override
+    public String getClassLabel() {
+        return "Wall (" + direction.name() + ")";
     }
 
     @Override

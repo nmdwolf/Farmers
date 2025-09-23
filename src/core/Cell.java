@@ -2,9 +2,12 @@ package core;
 
 import core.resources.ResourceContainer;
 import objects.GameObject;
+import objects.Obstruction;
+import objects.buildings.Directional;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import static core.GameConstants.*;
 
@@ -74,11 +77,40 @@ public class Cell {
         buildingOccupied += amount;
     }
 
+    /**
+     * Calculates the energy cost for passing through this cell based on the inbound direction.
+     * @param direction inbound direction
+     * @return energy cost
+     */
     public int getTravelCost(Direction direction) {
+        // basic cost
         int cost = travelCost;
-        if(resources.get("Water") >= WATER_THRESHOLD)
+
+        // if "river"
+        if(isRiver())
             cost += 2;
+
+        // if "hot"
         cost += Math.max(0, heatLevel - HOT_LEVEL);
+
+        // Obstructions in this cell
+        var obstructions = content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast);
+        for(Obstruction ob : obstructions.collect(Collectors.toSet())) {
+            if(ob instanceof Directional dir)
+                cost += dir.getDirection().equals(direction) ? ob.getObstructionCost() : 0;
+            else
+                cost += ob.getObstructionCost();
+        }
+
+        // Obstructions in source cell
+        obstructions = fetch(Direction.toDisplacement(direction)).content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast);
+        for(Obstruction ob : obstructions.collect(Collectors.toSet())) {
+            if(ob instanceof Directional dir)
+                cost += dir.getDirection().equals(direction.opposite()) ? ob.getObstructionCost() : 0;
+            else
+                cost += ob.getObstructionCost();
+        }
+
         return cost;
     }
 
@@ -229,7 +261,6 @@ public class Cell {
         return Location.distance(cell.getLocation(), loc);
     }
 
-    // TODO Replace cellX, cellY and cellZ by a Location object
     public Location getLocation() {
         return loc;
     }
