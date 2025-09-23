@@ -8,6 +8,7 @@ import core.contracts.Contract;
 import objects.Constructor;
 import core.Status;
 import objects.buildings.BasicBuilding;
+import objects.buildings.Gate;
 import objects.buildings.Wall;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
@@ -48,10 +49,14 @@ public class Villager extends Worker implements Constructor {
         for(Direction dir : Direction.values()) {
             if(!directions.contains(dir))
                 constructions.put("Wall (" + dir.name().charAt(0) + ")", _ -> {
-                    Wall w = new Wall(dir);
-                    addContract(new ConstructContract<>(Villager.this, w));
+                    addContract(new ConstructContract<>(Villager.this, new Wall(dir)));
+                });
+            else
+                constructions.put("Gate (" + dir.name().charAt(0) + ")", _ -> {
+                    addContract(new ConstructContract<>(Villager.this, new Gate(dir)));
                 });
         }
+
         return constructions;
     }
 

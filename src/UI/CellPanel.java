@@ -7,9 +7,8 @@ import core.player.Player;
 import objects.Animated;
 import objects.GameObject;
 import core.Status;
-import objects.buildings.Building;
-import objects.buildings.Foundation;
-import objects.buildings.Wall;
+import objects.Obstruction;
+import objects.buildings.*;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -308,8 +307,9 @@ public class CellPanel extends JPanel {
         // Walls
         var walls = objectMap.objSet().stream()
                 .filter(obj -> player.equals(obj.getPlayer()))
-                .filter(Wall.class::isInstance)
-                .map(obj -> ((Wall)obj).getDirection())
+                .filter(Obstruction.class::isInstance)
+                .filter(Directional.class::isInstance)
+                .map(obj -> ((Directional)obj).getDirection())
                 .distinct()
                 .toList();
         if(!walls.isEmpty()) {

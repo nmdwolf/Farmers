@@ -7,6 +7,7 @@ import objects.Animated;
 import objects.Construction;
 import core.Status;
 import objects.templates.UnitTemplate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -153,7 +154,7 @@ public abstract class Unit<U extends Unit<U>> extends Construction<U> implements
     }
 
     @Override
-    public void setCell(Cell cell) {
+    public void setCell(@NotNull Cell cell) {
         super.setCell(cell);
 
         if(getOldStatus() != Status.WALKING)

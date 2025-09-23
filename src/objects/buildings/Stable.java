@@ -8,7 +8,7 @@ import objects.templates.TemplateFactory;
 
 import java.util.Optional;
 
-public class Stable extends ConstructiveBuilding {
+public class Stable extends ConstructiveBuilding<Stable> {
 
     public final static Award BUILT_AWARD = Award.createFreeAward("Yee-haw!");
 

@@ -6,7 +6,7 @@ import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class Wall extends IdleBuilding<Wall> implements Obstruction, Directional { ;
+public class Wall extends Building<Wall> implements Obstruction, Directional { ;
 
     private final Direction direction;
 
@@ -17,7 +17,7 @@ public class Wall extends IdleBuilding<Wall> implements Obstruction, Directional
 
     @Override
     public int getObstructionCost() {
-        return 20;
+        return ((ConstructionTemplate) getTemplate()).obstruction;
     }
 
     @Override
@@ -33,5 +33,10 @@ public class Wall extends IdleBuilding<Wall> implements Obstruction, Directional
     @Override
     public @NotNull Direction getDirection() {
         return direction;
+    }
+
+    @Override
+    public boolean isActive() {
+        return true;
     }
 }

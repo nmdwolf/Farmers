@@ -7,6 +7,7 @@ import objects.buildings.Foundation;
 import objects.loadouts.Booster;
 import objects.loadouts.Gatherer;
 import objects.templates.UnitTemplate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,7 +21,7 @@ public abstract class Worker extends Unit<Worker> implements objects.Gatherer {
     }
 
     @Override
-    public void setCell(Cell cell) {
+    public void setCell(@NotNull Cell cell) {
         super.setCell(cell);
         boosters = getPlayer().getObjects().stream().flatMap(obj -> obj.getLoadout(objects.loadouts.Booster.class).stream().filter(booster -> cell.distanceTo(obj.getCell()) <= booster.getBoostRadius())).toList();
     }

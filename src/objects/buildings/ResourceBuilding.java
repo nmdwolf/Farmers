@@ -4,7 +4,7 @@ import core.resources.ResourceContainer;
 import core.resources.Source;
 import objects.templates.ConstructionTemplate;
 
-public abstract class ResourceBuilding<B extends ResourceBuilding<B>> extends IdleBuilding<B> implements Source {
+public abstract class ResourceBuilding<B extends ResourceBuilding<B>> extends Building<B> implements Source {
 
     public ResourceBuilding(ConstructionTemplate temp) {
         super(temp);

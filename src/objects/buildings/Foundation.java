@@ -19,16 +19,17 @@ import static core.GameConstants.*;
 // TODO MERGE WITH BUILDINGS?
 public class Foundation<T extends Construction<T>> extends GameObject<T> {
 
-    public final static BufferedImage FOUNDATION_SPRITE = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE, SPRITE_SIZE).orElseThrow();
     public final static BufferedImage FOUNDATION_SPRITE_MAX = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
 
     private final T constructable;
     private final ConstructContract<T> contract;
+    private int completion;
 
     public Foundation(T constructable, ConstructContract<T> contract) {
         super(constructable.getTemplate());
         this.contract = contract;
         this.constructable = constructable;
+        completion = 0;
 
         changeHealth(-(getMaxHealth() - 1));
     }
@@ -59,7 +60,7 @@ public class Foundation<T extends Construction<T>> extends GameObject<T> {
             gr.setColor(new Color(getPlayer().getColor().getRed(), getPlayer().getColor().getGreen(), getPlayer().getColor().getBlue(), 128));
             int minSize = Math.min(sprite.getWidth(), sprite.getHeight());
 
-            Area outerDisk = new Area(new Arc2D.Double(sprite.getWidth() == minSize ? 0 : (sprite.getWidth() - minSize) / 2f, sprite.getHeight() == minSize ? 0 : (sprite.getHeight() - minSize) / 2f, minSize, minSize, 0, -(int)(360. * constructable.getCompletionLevel() / constructable.getConstructionTime()), Arc2D.PIE));
+            Area outerDisk = new Area(new Arc2D.Double(sprite.getWidth() == minSize ? 0 : (sprite.getWidth() - minSize) / 2f, sprite.getHeight() == minSize ? 0 : (sprite.getHeight() - minSize) / 2f, minSize, minSize, 0, -(int)(360. * completion / constructable.getConstructionTime()), Arc2D.PIE));
 
             int innerSize = minSize / 2;
             Area innerDisk = new Area(new Ellipse2D.Double(sprite.getWidth() == minSize ? minSize / 4f : (sprite.getWidth() - minSize) / 2f + minSize / 4f, sprite.getHeight() == minSize ? minSize / 4f : (sprite.getHeight() - minSize) / 2f + minSize / 4f, innerSize, innerSize));
@@ -89,5 +90,14 @@ public class Foundation<T extends Construction<T>> extends GameObject<T> {
     @Override
     public int getType() {
         return BUILDING_TYPE;
+    }
+
+    public void construct() {
+        completion++;
+        changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
+    }
+
+    public boolean isComplete() {
+        return completion >= constructable.getConstructionTime();
     }
 }

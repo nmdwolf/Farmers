@@ -737,28 +737,11 @@ public class GameFrame extends JFrame {
                     gr.setColor(Color.lightGray);
                     gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
                 } else if (!player.getUnsafe().hasDiscovered(cell)) {
+                    drawWall(gr, cell, x, y);
                     gr.setColor(new Color(192, 192, 192, 200));
                     gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
-
-                    gr.setColor(new Color(80, 40, 10));
-                    Stroke oldStroke = gr.getStroke();
-                    int strokeWidth = 10;
-                    gr.setStroke(new BasicStroke(strokeWidth));
-                    var walls = cell.getObjects().stream()
-                            .filter(Wall.class::isInstance)
-                            .map(obj -> ((Wall)obj).getDirection())
-                            .distinct()
-                            .toList();
-                    for(Direction d : walls) {
-                        switch(d) {
-                            case NORTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2);
-                            case SOUTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
-                            case WEST -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
-                            case EAST -> gr.drawLine((int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
-                        }
-                    }
-                    gr.setStroke(oldStroke);
                 } else {
+                    drawWall(gr, cell, x, y);
                     if (cell.getHeatLevel() <= COLD_LEVEL)
                         gr.drawImage(CLOUD, (int)((x + 1) * settings.getCellWidth() - CLOUD.getWidth() - 5),
                                 (int)(y * settings.getCellHeight() + 5), null);
@@ -808,6 +791,27 @@ public class GameFrame extends JFrame {
             gr.fillRect((int)((i + 1) * settings.getCellWidth() - 1), 0, 1, settings.getScreenHeight());
             gr.fillRect(0, (int)((i + 1) * settings.getCellHeight() - 1), settings.getScreenWidth(), 1);
         }
+    }
+
+    private void drawWall(Graphics2D gr, Cell cell, int x, int y) {
+        gr.setColor(new Color(80, 40, 10));
+        Stroke oldStroke = gr.getStroke();
+        int strokeWidth = 10;
+        gr.setStroke(new BasicStroke(strokeWidth));
+        var walls = cell.getObjects().stream()
+                .filter(Wall.class::isInstance)
+                .map(obj -> ((Wall)obj).getDirection())
+                .distinct()
+                .toList();
+        for(Direction d : walls) {
+            switch(d) {
+                case NORTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2);
+                case SOUTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+                case WEST -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+                case EAST -> gr.drawLine((int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+            }
+        }
+        gr.setStroke(oldStroke);
     }
 
     /**

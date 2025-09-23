@@ -24,9 +24,6 @@ import static core.GameConstants.SPRITE_SIZE_MAX;
 
 public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, Evolvable {
 
-    public final static BufferedImage BONFIRE_SPRITE = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE, SPRITE_SIZE).orElseThrow();
-    public final static BufferedImage TOWN_SPRITE = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE, SPRITE_SIZE).orElseThrow();
-    public final static BufferedImage CASTLE_SPRITE = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE, SPRITE_SIZE).orElseThrow();
     public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
     public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
     public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
@@ -97,17 +94,14 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
             if (getPlayer().hasResources(v.getCost())) {
                 v.initialize(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
                 getPlayer().addObject(v);
-                v.construct();
                 getPlayer().changeResources(v.getCost().negative());
             }
         });
         operations.put("Scout", _ -> { // Construct scout
             Scout sc = new Scout();
             sc.initialize(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-            if (getPlayer().hasResources(sc.getCost())) {
+            if (getPlayer().hasResources(sc.getCost()))
                 getPlayer().addObject(sc);
-                sc.construct();
-            }
         });
         return operations;
     }

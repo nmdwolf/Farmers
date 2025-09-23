@@ -41,6 +41,7 @@ public class ChoicePanel extends JPanel {
         buttons.add(new RoundedButton("Upgrade", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
         buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
         buttons.add(new RoundedButton("Attack", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        buttons.add(new RoundedButton("More", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
 
         addListeners();
         setLayout(cellWidth, cellHeight);
@@ -78,6 +79,9 @@ public class ChoicePanel extends JPanel {
             buttons.get(5).addActionListener(_ -> target.set(new Pair<>(null, true)));
             buttons.get(5).setVisible(true);
         }
+
+        buttons.get(6).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EXTRA, cycle));
+        buttons.get(6).setVisible(true);
 
         if(buttons.stream().anyMatch(RoundedButton::isVisible))
             setVisible(true);

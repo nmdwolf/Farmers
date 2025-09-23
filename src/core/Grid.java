@@ -156,6 +156,9 @@ public class Grid extends HashMap<Location, Cell> {
             ArrayList<Location> path = new ArrayList<>();
             Location current = target.getLocation();
 
+            if(predecessors.get(get(current)) == null)
+                return null;
+
             while (!current.equals(src.getLocation())) {
                 path.addFirst(current.add(predecessors.get(get(current)).getLocation().negative()));
                 current = predecessors.get(get(current)).getLocation();

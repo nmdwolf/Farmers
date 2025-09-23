@@ -31,21 +31,19 @@ public class ConstructContract<T extends Construction<T>> extends Contract<Worke
         constructable.initialize(foundation.getPlayer(), foundation.getCell(), foundation.getStartCycle());
         getEmployee().getPlayer().removeObject(foundation);
         getEmployee().getPlayer().addObject(constructable);
-        if (constructable instanceof Spacer)
-            getEmployee().getPlayer().changePopCap(((Spacer) constructable).getSpaceBoost());
+        constructable.handleCompletion();
         constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
     }
 
     @Override
     public boolean work(Logger logger) {
         if(super.work(logger)) {
-            constructable.construct();
-            foundation.changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
+            foundation.construct();
             foundation.alertChange();
         }
 
-        logger.logConstruction(constructable.isCompleted());
-        if(constructable.isCompleted()) {
+        logger.logConstruction(foundation.isComplete());
+        if(foundation.isComplete()) {
             terminate();
             return true;
         } else

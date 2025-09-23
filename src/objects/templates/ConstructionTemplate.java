@@ -1,7 +1,5 @@
 package objects.templates;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
 import core.resources.ResourceContainer;
 
 public class ConstructionTemplate extends Template {
@@ -10,7 +8,7 @@ public class ConstructionTemplate extends Template {
     public int energyCost;
     public String award;
 
-    @JsonSetter(nulls = Nulls.SKIP)
+    public int obstruction = 0;
     public boolean hasVisibleFoundation = true;
 
 }

@@ -116,8 +116,26 @@
       "resources": ["Time", "Wood"],
       "amounts": [1, 10]
     },
-    "sprite": "wall",
-    "award": "Your people are protected."
+    "sprite": "Wall",
+    "award": "Your people are protected.",
+    "obstruction": 20
+  },
+
+  {
+    "type": "Gate",
+    "health": 500,
+    "size": 5,
+    "sight": 1,
+    "energyCost": 1,
+    "degradeTime": 50,
+    "degradeAmount": 5,
+    "cost": {
+      "resources": ["Time", "Wood"],
+      "amounts": [1, 10]
+    },
+    "sprite": "Wall",
+    "award": "No more getting stuck behind walls.",
+    "obstruction": 20
   },
 
   {

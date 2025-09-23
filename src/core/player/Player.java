@@ -5,6 +5,7 @@ import core.resources.ResourceContainer;
 import objects.GameObject;
 import core.upgrade.Nomads;
 import core.upgrade.Upgrade;
+import objects.Spacer;
 
 import java.awt.*;
 import java.util.*;
@@ -108,6 +109,9 @@ public class Player {
         if(object.getType() == UNIT_TYPE)
             changePop(object.getSize());
 
+        if (object instanceof Spacer spacer)
+            changePopCap(spacer.getSpaceBoost());
+
         //awards.enable(object.getAward(Option.CONSTRUCT));
 
         Cell loc = object.getCell();
@@ -127,6 +131,9 @@ public class Player {
         removableObjects.add(object);
         if(object.getType() == UNIT_TYPE)
             changePop(-object.getSize());
+
+        if (object instanceof Spacer spacer)
+            changePopCap(-spacer.getSpaceBoost());
     }
 
     public String getName() {

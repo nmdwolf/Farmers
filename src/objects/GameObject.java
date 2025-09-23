@@ -118,7 +118,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * Sets the object's location.
      * @param cell new location
      */
-    public void setCell(Cell cell) {
+    public void setCell(@NotNull Cell cell) {
         if(this.cell != null)
             this.cell.removeContent(this);
         this.cell = cell;

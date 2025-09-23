@@ -94,7 +94,7 @@ public class Cell {
         cost += Math.max(0, heatLevel - HOT_LEVEL);
 
         // Obstructions in this cell
-        var obstructions = content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast);
+        var obstructions = content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast).filter(Obstruction::isActive);
         for(Obstruction ob : obstructions.collect(Collectors.toSet())) {
             if(ob instanceof Directional dir)
                 cost += dir.getDirection().equals(direction) ? ob.getObstructionCost() : 0;
@@ -103,7 +103,7 @@ public class Cell {
         }
 
         // Obstructions in source cell
-        obstructions = fetch(Direction.toDisplacement(direction)).content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast);
+        obstructions = fetch(Direction.toDisplacement(direction)).content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast).filter(Obstruction::isActive);
         for(Obstruction ob : obstructions.collect(Collectors.toSet())) {
             if(ob instanceof Directional dir)
                 cost += dir.getDirection().equals(direction.opposite()) ? ob.getObstructionCost() : 0;
