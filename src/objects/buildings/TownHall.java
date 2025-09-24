@@ -6,6 +6,7 @@ import core.OperationsList;
 import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
+import objects.GameObject;
 import objects.Spacer;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
@@ -19,30 +20,20 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-import static core.GameConstants.SPRITE_SIZE;
-import static core.GameConstants.SPRITE_SIZE_MAX;
-
 public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, Evolvable {
-
-    public final static BufferedImage BONFIRE_SPRITE_MAX = CustomMethods.loadSprite("src/img/bonfire.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
-    public final static BufferedImage TOWN_SPRITE_MAX = CustomMethods.loadSprite("src/img/town.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
-    public final static BufferedImage CASTLE_SPRITE_MAX = CustomMethods.loadSprite("src/img/castle.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
 
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
     public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});
 
     public final static int BASE_X = 0;
     public final static int BASE_Y = 0;
-    public final static int BASE_SPACE = 5;
 
     public final static String TOKEN = "Base";
 
-    private int space;
     private int level;
 
     public TownHall() {
         super((ConstructionTemplate) TemplateFactory.getTemplate("Townhall"), BASE_X, BASE_Y);
-        this.space = BASE_SPACE;
         level = 1;
     }
 
@@ -80,9 +71,9 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
     @Override
     public @NotNull Optional<BufferedImage> getSprite() {
         return switch (getLevel()) {
-            case 0 -> Optional.of(BONFIRE_SPRITE_MAX);
-            case 1 -> Optional.of(TOWN_SPRITE_MAX);
-            default -> Optional.of(CASTLE_SPRITE_MAX);
+            case 1 -> CustomMethods.loadSprite("src/img/bonfire.png", GameObject.sprite_size, GameObject.sprite_size);
+            case 2 -> CustomMethods.loadSprite("src/img/town.png", GameObject.sprite_size, GameObject.sprite_size);
+            default -> CustomMethods.loadSprite("src/img/castle.png", GameObject.sprite_size, GameObject.sprite_size);
         };
     }
 
@@ -138,11 +129,11 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
 
     @Override
     public void changeSpaceBoost(int amount) {
-        space += amount;
+        getLoadout(objects.loadouts.Spacer.class).ifPresent(spacer -> spacer.changeSpaceBoost(amount));
     }
 
     @Override
     public int getSpaceBoost() {
-        return space;
+        return getLoadout(objects.loadouts.Spacer.class).map(objects.loadouts.Spacer::getSpaceBoost).orElseThrow();
     }
 }

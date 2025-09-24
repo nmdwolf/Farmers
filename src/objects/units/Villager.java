@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 public class Villager extends Worker implements Constructor {
 
-
     public Villager() {
         super((UnitTemplate) TemplateFactory.getTemplate("Villager"));
     }

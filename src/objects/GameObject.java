@@ -22,6 +22,7 @@ public abstract class GameObject<G extends GameObject<G>> {
 
     private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>();
     private final static HashMap<String, String> spriteLocations = new HashMap<>();
+    public static int sprite_size = SPRITE_SIZE_MAX;
 
     private final int id;
     private final HashMap<String, Loadout> loadouts;
@@ -310,9 +311,9 @@ public abstract class GameObject<G extends GameObject<G>> {
     }
 
     public static void resizeSprites(int size) {
-        var names = sprites.keySet();
-        for(String name : names)
-            sprites.put(name, CustomMethods.loadSprite("src/img/" + spriteLocations.get(name) + ".png", size, size));
+        sprite_size = size;
+        for(String name : sprites.keySet())
+            sprites.put(name, CustomMethods.loadSprite("src/img/" + spriteLocations.get(name) + ".png", sprite_size, sprite_size));
     }
 
     /**
