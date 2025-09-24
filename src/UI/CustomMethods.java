@@ -2,22 +2,16 @@ package UI;
 
 import core.Pair;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.Optional;
 
 import static core.GameConstants.*;
 import static core.GameConstants.CELL_Y_MARGIN;
-import static core.GameConstants.SPRITE_SIZE_MAX;
 
 public class CustomMethods {
 
     private static int ID_COUNT, UPGRADE_COUNT, AWARD_COUNT;
-    private static int spriteSize = SPRITE_SIZE_MAX;
 
     public static int getNewIdentifier() {
         return ID_COUNT++;
@@ -80,36 +74,11 @@ public class CustomMethods {
         gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         gr.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-        gr.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_DEFAULT);
+        gr.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
         gr.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
         gr.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         return gr;
-    }
-
-    public static Optional<BufferedImage> loadSprite(String path, int width, int height) {
-        try {
-            Image img = ImageIO.read(new File(path)).getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            BufferedImage sprite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D gr = optimizeGraphics(sprite.createGraphics());
-            gr.drawImage(img, 0, 0, null);
-            gr.dispose();
-            return Optional.of(sprite);
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
-    @Deprecated
-    public static BufferedImage selectedSprite(BufferedImage sprite, Color color) {
-        BufferedImage img = new BufferedImage(sprite.getWidth() + 2, sprite.getHeight() + 2, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());
-        gr.setColor(color);
-        gr.setStroke(new BasicStroke(2));
-        gr.drawImage(sprite, 1, 1, null);
-        gr.drawRect(1, 1, sprite.getWidth(), sprite.getHeight());
-        gr.dispose();
-        return img;
     }
 
     /**
@@ -146,12 +115,9 @@ public class CustomMethods {
     }
 
     public static Pair<Integer, Integer> cellCoordinateTransform(int x, int y) {
-        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(spriteSize + CELL_X_MARGIN));
-        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(spriteSize + CELL_Y_MARGIN));
+        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_X_MARGIN));
+        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_Y_MARGIN));
         return new Pair<>(selectionX, selectionY);
     }
 
-    public static void setSpriteSize(int size) {
-        spriteSize = size;
-    }
 }

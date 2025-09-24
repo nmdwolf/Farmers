@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
@@ -34,7 +36,7 @@ public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;
     private int poolSize, unitRow, buildingRow, enemyRow, cycle;
-    private BufferedImage drawing;
+    private BufferedImage drawing, mask;
     private Pair<BufferedImage, String> currentAnimationFrame;
     private ArrayDeque<Animation> animations;
 
@@ -97,6 +99,17 @@ public class CellPanel extends JPanel {
         };
         addMouseListener(adapter);
         addMouseMotionListener(adapter);
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                super.componentResized(e);
+                mask = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+                Graphics2D gMask = CustomMethods.optimizeGraphics(mask.createGraphics());
+                gMask.setColor(Color.WHITE);
+                gMask.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 30, 30));
+                gMask.dispose();
+            }
+        });
 
         setOpaque(false);
     }
@@ -157,9 +170,16 @@ public class CellPanel extends JPanel {
             CustomMethods.drawString(gr, description, (getWidth() - CustomMethods.maxLineWidth(gr, description)) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2 + currentAnimationFrame.key().getHeight() + settings.getSpriteSize());
         }
         else {
-            gr.drawImage(drawing, null, 0, 0);
-            drawDetails(gr);
-            drawSelection(gr);
+            BufferedImage finalImg = new BufferedImage(drawing.getWidth(), drawing.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = CustomMethods.optimizeGraphics(finalImg.createGraphics());
+            g2.drawImage(drawing, null, 0, 0);
+            drawDetails(g2);
+            drawSelection(g2);
+            g2.setComposite(AlphaComposite.DstIn);
+            g2.drawImage(mask, 0, 0, null);
+            g2.dispose();
+
+            gr.drawImage(finalImg, 0, 0, null);
 
             if (target.getUnsafe().value()) {
                 Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
@@ -174,17 +194,19 @@ public class CellPanel extends JPanel {
     public void doubleBuffer() {
         drawing = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D gr = CustomMethods.optimizeGraphics(drawing.createGraphics());
-        gr.setColor(Color.white);
-        gr.fill(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-        gr.setColor(Color.black);
+        Shape shape = new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
 
+        gr.setColor(Color.white);
+        gr.fill(shape);
+        gr.setColor(Color.black);
         gr.setStroke(new BasicStroke(STROKE_WIDTH));
-        gr.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
+        gr.draw(shape);
 
         drawField(gr);
         drawForest(gr);
         drawRiver(gr);
         drawObjects(gr);
+
         gr.dispose();
     }
 

@@ -1,10 +1,10 @@
 package objects.buildings;
 
 import UI.CustomMethods;
+import UI.Sprite;
 import core.contracts.ConstructContract;
 import objects.Construction;
 import objects.GameObject;
-import objects.units.Worker;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -19,7 +19,7 @@ import static core.GameConstants.*;
 // TODO MERGE WITH BUILDINGS?
 public class Foundation<T extends Construction<T>> extends GameObject<T> {
 
-    public final static BufferedImage FOUNDATION_SPRITE_MAX = CustomMethods.loadSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
+    public final static BufferedImage FOUNDATION_SPRITE_MAX = Sprite.loadSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
 
     private final T constructable;
     private final ConstructContract<T> contract;

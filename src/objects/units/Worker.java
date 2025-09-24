@@ -1,9 +1,9 @@
 package objects.units;
 
+import UI.Sprite;
 import core.*;
 import core.contracts.LaborContract;
 import core.OperationsList;
-import objects.GameObject;
 import objects.buildings.Foundation;
 import objects.loadouts.Booster;
 import objects.loadouts.Gatherer;
@@ -65,6 +65,6 @@ public abstract class Worker extends Unit<Worker> implements objects.Gatherer {
         if(getStatus() != Status.WORKING)
             return super.getSprite();
         else
-            return GameObject.getSprite(getTemplate().type + "_working");
+            return Sprite.getSprite(getTemplate().type + "_working");
     }
 }

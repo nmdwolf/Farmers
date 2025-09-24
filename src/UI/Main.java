@@ -172,8 +172,7 @@ public class Main{
      * Shows an input dialog for a new player's name, the name of its hero and its preferred colour.
      */
     public void showPlayerInputDialog() {
-        boolean inputFlag = true;
-        int playerCount = 1;
+        int playerCount = -1;
         do {
             String input = "";
             try {
@@ -182,13 +181,11 @@ public class Main{
                     JOptionPane.showMessageDialog(null, "Startup was cancelled by a player.");
                     System.exit(0);
                 }
-
                 playerCount = Integer.parseInt(input);
-                inputFlag = false;
             } catch(NumberFormatException e) {
                 JOptionPane.showMessageDialog(null,"A nonnumerical value was entered: " + input + ". Please try again.");
             }
-        } while(inputFlag);
+        } while(playerCount < 1 || playerCount > 5);
 
         for (int i = 0; i < playerCount; i++) {
             String name = JOptionPane.showInputDialog("What is the name of the Hero?");

@@ -841,8 +841,8 @@ public class GameFrame extends JFrame {
     public void resetScales() {
         settings.setScreenWidth(getContentPane().getWidth());
         settings.setScreenHeight(getContentPane().getHeight());
-        CustomMethods.setSpriteSize(settings.getSpriteSize());
-        GameObject.resizeSprites(settings.getSpriteSize());
+        Sprite.setSpriteSize(settings.getSpriteSize());
+        Sprite.resizeSprites(settings.getSpriteSize());
     }
 
     private void reorder() {

@@ -1,11 +1,11 @@
 package objects.templates;
 
+import UI.Sprite;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import objects.GameObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,9 +24,9 @@ public class TemplateFactory {
             T[] objects = mapper.readValue(file, mapper.getTypeFactory().constructArrayType(templateClass));
             for(T obj : objects) {
                 templates.put(obj.type, obj);
-                GameObject.registerSprite(obj.type, obj.sprite);
+                Sprite.registerSprite(obj.type, obj.sprite);
                 for(String tag : obj.tags)
-                    GameObject.registerSprite(obj.type + "_" + tag, obj.sprite + "_" + tag);
+                    Sprite.registerSprite(obj.type + "_" + tag, obj.sprite + "_" + tag);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

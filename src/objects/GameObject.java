@@ -16,13 +16,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static core.GameConstants.SPRITE_SIZE_MAX;
-
 public abstract class GameObject<G extends GameObject<G>> {
-
-    private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>();
-    private final static HashMap<String, String> spriteLocations = new HashMap<>();
-    public static int sprite_size = SPRITE_SIZE_MAX;
 
     private final int id;
     private final HashMap<String, Loadout> loadouts;
@@ -151,7 +145,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @return sprite (if available)
      */
     @NotNull
-    public Optional<BufferedImage> getSprite() { return GameObject.getSprite(template.type); }
+    public Optional<BufferedImage> getSprite() { return Sprite.getSprite(template.type); }
 
     /**
      * Gives the amount of space occupied by this object.
@@ -300,28 +294,4 @@ public abstract class GameObject<G extends GameObject<G>> {
         return s.toString();
     }
 
-    /**
-     * Registers a new sprite corresponding to the specified class identifier.
-     * @param name class identifier
-     * @param fileName sprite location
-     */
-    public static void registerSprite(String name, String fileName) {
-        spriteLocations.put(name, fileName);
-        sprites.put(name, CustomMethods.loadSprite("src/img/" + fileName + ".png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX));
-    }
-
-    public static void resizeSprites(int size) {
-        sprite_size = size;
-        for(String name : sprites.keySet())
-            sprites.put(name, CustomMethods.loadSprite("src/img/" + spriteLocations.get(name) + ".png", sprite_size, sprite_size));
-    }
-
-    /**
-     * Retrieves a sprite corresponding to the specified class identifier (if available).
-     * @param name class identifier
-     * @return sprite (if available)
-     */
-    public static Optional<BufferedImage> getSprite(String name) {
-        return sprites.get(name);
-    }
 }

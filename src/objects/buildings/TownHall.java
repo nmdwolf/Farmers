@@ -1,12 +1,11 @@
 package objects.buildings;
 
+import UI.Sprite;
 import core.*;
-import UI.CustomMethods;
 import core.OperationsList;
 import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
-import objects.GameObject;
 import objects.Spacer;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
@@ -71,9 +70,9 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
     @Override
     public @NotNull Optional<BufferedImage> getSprite() {
         return switch (getLevel()) {
-            case 1 -> CustomMethods.loadSprite("src/img/bonfire.png", GameObject.sprite_size, GameObject.sprite_size);
-            case 2 -> CustomMethods.loadSprite("src/img/town.png", GameObject.sprite_size, GameObject.sprite_size);
-            default -> CustomMethods.loadSprite("src/img/castle.png", GameObject.sprite_size, GameObject.sprite_size);
+            case 1 -> Sprite.loadSprite("src/img/bonfire.png", Sprite.getSpriteSize(), Sprite.getSpriteSize());
+            case 2 -> Sprite.loadSprite("src/img/town.png", Sprite.getSpriteSize(), Sprite.getSpriteSize());
+            default -> Sprite.loadSprite("src/img/castle.png", Sprite.getSpriteSize(), Sprite.getSpriteSize());
         };
     }
 

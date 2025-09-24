@@ -10,7 +10,7 @@ public class Settings {
 
     private final Property<Boolean> playMusic, shuffleMusic, showArrows;
     private String audioSource;
-    private boolean customCursor;
+    private boolean customCursor, rangedMode;
     private GameFrame frame;
     private int screenWidth;
     private int screenHeight;
@@ -31,6 +31,8 @@ public class Settings {
         screenHeight = INITIAL_SCREEN_SIZE;
         cellWidth = Math.round(screenWidth / (float)NUMBER_OF_CELLS_IN_VIEW);
         cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
+
+        rangedMode = false;
     }
 
     public void initialize(GameFrame frame) {
@@ -139,5 +141,13 @@ public class Settings {
 
     public int getSpriteSize() {
         return spriteSize;
+    }
+
+    public boolean isRangedMode() {
+        return rangedMode;
+    }
+
+    public void setRangedMode(boolean mode) {
+        rangedMode = mode;
     }
 }
