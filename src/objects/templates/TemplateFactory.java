@@ -25,6 +25,8 @@ public class TemplateFactory {
             for(T obj : objects) {
                 templates.put(obj.type, obj);
                 GameObject.registerSprite(obj.type, obj.sprite);
+                for(String tag : obj.tags)
+                    GameObject.registerSprite(obj.type + "_" + tag, obj.sprite + "_" + tag);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

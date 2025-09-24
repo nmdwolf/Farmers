@@ -5,7 +5,7 @@ import core.resources.ResourceContainer;
 import objects.GameObject;
 import core.upgrade.Nomads;
 import core.upgrade.Upgrade;
-import objects.Spacer;
+import objects.loadouts.Spacer;
 
 import java.awt.*;
 import java.util.*;
@@ -102,17 +102,18 @@ public class Player {
      * Make new object ready to be added to the game field.
      * @param object GameObject to be added
      */
-    public void addObject(GameObject<?> object) {
+    public void addObject(GameObject<?> object, Cell cell) {
         object = civ.initObject(object);
+        object.initialize(this, cycle);
+        object.setCell(cell);
+
         newObjects.add(object);
 
         if(object.getType() == UNIT_TYPE)
             changePop(object.getSize());
 
-        if (object instanceof Spacer spacer)
-            changePopCap(spacer.getSpaceBoost());
-
-        //awards.enable(object.getAward(Option.CONSTRUCT));
+        // Change popcap
+        object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(spacer.getSpaceBoost()));
 
         Cell loc = object.getCell();
         discover(loc);
@@ -129,11 +130,12 @@ public class Player {
 
     public void removeObject(GameObject<?> object) {
         removableObjects.add(object);
+
         if(object.getType() == UNIT_TYPE)
             changePop(-object.getSize());
 
-        if (object instanceof Spacer spacer)
-            changePopCap(-spacer.getSpaceBoost());
+        // change popcap
+        object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(-spacer.getSpaceBoost()));
     }
 
     public String getName() {

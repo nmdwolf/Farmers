@@ -3,12 +3,14 @@ package objects.units;
 import core.*;
 import core.contracts.LaborContract;
 import core.OperationsList;
+import objects.GameObject;
 import objects.buildings.Foundation;
 import objects.loadouts.Booster;
 import objects.loadouts.Gatherer;
 import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,5 +58,13 @@ public abstract class Worker extends Unit<Worker> implements objects.Gatherer {
     @Override
     public int getGatherCost() {
         return getLoadout(Gatherer.class).map(Gatherer::getGatherCost).orElse(0);
+    }
+
+    @Override
+    public @NotNull Optional<BufferedImage> getSprite() {
+        if(getStatus() != Status.WORKING)
+            return super.getSprite();
+        else
+            return GameObject.getSprite(getTemplate().type + "_working");
     }
 }

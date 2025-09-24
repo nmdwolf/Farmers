@@ -77,12 +77,10 @@ public abstract class GameObject<G extends GameObject<G>> {
     /**
      * Initializes this object after creation. Sets the owner, current location and current cycle.
      * @param player owner
-     * @param cell current location
      * @param cycle current cycle
      */
-    public void initialize(Player player, Cell cell, int cycle) {
+    public void initialize(Player player, int cycle) {
         setPlayer(player);
-        setCell(cell);
         startCycle = cycle;
     }
 
@@ -164,7 +162,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * Sets the amount of space occupied by this object.
      * @param amount space change
      */
-    public void changeSpace(int amount) { size += amount; }
+    public void changeSize(int amount) { size += amount; }
 
     /**
      * Gives the current health of this object.
@@ -267,6 +265,10 @@ public abstract class GameObject<G extends GameObject<G>> {
      */
     public <T extends Loadout> Optional<T> getLoadout(Class<T> loadoutClass) {
         return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass.getSimpleName().toLowerCase())));
+    }
+
+    public boolean hasLoadout(Class<?> loadoutClass) {
+        return loadouts.containsKey(loadoutClass.getSimpleName().toLowerCase());
     }
 
     /**

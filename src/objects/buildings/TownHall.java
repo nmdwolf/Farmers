@@ -47,8 +47,8 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
     }
 
     @Override
-    public void initialize(Player player, Cell cell, int cycle) {
-        super.initialize(player, cell, cycle);
+    public void initialize(Player player, int cycle) {
+        super.initialize(player, cycle);
         getUpgrades().add(new LookoutUpgrade());
         getUpgrades().add(new WellUpgrade(this));
     }
@@ -92,16 +92,16 @@ public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, 
         operations.put("Villager", _ -> {
             Villager v = new Villager();
             if (getPlayer().hasResources(v.getCost())) {
-                v.initialize(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-                getPlayer().addObject(v);
+                getPlayer().addObject(v, getCell());
                 getPlayer().changeResources(v.getCost().negative());
             }
         });
         operations.put("Scout", _ -> { // Construct scout
             Scout sc = new Scout();
-            sc.initialize(getPlayer(), getCell().fetch(getX(), getY(), 0), cycle);
-            if (getPlayer().hasResources(sc.getCost()))
-                getPlayer().addObject(sc);
+            if (getPlayer().hasResources(sc.getCost())) {
+                getPlayer().addObject(sc, getCell());
+                getPlayer().changeResources(sc.getCost().negative());
+            }
         });
         return operations;
     }

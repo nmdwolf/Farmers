@@ -230,27 +230,21 @@ public class Main{
         players.add(p);
 
         GameObject<?> base = new TownHall();
-        base.initialize(p, p.getViewPoint().fetch(2, 2, 0), cycle.getUnsafe());
 //        GameObject<?> building = BasicBuilding.createBuilding("House");
         GameObject<?> building = BasicBuilding.createBuilding("Lumberjack");
-        building.initialize(p, p.getViewPoint().fetch(2, 5, 0), cycle.getUnsafe());
         GameObject<?> v1 = new Villager();
-        v1.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         GameObject<?> v2 = new Villager();
-        v2.initialize(p, p.getViewPoint().fetch(2, 1, 0), cycle.getUnsafe());
         Hero hero = new Hero();
         hero.setName(p.getName());
-        hero.initialize(p, p.getViewPoint(), cycle.getUnsafe());
 
-        p.addObject(base);
-        p.addObject(building);
-        p.addObject(v1);
-        p.addObject(v2);
-        p.addObject(hero);
+        p.addObject(base, p.getViewPoint().fetch(2, 2, 0));
+        p.addObject(building, p.getViewPoint().fetch(2, 5, 0));
+        p.addObject(v1, p.getViewPoint().fetch(2, 1, 0));
+        p.addObject(v2, p.getViewPoint().fetch(2, 1, 0));
+        p.addObject(hero, p.getViewPoint());
 
         Warrior w = Warrior.createWarrior("Archer");
-        w.initialize(p, p.getViewPoint(), cycle.getUnsafe());
-        p.addObject(w);
+        p.addObject(w, p.getViewPoint());
     }
 
     /**

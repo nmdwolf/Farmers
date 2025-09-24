@@ -26,8 +26,8 @@ public class Hero extends Unit<Hero> implements Aggressive<Hero> {
     }
 
     @Override
-    public void initialize(Player player, Cell cell, int cycle) {
-        super.initialize(player, cell, cycle);
+    public void initialize(Player player, int cycle) {
+        super.initialize(player, cycle);
         for (Upgrade u : getPlayer().getCivilization().getUpgrades())
             getUpgrades().add(u);
     }

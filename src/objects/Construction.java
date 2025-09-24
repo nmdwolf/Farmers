@@ -34,5 +34,8 @@ public abstract class Construction<T extends Construction<T>> extends GameObject
 
     public Optional<Award> getConstructionAward() { return Optional.of(Award.createFreeAward(((ConstructionTemplate)getTemplate()).award)); }
 
+    /**
+     *
+     */
     public void handleCompletion() {};
 }

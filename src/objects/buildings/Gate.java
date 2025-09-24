@@ -11,17 +11,18 @@ import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class Gate extends Building<Gate> implements Obstruction, Directional, Operational<Gate> {
 
     private boolean open;
     private final Direction direction;
+    private final Wall src;
 
-    public Gate(Direction direction) {
+    public Gate(Direction direction, Wall src) {
         super((ConstructionTemplate) TemplateFactory.getTemplate("Gate"));
         this.direction = direction;
         this.open = false;
+        this.src = src;
     }
 
     @Override
@@ -85,8 +86,6 @@ public class Gate extends Building<Gate> implements Obstruction, Directional, Op
 
     @Override
     public void handleCompletion() {
-        for(Wall w : getCell().getObjects().stream().filter(Wall.class::isInstance).map(Wall.class::cast).collect(Collectors.toSet()))
-            if(w.getDirection().equals(direction))
-                getPlayer().removeObject(w);
+        getPlayer().removeObject(src);
     }
 }

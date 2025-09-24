@@ -40,8 +40,7 @@ public class AI extends Player {
 
         if(getObjects().stream().filter(obj -> obj.getToken().equals("v")).count() < 5 && base != null) {
             Villager v = new Villager();
-            v.initialize(this, base.getCell().fetch(1, 0, 0), cycle);
-            main.addObject(v);
+            addObject(v, base.getCell().fetch(1, 0, 0));
         }
 
         for(Iterator<GameObject<?>> it = getObjects().stream().filter(obj -> obj instanceof Worker).iterator(); it.hasNext();) {

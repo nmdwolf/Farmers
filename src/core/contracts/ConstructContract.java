@@ -14,23 +14,22 @@ public class ConstructContract<T extends Construction<T>> extends Contract<Worke
         super(employee, constructable.getEnergyCost());
         this.constructable = constructable;
         foundation = new Foundation<>(constructable, this);
-        foundation.initialize(employee.getPlayer(), employee.getCell(), constructable.getStartCycle());
     }
 
     @Override
     public void initialize() {
         if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())) {
             getEmployee().getPlayer().changeResources(constructable.getCost().negative());
-            getEmployee().getPlayer().addObject(foundation);
+            getEmployee().getPlayer().addObject(foundation, getEmployee().getCell());
             super.initialize();
         }
     }
 
     @Override
     public void terminate() {
-        constructable.initialize(foundation.getPlayer(), foundation.getCell(), foundation.getStartCycle());
+//        constructable.initialize(foundation.getPlayer(), foundation.getStartCycle());
         getEmployee().getPlayer().removeObject(foundation);
-        getEmployee().getPlayer().addObject(constructable);
+        getEmployee().getPlayer().addObject(constructable, foundation.getCell());
         constructable.handleCompletion();
         constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
     }

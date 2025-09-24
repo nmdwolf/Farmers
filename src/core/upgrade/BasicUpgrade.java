@@ -43,7 +43,7 @@ public class BasicUpgrade extends Upgrade {
 
             object.changeMaxHealth(health);
             object.changeSight(sight);
-            object.changeSpace(space);
+            object.changeSize(space);
 
             if (object instanceof Energetic<?> e)
                 e.changeMaxEnergy(energy);

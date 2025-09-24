@@ -23,6 +23,7 @@ public class Template {
 
     public int size, sight, health, degradeTime, degradeAmount;
     public String type, sprite;
+    public String[] tags = new String[]{};
 
     public Template() {
         loadouts = new HashMap<>();
