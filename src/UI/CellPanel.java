@@ -9,6 +9,7 @@ import objects.GameObject;
 import core.Status;
 import objects.Obstruction;
 import objects.buildings.*;
+import objects.loadouts.Fighter;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
 import static UI.CustomMethods.cellCoordinateTransform;
 import static core.GameConstants.*;
 
-// TODO Make the object sizes adaptive for screen resizing.
 public class CellPanel extends JPanel {
 
     private Pair<Integer, Integer> selection;
@@ -62,6 +62,16 @@ public class CellPanel extends JPanel {
         this.target = target;
         this.settings = settings;
         this.gameState = gameState;
+
+        // Ranged mode
+        selected.bind(obj -> {
+            if(obj == null)
+                settings.setRangedMode(false);
+            else {
+                obj.getLoadout(Fighter.class).ifPresent(loadout -> settings.setRangedMode(loadout.getRange() > 0));
+                updateContent(true);
+            }
+        });
 
         MouseAdapter adapter = new MouseAdapter() {
             @Override
@@ -145,6 +155,22 @@ public class CellPanel extends JPanel {
                     objectMap.put(new Pair<>(enemyCounter++, enemyRow), object);
             }
 
+            if(settings.getRangedMode()) {
+                for(Direction direction : Direction.values()) {
+                    Cell neighbour = cell.getNeighbour(direction);
+                    int rangedCounter = 0;
+                    int row = switch(direction) {
+                        case NORTH -> enemyRow - 1;
+                        case EAST, WEST -> enemyRow;
+                        case SOUTH -> enemyRow + 1;
+                    };
+                    if(!neighbour.isEndOfMap())
+                        for (GameObject<?> object : neighbour.getObjects())
+                            if (!object.getPlayer().equals(player))
+                                objectMap.put(new Pair<>(rangedCounter++, row), object);
+                }
+            }
+
             doubleBuffer();
         }
     }
@@ -168,13 +194,16 @@ public class CellPanel extends JPanel {
 
             String description = currentAnimationFrame.value();
             CustomMethods.drawString(gr, description, (getWidth() - CustomMethods.maxLineWidth(gr, description)) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2 + currentAnimationFrame.key().getHeight() + settings.getSpriteSize());
-        }
-        else {
+        } else {
             BufferedImage finalImg = new BufferedImage(drawing.getWidth(), drawing.getHeight(), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2 = CustomMethods.optimizeGraphics(finalImg.createGraphics());
             g2.drawImage(drawing, null, 0, 0);
+
+            // Paint dynamic details
             drawDetails(g2);
             drawSelection(g2);
+
+            // Clipping/masking
             g2.setComposite(AlphaComposite.DstIn);
             g2.drawImage(mask, 0, 0, null);
             g2.dispose();
@@ -196,12 +225,14 @@ public class CellPanel extends JPanel {
         Graphics2D gr = CustomMethods.optimizeGraphics(drawing.createGraphics());
         Shape shape = new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
 
+        // Paint background panel
         gr.setColor(Color.white);
         gr.fill(shape);
         gr.setColor(Color.black);
         gr.setStroke(new BasicStroke(STROKE_WIDTH));
         gr.draw(shape);
 
+        // Paint static components
         drawField(gr);
         drawForest(gr);
         drawRiver(gr);

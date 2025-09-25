@@ -143,7 +143,7 @@ public class Settings {
         return spriteSize;
     }
 
-    public boolean isRangedMode() {
+    public boolean getRangedMode() {
         return rangedMode;
     }
 

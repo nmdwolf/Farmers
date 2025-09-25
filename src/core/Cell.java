@@ -6,8 +6,11 @@ import objects.Obstruction;
 import objects.buildings.Directional;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static core.GameConstants.*;
 
@@ -267,6 +270,23 @@ public class Cell {
 
     public boolean isEndOfMap() {
         return loc.x() == 0 || loc.x() == NUMBER_OF_CELLS - 1 || loc.y() == 0 || loc.y() == NUMBER_OF_CELLS - 1;
+    }
+
+    /**
+     * Returns all neighbouring cells that are not map boundaries.
+     * @return nonboundary neighbours
+     */
+    public Cell[] getNeighbours() {
+        return Stream.of(north, east, south, west).filter(c -> !c.isEndOfMap()).toArray(Cell[]::new);
+    }
+
+    public Cell getNeighbour(Direction direction) {
+        return switch(direction) {
+            case NORTH -> north;
+            case EAST -> east;
+            case SOUTH -> south;
+            case WEST -> west;
+        };
     }
 
     @Override
