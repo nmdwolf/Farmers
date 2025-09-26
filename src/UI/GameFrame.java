@@ -329,7 +329,7 @@ public class GameFrame extends JFrame {
                     if(infoPanel != null)
                         layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
 
-                    if((obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
+                    if(obj.getPlayer().equals(player.getUnsafe()) && (obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
                         ArrayList<Location> path = cells.getShortestAdmissiblePath(absoluteMousePos);
 
                         if (path != null) {

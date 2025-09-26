@@ -23,39 +23,35 @@ import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static UI.CustomMethods.cellCoordinateTransform;
 import static core.GameConstants.*;
 
 public class CellPanel extends JPanel {
 
-    private Pair<Integer, Integer> selection;
-    private int poolSize, unitRow, buildingRow, enemyRow, cycle;
+    private int poolSize, unitRow, buildingRow, enemyRow, enemyCounter, cycle;
     private BufferedImage drawing, mask;
     private Pair<BufferedImage, String> currentAnimationFrame;
     private ArrayDeque<Animation> animations;
+    private Rectangle selectionBox;
 
     private final Property<GameObject<?>> selected;
     private final Property<Pair<GameObject<?>, Boolean>> target;
     private final Property<Main.GameState> gameState;
     private final Settings settings;
     private Player player;
-    private BiMap objectMap;
+    private HashMap<GameObject<?>, Rectangle> objectMap;
     private Cell cell;
     private boolean reload;
 
     public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject<?>> selected, @NotNull Property<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         cell = initialCell;
         player = initialPlayer;
-        selection = new Pair<>(-1, -1);
-        objectMap = new BiMap();
+        objectMap = new HashMap<>();
         animations = new ArrayDeque<>();
         buildingRow = 1;
+        enemyCounter = 0;
         cycle = 0;
         reload = false;
         this.selected = selected;
@@ -67,18 +63,23 @@ public class CellPanel extends JPanel {
         selected.bind(obj -> {
             if(obj == null)
                 settings.setRangedMode(false);
-            else {
+            else
                 obj.getLoadout(Fighter.class).ifPresent(loadout -> settings.setRangedMode(loadout.getRange() > 0));
-                updateContent(true);
-            }
+            updateContent(true);
         });
 
         MouseAdapter adapter = new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                super.mouseClicked(e);
+                super.mouseReleased(e);
                 if(gameState.getUnsafe() == Main.GameState.PLAYING) {
-                    GameObject<?> obj = objectMap.get(selection);
+                    GameObject<?> obj = null;
+                    for(GameObject<?> object : objectMap.keySet())
+                        if(objectMap.get(object).contains(e.getPoint())) {
+                            obj = object;
+                            break; // early stopping
+                        }
+
                     if (target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
                         target.set(new Pair<>(obj, false));
                     else if (SwingUtilities.isLeftMouseButton(e)) {
@@ -91,11 +92,16 @@ public class CellPanel extends JPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
+                getParent().dispatchEvent(SwingUtilities.convertMouseEvent(CellPanel.this, e, getParent()));
 
                 if(gameState.getUnsafe() == Main.GameState.PLAYING) {
-                    selection = cellCoordinateTransform(e.getX(), e.getY());
-                    if (objectMap.get(selection) == null)
-                        selection = new Pair<>(-1, -1);
+                    selectionBox = null;
+                    for(GameObject<?> object : objectMap.keySet()) {
+                        if (objectMap.get(object).contains(e.getPoint())) {
+                            selectionBox = objectMap.get(object);
+                            break; // early stopping
+                        }
+                    }
                 }
             }
 
@@ -104,7 +110,7 @@ public class CellPanel extends JPanel {
                 super.mouseExited(e);
 
                 if(gameState.getUnsafe() == Main.GameState.PLAYING)
-                    selection = new Pair<>(-1, -1);
+                    selectionBox = null;
             }
         };
         addMouseListener(adapter);
@@ -137,37 +143,58 @@ public class CellPanel extends JPanel {
 
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f)); // TODO Might move to a resize method
         unitRow = 0;
-        buildingRow = CustomMethods.cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - settings.getSpriteSize()).value();
+        buildingRow = cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - settings.getSpriteSize()).value();
         enemyRow = (buildingRow / 2) + 1;
 
         if(reload || !player.equals(oldPlayer) || !cell.equals(oldCell)) {
             int unitCounter = 0;
             int buildingCounter = 0;
-            int enemyCounter = 0;
-            objectMap = new BiMap();
+            enemyCounter = 0;
+            objectMap = new HashMap<>();
+
+            // Objects in current cell
+            int enemyCount = (int)cell.getObjects().stream().filter(obj -> !player.equals(obj.getPlayer())).count();
             for (GameObject<?> object : cell.getObjects()) {
                 if (object.getPlayer().equals(player)) {
                     if (object instanceof Unit)
-                        objectMap.put(new Pair<>(unitCounter++, unitRow), object);
+                        objectMap.put(object, constructBoundingBox(object, new Pair<>(unitCounter++, unitRow), 0, 0));
                     else if (object instanceof Building || object instanceof Foundation)
-                        objectMap.put(new Pair<>(buildingCounter++, buildingRow), object);
+                        objectMap.put(object, constructBoundingBox(object, new Pair<>(buildingCounter++, buildingRow), 0, 0));
                 } else
-                    objectMap.put(new Pair<>(enemyCounter++, enemyRow), object);
+                    objectMap.put(object, constructBoundingBox(object, new Pair<>(enemyCounter++, enemyRow), (int)((getWidth() - enemyCount * (CELL_X_MARGIN + settings.getSpriteSize())) / 2f), 0));
             }
 
+            if(enemyCount != enemyCounter)
+                throw new IllegalStateException("A mismatch in the number of enemies has been detected: " + enemyCount + " vs. " + enemyCounter);
+
+            // Objects in neighbouring cells when ranged mode is active (i.e. selected object has range > 0)
             if(settings.getRangedMode()) {
                 for(Direction direction : Direction.values()) {
                     Cell neighbour = cell.getNeighbour(direction);
-                    int rangedCounter = 0;
+                    enemyCount = (int)neighbour.getObjects().stream()
+                            .filter(obj -> !player.equals(obj.getPlayer())).count();
+                    enemyCounter = 0;
+
                     int row = switch(direction) {
-                        case NORTH -> enemyRow - 1;
+                        case NORTH -> enemyRow - 2;
                         case EAST, WEST -> enemyRow;
-                        case SOUTH -> enemyRow + 1;
+                        case SOUTH -> enemyRow + 2;
                     };
-                    if(!neighbour.isEndOfMap())
+
+                    if(!neighbour.isEndOfMap()) {
                         for (GameObject<?> object : neighbour.getObjects())
-                            if (!object.getPlayer().equals(player))
-                                objectMap.put(new Pair<>(rangedCounter++, row), object);
+                            if (!object.getPlayer().equals(player)) {
+                                objectMap.put(object, constructBoundingBox(
+                                        object,
+                                        new Pair<>((direction == Direction.EAST ? -1 : 1) * (enemyCounter++ + (direction == Direction.EAST ? 1 : 0)), row),
+                                        (direction == Direction.NORTH || direction == Direction.SOUTH) ? (int) ((getWidth() - enemyCount * (CELL_X_MARGIN + settings.getSpriteSize())) / 2f) : 0,
+                                        0)
+                                );
+                            }
+
+                        if(enemyCount != enemyCounter)
+                            throw new IllegalStateException("A mismatch in the number of enemies has been detected: " + enemyCount + " vs. " + enemyCounter);
+                    }
                 }
             }
 
@@ -344,21 +371,22 @@ public class CellPanel extends JPanel {
         /*
          * Draw all (visible/relevant) game objects taking into account their state
          */
-        for(Pair<Integer, Integer> pair : objectMap.posSet()) {
-            GameObject<?> object = objectMap.get(pair);
+        for(GameObject<?> object : objectMap.keySet()) {
+            Rectangle boundingBox = objectMap.get(object);
+            int x = boundingBox.x;
+            int y = boundingBox.y;
+
             object.getSprite().ifPresentOrElse(
-                    sprite -> gr.drawImage(sprite,
-                            (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + CELL_X_MARGIN,
-                            (CELL_Y_MARGIN + settings.getSpriteSize()) * pair.value() + CELL_Y_MARGIN, null),
-                    () -> gr.drawString(object.getToken(), CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), (CELL_Y_MARGIN + settings.getSpriteSize()) * pair.value() + CELL_Y_MARGIN + gr.getFontMetrics().getHeight()));
+                    sprite -> gr.drawImage(sprite, x, y, null),
+                    () -> gr.drawString(object.getToken(), x, y + gr.getFontMetrics().getHeight()));
 
             // Draws a coloured box around objects of other players to indicate the corresponding Player
-            if(!object.getPlayer().equals(player) && objectMap.get(object) != objectMap.get(selected.getUnsafe()))
-                drawBox(gr, object.getPlayer().getColor(), objectMap.get(object));
+            if(!object.getPlayer().equals(player) && !object.equals(selected.getUnsafe()))
+                drawBox(gr, object.getPlayer().getColor(), boundingBox);
         }
 
         // Walls
-        var walls = objectMap.objSet().stream()
+        var walls = objectMap.keySet().stream()
                 .filter(obj -> player.equals(obj.getPlayer()))
                 .filter(Obstruction.class::isInstance)
                 .filter(Directional.class::isInstance)
@@ -387,28 +415,30 @@ public class CellPanel extends JPanel {
         }
     }
 
+    // TODO Change size of working box based on sprite
+    // TODO calibrate arrows
     private void drawDetails(Graphics2D gr) {
         cycle = (++cycle % FPS);
         gr.setStroke(new BasicStroke(STROKE_WIDTH));
-        for(Pair<Integer, Integer> pair : objectMap.posSet()) {
-            GameObject<?> object = objectMap.get(pair);
+        for(GameObject<?> object : objectMap.keySet()) {
             selected.get().ifPresentOrElse(
                     obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
                     () -> gr.setColor(object.getPlayer().getColor()));
 
             // Draws animation around working Units
             if(object.getPlayer().equals(player) && object instanceof Unit<?> u && u.getStatus() == Status.WORKING) {
+                Rectangle sourceBox = objectMap.get(u);
                 if(settings.showArrows()) {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
-                        Pair<Integer, Integer> targetPair = objectMap.get(c.getFoundation());
-                        if(targetPair != null)
-                            drawArrow(gr, (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN,targetPair.key() * (CELL_X_MARGIN + settings.getSpriteSize()),targetPair.value() * (CELL_Y_MARGIN + settings.getSpriteSize()));
+                        Rectangle targetBox = objectMap.get(c.getFoundation());
+                        if(targetBox != null)
+                            drawArrow(gr, (CELL_X_MARGIN + settings.getSpriteSize()) * targetBox.x, CELL_Y_MARGIN,targetBox.x * (CELL_X_MARGIN + settings.getSpriteSize()),targetBox.y * (CELL_Y_MARGIN + settings.getSpriteSize()));
                     });
 
                     u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract<?>)c).forEach(c -> {
-                        Pair<Integer, Integer> targetPair = objectMap.get(c.getTarget());
-                        if(targetPair != null)
-                            drawWavyArrow(gr, (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), pair.value() * (CELL_Y_MARGIN + settings.getSpriteSize()), (CELL_X_MARGIN + settings.getSpriteSize()) * targetPair.key(),targetPair.value() * (CELL_Y_MARGIN + settings.getSpriteSize()));
+                        Rectangle targetBox = objectMap.get(c.getTarget());
+                        if(targetBox != null)
+                            drawWavyArrow(gr, sourceBox.x, sourceBox.y, targetBox.x, targetBox.y);
                     });
                 }
 
@@ -416,23 +446,23 @@ public class CellPanel extends JPanel {
                 int part = (int)(cycle / pieces);
                 double remainder = (cycle / pieces) - part;
 
-                // Drawing of cycling box
+                // Drawing of working box
                 if(part > 0) {
-                    gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN);
+                    gr.drawLine(sourceBox.x, CELL_Y_MARGIN, sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN);
                     if(part > 1) {
-                        gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
+                        gr.drawLine(sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN, sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
                         if(part > 2) {
-                            gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN + settings.getSpriteSize(), CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
+                            gr.drawLine(sourceBox.x, CELL_Y_MARGIN + settings.getSpriteSize(), sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
                             if(part > 3)
-                                gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN + settings.getSpriteSize());
+                                gr.drawLine(sourceBox.x, CELL_Y_MARGIN, sourceBox.x, CELL_Y_MARGIN + settings.getSpriteSize());
                             else
-                                gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN + (int)((1 - remainder) * settings.getSpriteSize()), CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN + settings.getSpriteSize());
+                                gr.drawLine(sourceBox.x, CELL_Y_MARGIN + (int)((1 - remainder) * settings.getSpriteSize()), sourceBox.x, CELL_Y_MARGIN + settings.getSpriteSize());
                         } else
-                            gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + (int)((1 - remainder) * settings.getSpriteSize()), CELL_Y_MARGIN + settings.getSpriteSize(), CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
+                            gr.drawLine(sourceBox.x + (int)((1 - remainder) * settings.getSpriteSize()), CELL_Y_MARGIN + settings.getSpriteSize(), sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
                     } else
-                        gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + settings.getSpriteSize(), CELL_Y_MARGIN + (int)(settings.getSpriteSize() * remainder));
+                        gr.drawLine(sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN, sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + (int)(settings.getSpriteSize() * remainder));
                 } else
-                    gr.drawLine(CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key(), CELL_Y_MARGIN, CELL_X_MARGIN + (CELL_X_MARGIN + settings.getSpriteSize()) * pair.key() + (int)(settings.getSpriteSize() * remainder), CELL_Y_MARGIN);
+                    gr.drawLine(sourceBox.x, CELL_Y_MARGIN, sourceBox.x + (int)(settings.getSpriteSize() * remainder), CELL_Y_MARGIN);
             }
         }
     }
@@ -443,23 +473,34 @@ public class CellPanel extends JPanel {
             if(objectMap.get(obj) != null) {
                 gr.setColor(obj.getPlayer().getAlternativeColor());
                 gr.setStroke(new BasicStroke(STROKE_WIDTH));
-                obj.getSprite().ifPresentOrElse(
-                        img -> gr.drawRect(objectMap.get(obj).key() * (settings.getSpriteSize() + CELL_X_MARGIN) + CELL_X_MARGIN, objectMap.get(obj).value() * (settings.getSpriteSize() + CELL_Y_MARGIN) + CELL_Y_MARGIN, img.getWidth(), img.getHeight()),
-                        () -> drawBox(gr, obj.getPlayer().getAlternativeColor(), objectMap.get(obj)));
+                drawBox(gr, obj.getPlayer().getColor(), objectMap.get(obj));
+//                drawBox(gr, obj.getPlayer().getAlternativeColor(), constructBoundingBox(objectMap, objectMap.get(obj), player.equals(obj.getPlayer()) ? 0 : (int)((getWidth() - enemyCounter * (CELL_X_MARGIN + settings.getSpriteSize())) / 2f), 0));
             }
         });
 
         // Draws the selection box for Unit/Building/Foundation objects
-        // TODO Fix bounding box for nonstandard sprite sizes (cf. CustomMethods.selectedSprite)
-        if(selection.key() !=-1 && selection.value() != -1)
-            drawBox(gr, player.getAlternativeColor(), selection);
+        if(selectionBox != null)
+            drawBox(gr, player.getAlternativeColor(), selectionBox);
     }
 
-    private void drawBox(Graphics2D gr, Color c, Pair<Integer, Integer> pos) {
+    private void drawBox(Graphics2D gr, Color c, Rectangle box) {
         Color oldColor = gr.getColor();
         gr.setColor(c);
-        gr.drawRect(pos.key() * (settings.getSpriteSize() + CELL_X_MARGIN) + CELL_X_MARGIN, (CELL_Y_MARGIN + settings.getSpriteSize()) * pos.value() + CELL_Y_MARGIN,  settings.getSpriteSize(), settings.getSpriteSize());
+        gr.draw(box);
         gr.setColor(oldColor);
+    }
+
+    private Rectangle constructBoundingBox(GameObject<?> obj, Pair<Integer, Integer> selection, int xShift, int yShift) {
+        return obj.getSprite()
+                .map(sprite -> new Rectangle(
+                        selection.key() * (CELL_X_MARGIN + settings.getSpriteSize()) + xShift + ((selection.key() < 0) ? getWidth() : CELL_X_MARGIN),
+                        selection.value() * (CELL_Y_MARGIN + settings.getSpriteSize()) + CELL_Y_MARGIN + yShift,
+                        sprite.getWidth(), sprite.getHeight()))
+                .orElse(new Rectangle(
+                        selection.key() * (CELL_X_MARGIN + settings.getSpriteSize()) + CELL_X_MARGIN + xShift,
+                        selection.value() * (CELL_Y_MARGIN + settings.getSpriteSize()) + CELL_Y_MARGIN + yShift,
+                        settings.getSpriteSize(), settings.getSpriteSize())
+                );
     }
 
     private void drawArrow(Graphics2D gr, int x1, int y1, int x2, int y2) {
@@ -490,8 +531,8 @@ public class CellPanel extends JPanel {
 
         x1 = x1 + CELL_X_MARGIN + (settings.getSpriteSize() / 2);
         y1 = y1 + CELL_Y_MARGIN + (settings.getSpriteSize() / 2);
-        x2 = x2 + CELL_X_MARGIN + (settings.getSpriteSize() / 2);
-        y2 = y2 - rotated.getHeight() / 2;
+        x2 = x2 + (settings.getSpriteSize() / 2);
+        y2 = y2 + CELL_Y_MARGIN - rotated.getHeight() / 2;
 
         dx = x2 - x1;
         dy = y2 - y1;
@@ -522,35 +563,10 @@ public class CellPanel extends JPanel {
         gr.drawImage(rotated, x2  - rotated.getWidth() / 2, y2 - rotated.getHeight() / 2,null);
     }
 
-    public static class BiMap {
-        private final HashMap<Pair<Integer, Integer>, GameObject<?>> posToObj;
-        private final HashMap<GameObject<?>, Pair<Integer, Integer>> objToPos;
-
-        public BiMap() {
-            posToObj = new HashMap<>();
-            objToPos = new HashMap<>();
-        }
-
-        public GameObject<?> get(Pair<Integer, Integer> pos) {
-            return posToObj.get(pos);
-        }
-
-        public Pair<Integer, Integer> get(GameObject<?> obj) {
-            return objToPos.get(obj);
-        }
-
-        public void put(Pair<Integer, Integer> pos, GameObject<?> obj) {
-            posToObj.put(pos, obj);
-            objToPos.put(obj, pos);
-        }
-
-        public Set<Pair<Integer, Integer>> posSet() {
-            return posToObj.keySet();
-        }
-
-        public Set<GameObject<?>> objSet() {
-            return objToPos.keySet();
-        }
+    public static Pair<Integer, Integer> cellCoordinateTransform(int x, int y) {
+        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_X_MARGIN));
+        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_Y_MARGIN));
+        return new Pair<>(selectionX, selectionY);
     }
 
 }

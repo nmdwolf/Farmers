@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static core.GameConstants.*;
 
+// TODO Fix North/South (y coordinates go down on computers)
 public class Cell {
 
     private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel;
@@ -282,9 +283,9 @@ public class Cell {
 
     public Cell getNeighbour(Direction direction) {
         return switch(direction) {
-            case NORTH -> north;
+            case NORTH -> south;
             case EAST -> east;
-            case SOUTH -> south;
+            case SOUTH -> north;
             case WEST -> west;
         };
     }

@@ -1,13 +1,8 @@
 package UI;
 
-import core.Pair;
-
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-
-import static core.GameConstants.*;
-import static core.GameConstants.CELL_Y_MARGIN;
 
 public class CustomMethods {
 
@@ -112,12 +107,6 @@ public class CustomMethods {
         g2d.dispose();
 
         return rotated;
-    }
-
-    public static Pair<Integer, Integer> cellCoordinateTransform(int x, int y) {
-        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_X_MARGIN));
-        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_Y_MARGIN));
-        return new Pair<>(selectionX, selectionY);
     }
 
 }

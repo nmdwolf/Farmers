@@ -97,7 +97,7 @@
     "degradeTime": 0,
     "degradeAmount": 0,
     "cycleLength": 8,
-    "energy": 2,
+    "energy": 5,
     "cost": {
       "resources": ["Food", "Water", "Wood"],
       "amounts": [50, 50, 50]
