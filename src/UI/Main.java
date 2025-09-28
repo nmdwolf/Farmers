@@ -71,7 +71,6 @@ public class Main{
         gameState = new Property<>(GameState.PLAYING);
 
         Settings settings = new Settings();
-
         showPlayerInputDialog();
         currentPlayer.set(players.getFirst());
 
@@ -96,10 +95,7 @@ public class Main{
             while (gameState.getUnsafe() != GameState.CLOSE) {
                 boolean reload = false;
                 for(Player p : allPlayers) {
-                    for(GameObject<?> obj : p.getNewObjects()) {
-                        reload = addObject(obj) || reload;
-                        obj.setCell(obj.getCell());
-                    }
+                    reload = !p.getNewObjects().isEmpty() || reload;
 
                     for (GameObject<?> obj : p.getObjects()) {
                         if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
@@ -111,18 +107,19 @@ public class Main{
                         reload = reload || obj.hasChanged();
                     }
 
-                    for(GameObject<?> obj : p.getRemovableObjects())
-                        reload  = removeObject(obj) || reload;
+                    reload  = !p.getRemovableObjects().isEmpty() || reload;
                 }
 
                 if(gameState.getUnsafe() == GameState.ANIMATING)
                     game.cycleAnimation();
-                else {
+
+                game.updateContent(reload);
+
+                if(gameState.getUnsafe() != GameState.ANIMATING) {
+                    currentPlayer.getUnsafe().validateMissions();
                     for (String text : currentPlayer.getUnsafe().getMessages()) // Shows awards and others
                         game.showMessagePanel(text);
                 }
-
-                game.updateContent(reload);
 
                 try { Thread.sleep(1000 / FPS); } catch (InterruptedException e) { break; }
             }
@@ -134,6 +131,8 @@ public class Main{
             gameState.set(GameState.CLOSE);
             gameLoop.interrupt();
         }));
+
+        JOptionPane.showMessageDialog(game, "To get you started, you can first try to finish some 'missions'. These will help you get a hang of the game. To see the next mission, press CTRL + M.");
     }
 
     /**
@@ -150,10 +149,14 @@ public class Main{
             playEndOfCycle();
 
         currentPlayer.set(players.get(playerCounter.getUnsafe()));
-        currentPlayer.getUnsafe().validateMissions();
 
         SwingUtilities.invokeLater(() -> game.hidePanels(true));
         gameState.set(GameState.PLAYING);
+
+        if(cycle.getUnsafe() == 1) {
+            game.updateContent(true);
+            JOptionPane.showMessageDialog(game, "To get you started, you can first try to finish some 'missions'. These will help you get a hang of the game. To see the next mission, press CTRL + M.");
+        }
     }
 
     /**
@@ -242,57 +245,6 @@ public class Main{
 
         Warrior w = Warrior.createWarrior("Archer");
         p.addObject(w, p.getViewPoint());
-    }
-
-    /**
-     * Adds a new GameObject to the game.
-     * @param obj new object
-     * @return whether the object has been added or not
-     */
-    public boolean addObject(GameObject<?> obj) {
-
-        boolean added = false;
-
-        if((obj instanceof Unit) && (obj.getCell().getUnitAvailable() >= obj.getSize())) {
-            obj.getCell().changeUnitOccupied(obj.getSize());
-            added = true;
-        }
-        if((obj instanceof Building) && (obj.getCell().getBuildingAvailable() >= obj.getSize())) {
-            obj.getCell().changeBuildingOccupied(obj.getSize());
-            added = true;
-        }
-
-        if(added)
-            obj.getLoadout(Spacer.class).ifPresent(spacer -> obj.getCell().changeUnitSpace(spacer.getSpaceBoost()));
-
-        return added;
-    }
-
-    /**
-     * Removes a GameObject from the game.
-     * @param obj object to remove
-     */
-    public boolean removeObject(GameObject<?> obj) {
-
-        boolean removed = false;
-
-        if(obj instanceof Unit) {
-            obj.getCell().changeUnitOccupied(-obj.getSize());
-            removed = true;
-        }
-        if(obj instanceof Building) {
-            obj.getCell().changeBuildingOccupied(-obj.getSize());
-            removed = true;
-        }
-
-        if(removed) {
-            obj.getLoadout(Spacer.class).ifPresent(spacer -> obj.getCell().changeUnitSpace(-spacer.getSpaceBoost()));
-            if(obj instanceof Obstruction)
-                obj.getCell().changeTravelCost(-100);
-        }
-
-        obj.getCell().removeContent(obj);
-        return removed;
     }
 
     /**

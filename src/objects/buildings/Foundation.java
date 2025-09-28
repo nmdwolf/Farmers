@@ -92,6 +92,11 @@ public class Foundation<T extends Construction<T>> extends GameObject<T> {
         return BUILDING_TYPE;
     }
 
+    @Override
+    public int getSize() {
+        return constructable.getSize();
+    }
+
     public void construct() {
         completion++;
         changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));

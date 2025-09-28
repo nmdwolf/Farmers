@@ -432,7 +432,7 @@ public class CellPanel extends JPanel {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
                         Rectangle targetBox = objectMap.get(c.getFoundation());
                         if(targetBox != null)
-                            drawArrow(gr, (CELL_X_MARGIN + settings.getSpriteSize()) * targetBox.x, CELL_Y_MARGIN,targetBox.x * (CELL_X_MARGIN + settings.getSpriteSize()),targetBox.y * (CELL_Y_MARGIN + settings.getSpriteSize()));
+                            drawArrow(gr, sourceBox.x, sourceBox.y, targetBox.x, targetBox.y);
                     });
 
                     u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract<?>)c).forEach(c -> {

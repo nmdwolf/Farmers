@@ -3,6 +3,7 @@ package objects;
 import core.Status;
 import core.contracts.Logger;
 
+// TODO Calibrate reasonable energy levels and requirements
 public interface Energetic<T extends GameObject<T> & Energetic<T>> extends Operational<T> {
 
     /**

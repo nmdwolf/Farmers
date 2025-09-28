@@ -35,6 +35,7 @@ public interface GameConstants {
     int WATER_THRESHOLD = 150;
     int WOOD_THRESHOLD = 150;
     int FOOD_THRESHOLD = 150;
+    int ROAD_THRESHOLD = 10;
 
     int START_POP_CAP = 100;
     int START_FOOD = 300;

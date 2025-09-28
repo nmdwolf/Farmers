@@ -18,9 +18,9 @@ public class ConstructContract<T extends Construction<T>> extends Contract<Worke
 
     @Override
     public void initialize() {
-        if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())) {
+        if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())
+                && getEmployee().getPlayer().addObject(foundation, getEmployee().getCell())) {
             getEmployee().getPlayer().changeResources(constructable.getCost().negative());
-            getEmployee().getPlayer().addObject(foundation, getEmployee().getCell());
             super.initialize();
         }
     }

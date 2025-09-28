@@ -5,7 +5,10 @@ import core.resources.ResourceContainer;
 import objects.GameObject;
 import core.upgrade.Nomads;
 import core.upgrade.Upgrade;
+import objects.buildings.Building;
+import objects.buildings.Foundation;
 import objects.loadouts.Spacer;
+import objects.units.Unit;
 
 import java.awt.*;
 import java.util.*;
@@ -102,40 +105,55 @@ public class Player {
      * Make new object ready to be added to the game field.
      * @param object GameObject to be added
      */
-    public void addObject(GameObject<?> object, Cell cell) {
+    public boolean addObject(GameObject<?> object, Cell cell) {
         object = civ.initObject(object);
-        object.initialize(this, cycle);
-        object.setCell(cell);
 
-        newObjects.add(object);
+        boolean added = false;
 
-        if(object.getType() == UNIT_TYPE)
-            changePop(object.getSize());
+        if((object instanceof Unit) && (cell.getUnitAvailable() >= object.getSize()))
+            added = true;
+        if((object instanceof Building || object instanceof Foundation<?>) && (cell.getBuildingAvailable() >= object.getSize()))
+            added = true;
 
-        // Change popcap
-        object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(spacer.getSpaceBoost()));
+        if(added) {
+            object.initialize(this, cycle);
+            object.setCell(cell);
 
-        Cell loc = object.getCell();
-        discover(loc);
-        spot(loc.fetch(1, 0, 0));
-        spot(loc.fetch(-1, 0, 0));
-        spot(loc.fetch(0, 1, 0));
-        spot(loc.fetch(0, -1, 0));
-        spot(loc.fetch(0, 0, 1));
-        spot(loc.fetch(0, 0, -1));
+            if (object.getType() == UNIT_TYPE)
+                changePop(object.getSize());
 
-        for(Upgrade upgrade : enabledUpgrades)
-            upgrade.apply(object);
+            // Change popcap
+            object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(spacer.getSpaceBoost()));
+            object.getLoadout(Spacer.class).ifPresent(spacer -> cell.changeUnitSpace(spacer.getSpaceBoost()));
+
+            Cell loc = object.getCell();
+            discover(loc);
+            spot(loc.fetch(1, 0, 0));
+            spot(loc.fetch(-1, 0, 0));
+            spot(loc.fetch(0, 1, 0));
+            spot(loc.fetch(0, -1, 0));
+            spot(loc.fetch(0, 0, 1));
+            spot(loc.fetch(0, 0, -1));
+
+            for (Upgrade upgrade : enabledUpgrades)
+                upgrade.apply(object);
+
+            newObjects.add(object);
+        }
+
+        return added;
     }
 
     public void removeObject(GameObject<?> object) {
-        removableObjects.add(object);
-
-        if(object.getType() == UNIT_TYPE)
-            changePop(-object.getSize());
 
         // change popcap
         object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(-spacer.getSpaceBoost()));
+        object.getLoadout(Spacer.class).ifPresent(spacer -> object.getCell().changeUnitSpace(-spacer.getSpaceBoost()));
+        if(object.getType() == UNIT_TYPE)
+            changePop(-object.getSize());
+
+        object.getCell().removeContent(object);
+        removableObjects.add(object);
     }
 
     public String getName() {

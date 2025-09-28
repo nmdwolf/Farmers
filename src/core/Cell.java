@@ -3,7 +3,9 @@ package core;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 import objects.Obstruction;
+import objects.buildings.Building;
 import objects.buildings.Directional;
+import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -17,12 +19,12 @@ import static core.GameConstants.*;
 // TODO Fix North/South (y coordinates go down on computers)
 public class Cell {
 
-    private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel;
     private final ResourceContainer resources;
     private final Location loc;
+    private final HashSet<GameObject<?>> content;
+    private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel, traversalCount;
 
     private Cell east, west, north, south, up, down;
-    private final HashSet<GameObject<?>> content;
 
     public Cell(int x, int y, int z, int s, int b) {
         this.loc = new Location(x, y, z);
@@ -30,6 +32,7 @@ public class Cell {
         unitSpace = s;
         buildingSpace = b;
         travelCost = INITIAL_TRAVEL_COST;
+        traversalCount = 0;
         resources = generateResources();
         seasonalCycle(0); // Start in Winter
     }
@@ -154,12 +157,35 @@ public class Cell {
 
     public boolean isField() { return resources.get("Food") >= FOOD_THRESHOLD; }
 
+    /**
+     * Indicates whether this cell contains a natural road, i.e. whether sufficiently many units have moved through this cell (based on the constant {@code GameConstants.ROAD_THRESHOLD}.
+     * @return if this is a road
+     */
+    public boolean isRoad() {
+        return traversalCount >= ROAD_THRESHOLD;
+    }
+
     public void addContent(GameObject<?> obj) {
-        content.add(obj);
+        if(!equals(obj.getCell())) {
+            content.add(obj);
+            if (obj instanceof Unit) {
+                traversalCount++;
+                changeUnitOccupied(obj.getSize());
+            } else if (obj instanceof Building)
+                changeBuildingOccupied(obj.getSize());
+        } else
+            throw new IllegalArgumentException("Object is already located in this cell.");
     }
 
     public void removeContent(GameObject<?> obj) {
-        content.remove(obj);
+        if(equals(obj.getCell())) {
+            content.remove(obj);
+            if (obj instanceof Unit)
+                changeUnitOccupied(-obj.getSize());
+            else if (obj instanceof Building)
+                changeBuildingOccupied(-obj.getSize());
+        } else
+            throw new IllegalArgumentException("Object is not located in this cell.");
     }
 
     public HashSet<GameObject<?>> getObjects() { return content; }
