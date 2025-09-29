@@ -2,12 +2,9 @@ package UI;
 
 import core.OperationCode;
 import core.OperationsList;
-import core.Pair;
 import core.upgrade.Upgrade;
 import objects.GameObject;
 import objects.Operational;
-import objects.buildings.Foundation;
-import objects.units.Worker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,7 +63,6 @@ public class OperationsPanel extends JPanel {
     }
 
     public void update(GameObject<?> selected, OperationCode code, int cycle) throws IllegalArgumentException {
-
         for (int i = 0; i < 16; i++) {
             RoundedButton button = buttons[i];
             button.setColor(selected.getPlayer().getAlternativeColor());

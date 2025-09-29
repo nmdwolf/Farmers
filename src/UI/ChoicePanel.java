@@ -77,8 +77,10 @@ public class ChoicePanel extends JPanel {
             buttons.get(5).setVisible(true);
         }
 
-        buttons.get(6).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EXTRA, cycle));
-        buttons.get(6).setVisible(true);
+        if(selected instanceof Operational<?>) {
+            buttons.get(6).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EXTRA, cycle));
+            buttons.get(6).setVisible(true);
+        }
 
         if(buttons.stream().anyMatch(RoundedButton::isVisible))
             setVisible(true);

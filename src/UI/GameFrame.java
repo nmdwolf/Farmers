@@ -544,55 +544,45 @@ public class GameFrame extends JFrame {
     }
 
     public void showMessagePanel(String text) {
-        int lines = 1; // TODO Implement dynamic box height based on number of lines of text.
-        StringBuilder output = new StringBuilder();
-        StringBuilder temp = new StringBuilder();
-        for(char c : text.toCharArray()) {
-            temp.append(c);
-            if(font.getStringBounds(temp.toString(),
-                    ((Graphics2D)getContentPane().getGraphics()).getFontRenderContext()).getWidth() >= (2 * settings.getCellWidth() - 4 - 4 - 20)) {
-                output.append(temp);
-                output.append("\n");
-                temp = new StringBuilder();
-                lines++;
-            }
-        }
-        output.append(temp);
 
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
-
 //                gr.setColor(new Color(200, 150, 0, 76));
                 gr.setColor(new Color(200, 150, 0));
                 gr.fillRoundRect(1, 1, (int)(2 * settings.getCellWidth()) - 2, getHeight() - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
-                gr.setColor(Color.black);
-                CustomMethods.drawString(gr, output.toString(), 10, 10);
-
                 gr.dispose();
             }
         };
 
-        panel.addMouseListener(new MouseAdapter() {
+        panel.setPreferredSize(new Dimension((int)(2 * settings.getCellWidth()), (int)(2 * settings.getCellHeight())));
+        panel.setBorder(new CustomBorder(Color.black));
+        panel.setOpaque(false);
+        panel.setLayout(new BorderLayout());
+
+        JTextArea area = new JTextArea(text);
+        area.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        area.setOpaque(false);
+        area.setWrapStyleWord(true);
+        area.setLineWrap(true);
+        area.setFocusable(false);
+        panel.add(area);
+
+        getContentPane().add(panel, Integer.valueOf(1));
+        SpringLayout layout = (SpringLayout) getContentPane().getLayout();
+        layout.putConstraint(SpringLayout.WEST, panel, (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 50), SpringLayout.WEST, getContentPane());
+        layout.putConstraint(SpringLayout.NORTH, panel, 50, SpringLayout.NORTH, getContentPane());
+
+        player.bindSingle(_ -> getContentPane().remove(panel));
+        area.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseExited(MouseEvent e) {
                 super.mouseExited(e);
                 getContentPane().remove(panel);
             }
         });
-
-        panel.setPreferredSize(new Dimension((int)(2 * settings.getCellWidth()), 50 * lines));
-        panel.setBorder(new CustomBorder(Color.black));
-        panel.setOpaque(false);
-
-        player.bindSingle(_ -> getContentPane().remove(panel));
-
-        getContentPane().add(panel, Integer.valueOf(1));
-        SpringLayout layout = (SpringLayout) getContentPane().getLayout();
-        layout.putConstraint(SpringLayout.WEST, panel, (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 50), SpringLayout.WEST, getContentPane());
-        layout.putConstraint(SpringLayout.NORTH, panel, 50, SpringLayout.NORTH, getContentPane());
     }
 
     /**

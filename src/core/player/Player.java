@@ -180,6 +180,24 @@ public class Player {
         return totalResources.get(type);
     }
 
+    /**
+     * Gives the amount of the specified resource that this player has collected throughout the game.
+     * @param type resource type
+     * @return amount gained
+     */
+    public int getGained(String type) {
+        return gained.get(type);
+    }
+
+    /**
+     * Gives the amount of the specified resource that this player has spent throughout the game.
+     * @param type resource type
+     * @return amount spent
+     */
+    public int getSpent(String type) {
+        return spent.get(type);
+    }
+
     public ResourceContainer getResources() { return resources; }
 
     /**
