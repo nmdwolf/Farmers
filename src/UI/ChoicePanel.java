@@ -1,9 +1,6 @@
 package UI;
 
-import core.GameConstants;
-import core.OperationCode;
-import core.Pair;
-import core.Property;
+import core.*;
 import objects.*;
 import objects.units.Unit;
 import objects.units.Worker;
@@ -22,9 +19,9 @@ public class ChoicePanel extends JPanel {
     private final ArrayList<RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
-    private final Property<Pair<GameObject<?>, Boolean>> target;
+    private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
 
-    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, Property<Pair<GameObject<?>, Boolean>> target) {
+    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, UnsafeProperty<Pair<GameObject<?>, Boolean>> target) {
         this.operationsPanel = operationsPanel;
         this.hideListener = hide;
         this.target = target;
@@ -76,7 +73,7 @@ public class ChoicePanel extends JPanel {
             buttons.get(4).setVisible(true);
         }
         if(selected instanceof Aggressive) {
-            buttons.get(5).addActionListener(_ -> target.set(new Pair<>(null, true)));
+            buttons.get(5).addActionListener(_ -> target.setOptional(new Pair<>(null, true)));
             buttons.get(5).setVisible(true);
         }
 

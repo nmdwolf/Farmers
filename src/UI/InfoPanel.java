@@ -1,6 +1,6 @@
 package UI;
 
-import core.Property;
+import core.UnsafeProperty;
 import objects.GameObject;
 
 import javax.swing.*;
@@ -12,10 +12,10 @@ public class InfoPanel extends JPanel {
     public enum Mode {OBJECT, CELL, PLAYER}
 
     private int width, height;
-    private final Property<GameObject<?>> selected;
+    private final UnsafeProperty<GameObject<?>> selected;
     private Mode mode;
 
-    public InfoPanel(Property<GameObject<?>> selected) {
+    public InfoPanel(UnsafeProperty<GameObject<?>> selected) {
         mode = Mode.OBJECT;
         this.selected = selected;
 

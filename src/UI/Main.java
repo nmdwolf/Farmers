@@ -80,8 +80,8 @@ public class Main{
         playerCounter.bind(_ -> {
             // All objects should 'work' at the end of every cycle.
             // E.g. Operational objects should work on contracts, etc. These will use up all remaining energy. The less they worked during the cycle, the more energy remains for contracts.
-            for (var object : currentPlayer.getUnsafe().getObjects())
-                object.cycle(cycle.getUnsafe());
+            for (var object : currentPlayer.get().getObjects())
+                object.cycle(cycle.get());
         });
 
         // Add player change logic
@@ -92,7 +92,7 @@ public class Main{
 
         // The game loop: checks for new/removable objects, fires repaint events, etc.
         gameLoop = new Thread(() -> {
-            while (gameState.getUnsafe() != GameState.CLOSE) {
+            while (gameState.get() != GameState.CLOSE) {
                 boolean reload = false;
                 for(Player p : allPlayers) {
                     reload = !p.getNewObjects().isEmpty() || reload;
@@ -110,14 +110,14 @@ public class Main{
                     reload  = !p.getRemovableObjects().isEmpty() || reload;
                 }
 
-                if(gameState.getUnsafe() == GameState.ANIMATING)
+                if(gameState.get() == GameState.ANIMATING)
                     game.cycleAnimation();
 
                 game.updateContent(reload);
 
-                if(gameState.getUnsafe() != GameState.ANIMATING) {
-                    currentPlayer.getUnsafe().validateMissions();
-                    for (String text : currentPlayer.getUnsafe().getMessages()) // Shows awards and others
+                if(gameState.get() != GameState.ANIMATING) {
+                    currentPlayer.get().validateMissions();
+                    for (String text : currentPlayer.get().getMessages()) // Shows awards and others
                         game.showMessagePanel(text);
                 }
 
@@ -139,21 +139,21 @@ public class Main{
      * Switches to the next player.
      */
     private void nextPlayer() {
-        for (GameObject<?> object : currentPlayer.getUnsafe().getObjects()) {
+        for (GameObject<?> object : currentPlayer.get().getObjects()) {
             if(object instanceof Energetic<?> op)
                 op.initLogger();
         }
-        currentPlayer.ifPresent(Player::cycle);
+        currentPlayer.get().cycle();
 
-        if (playerCounter.getUnsafe() == players.size())
+        if (playerCounter.get() == players.size())
             playEndOfCycle();
 
-        currentPlayer.set(players.get(playerCounter.getUnsafe()));
+        currentPlayer.set(players.get(playerCounter.get()));
 
         SwingUtilities.invokeLater(() -> game.hidePanels(true));
         gameState.set(GameState.PLAYING);
 
-        if(cycle.getUnsafe() == 1) {
+        if(cycle.get() == 1) {
             game.updateContent(true);
             JOptionPane.showMessageDialog(game, "To get you started, you can first try to finish some 'missions'. These will help you get a hang of the game. To see the next mission, press CTRL + M.");
         }
@@ -164,10 +164,10 @@ public class Main{
      */
     private void playEndOfCycle() {
         for(AI ai : ais) // Let AIs play at end of cycle
-            ai.makeMove(cycle.getUnsafe());
+            ai.makeMove(cycle.get());
 
-        cycle.set(cycle.getUnsafe() + 1);
-        cells.cycle(cycle.getUnsafe());
+        cycle.set(cycle.get() + 1);
+        cells.cycle(cycle.get());
         playerCounter.set(0);
     }
 

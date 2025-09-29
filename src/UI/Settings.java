@@ -1,7 +1,6 @@
 package UI;
 
 import core.Property;
-
 import java.awt.*;
 
 import static core.GameConstants.*;
@@ -65,7 +64,7 @@ public class Settings {
     }
 
     public boolean playMusic() {
-        return playMusic.getUnsafe();
+        return playMusic.get();
     }
 
     public void toggleShuffle(boolean flag) {
@@ -73,7 +72,7 @@ public class Settings {
     }
 
     public boolean isShuffled() {
-        return shuffleMusic.getUnsafe();
+        return shuffleMusic.get();
     }
 
     public void toggleArrows(boolean flag) {
@@ -81,7 +80,7 @@ public class Settings {
     }
 
     public boolean showArrows() {
-        return showArrows.getUnsafe();
+        return showArrows.get();
     }
 
     public void setAudioSource(String src) {

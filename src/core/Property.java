@@ -8,10 +8,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class Property<T> {
-
-    private T property;
-    private final ArrayList<Consumer<T>> actions, earlyActions;
-    private final ArrayDeque<Consumer<T>> singleUseActions;
+    protected final ArrayList<Consumer<T>> actions;
+    protected final ArrayList<Consumer<T>> earlyActions;
+    protected final ArrayDeque<Consumer<T>> singleUseActions;
+    protected T property;
 
     public Property() {
         actions = new ArrayList<>();
@@ -25,30 +25,29 @@ public class Property<T> {
     }
 
     @NotNull
-    public Optional<T> get() { return Optional.ofNullable(property); }
-
-    public T getUnsafe() { return property; }
+    public T get() {
+        return property;
+    }
 
     public void set(T property) {
-        for(Consumer<T> action : earlyActions)
+        for (Consumer<T> action : earlyActions)
             action.accept(property);
         this.property = property;
-        for(Consumer<T> action : actions)
+        for (Consumer<T> action : actions)
             action.accept(property);
-        while(!singleUseActions.isEmpty())
+        while (!singleUseActions.isEmpty())
             singleUseActions.pop().accept(property);
     }
 
-    public void setAsParent(T property) { this.property = property; }
+    public void bind(Consumer<T> action) {
+        actions.add(action);
+    }
 
-    public void bind(Consumer<T> action) { actions.add(action); }
+    public void bindSingle(Consumer<T> action) {
+        singleUseActions.add(action);
+    }
 
-    public void bindSingle(Consumer<T> action) { singleUseActions.add(action); }
-
-    public void bindFirst(Consumer<T> action) { earlyActions.add(action); }
-
-    public void ifPresent(Consumer<T> action) {
-        if(property != null)
-            action.accept(property);
+    public void bindFirst(Consumer<T> action) {
+        earlyActions.add(action);
     }
 }

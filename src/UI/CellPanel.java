@@ -13,7 +13,6 @@ import objects.loadouts.Fighter;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -24,7 +23,6 @@ import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,8 +36,8 @@ public class CellPanel extends JPanel {
     private ArrayDeque<Animation> animations;
     private Rectangle selectionBox;
 
-    private final Property<GameObject<?>> selected;
-    private final Property<Pair<GameObject<?>, Boolean>> target;
+    private final UnsafeProperty<GameObject<?>> selected;
+    private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
     private final Property<Main.GameState> gameState;
     private final Settings settings;
     private Player player;
@@ -47,7 +45,7 @@ public class CellPanel extends JPanel {
     private Cell cell;
     private boolean reload;
 
-    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull Property<GameObject<?>> selected, @NotNull Property<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
+    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull UnsafeProperty<GameObject<?>> selected, @NotNull UnsafeProperty<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         cell = initialCell;
         player = initialPlayer;
         objectMap = new HashMap<>();
@@ -62,11 +60,11 @@ public class CellPanel extends JPanel {
         this.gameState = gameState;
 
         // Ranged mode
-        selected.bind(obj -> {
-            if(obj == null)
-                settings.setRangedMode(false);
-            else
-                obj.getLoadout(Fighter.class).ifPresent(loadout -> settings.setRangedMode(loadout.getRange() > 0));
+        selected.bind(opt -> {
+            opt.ifPresentOrElse(
+                    obj -> obj.getLoadout(Fighter.class).ifPresent(loadout -> settings.setRangedMode(loadout.getRange() > 0)),
+                    () -> settings.setRangedMode(false)
+            );
             updateContent(true);
         });
 
@@ -74,7 +72,7 @@ public class CellPanel extends JPanel {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
-                if(gameState.getUnsafe() == Main.GameState.PLAYING) {
+                if(gameState.get() == Main.GameState.PLAYING) {
                     GameObject<?> obj = null;
                     for(GameObject<?> object : objectMap.keySet())
                         if(objectMap.get(object).contains(e.getPoint())) {
@@ -83,10 +81,10 @@ public class CellPanel extends JPanel {
                         }
 
                     if (target.get().map(Pair::value).orElse(false) && SwingUtilities.isRightMouseButton(e))
-                        target.set(new Pair<>(obj, false));
+                        target.setOptional(new Pair<>(obj, false));
                     else if (SwingUtilities.isLeftMouseButton(e)) {
-                        selected.set(obj);
-                        target.set(new Pair<>(null, false));
+                        selected.setOptional(obj);
+                        target.setOptional(new Pair<>(null, false));
                     }
                 }
             }
@@ -96,7 +94,7 @@ public class CellPanel extends JPanel {
                 super.mouseMoved(e);
                 getParent().dispatchEvent(SwingUtilities.convertMouseEvent(CellPanel.this, e, getParent()));
 
-                if(gameState.getUnsafe() == Main.GameState.PLAYING) {
+                if(gameState.get() == Main.GameState.PLAYING) {
                     selectionBox = null;
                     for(GameObject<?> object : objectMap.keySet()) {
                         if (objectMap.get(object).contains(e.getPoint())) {
@@ -110,8 +108,7 @@ public class CellPanel extends JPanel {
             @Override
             public void mouseExited(MouseEvent e) {
                 super.mouseExited(e);
-
-                if(gameState.getUnsafe() == Main.GameState.PLAYING)
+                if(gameState.get() == Main.GameState.PLAYING)
                     selectionBox = null;
             }
         };
@@ -217,7 +214,7 @@ public class CellPanel extends JPanel {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
 
-        if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
+        if(gameState.get() == Main.GameState.ANIMATING) {
             gr.drawImage(drawing, null, 0, 0);
             gr.drawImage(currentAnimationFrame.key(), null, (getWidth() - currentAnimationFrame.key().getWidth()) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2);
 
@@ -239,7 +236,7 @@ public class CellPanel extends JPanel {
 
             gr.drawImage(finalImg, 0, 0, null);
 
-            if (target.getUnsafe().value()) {
+            if (target.get().map(Pair::value).orElse(false)) {
                 Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
                 cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + settings.getSpriteSize()) - settings.getSpriteSize() / 2f, getWidth() - CELL_X_MARGIN, 2 * settings.getSpriteSize(), 30, 30)));
 
@@ -275,7 +272,7 @@ public class CellPanel extends JPanel {
 
     //TODO Should "animations" be a deque or can it be a list?
     public void cycleAnimation() {
-        if(gameState.getUnsafe() == Main.GameState.ANIMATING) {
+        if(gameState.get() == Main.GameState.ANIMATING) {
             if(!animations.isEmpty()) {
                 if(animations.peek().isEmpty())
                     animations.pop();
@@ -409,7 +406,7 @@ public class CellPanel extends JPanel {
                     () -> gr.drawString(object.getToken(), x, y + gr.getFontMetrics().getHeight()));
 
             // Draws a coloured box around objects of other players to indicate the corresponding Player
-            if(!object.getPlayer().equals(player) && !object.equals(selected.getUnsafe()))
+            if(!object.getPlayer().equals(player) && !object.equals(selected.get().orElse(null)))
                 drawBox(gr, object.getPlayer().getColor(), boundingBox);
         }
 
