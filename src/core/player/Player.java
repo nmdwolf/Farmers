@@ -112,7 +112,7 @@ public class Player {
 
         if((object instanceof Unit) && (cell.getUnitAvailable() >= object.getSize()))
             added = true;
-        if((object instanceof Building || object instanceof Foundation<?>) && (cell.getBuildingAvailable() >= object.getSize()))
+        else if((object instanceof Building || object instanceof Foundation<?>) && (cell.getBuildingAvailable() >= object.getSize()))
             added = true;
 
         if(added) {

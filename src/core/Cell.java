@@ -26,17 +26,29 @@ public class Cell {
 
     private Cell east, west, north, south, up, down;
 
-    public Cell(int x, int y, int z, int s, int b) {
+    /**
+     * Cells are the basic entities of the game map.
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @param z z-coordinate
+     * @param unitSpace initial unit slots
+     * @param buildingSpace initial building slots
+     */
+    public Cell(int x, int y, int z, int unitSpace, int buildingSpace) {
         this.loc = new Location(x, y, z);
         this.content = new HashSet<>();
-        unitSpace = s;
-        buildingSpace = b;
+        this.unitSpace = unitSpace;
+        this.buildingSpace = buildingSpace;
         travelCost = INITIAL_TRAVEL_COST;
         traversalCount = 0;
         resources = generateResources();
         seasonalCycle(0); // Start in Winter
     }
 
+    /**
+     * Advances the current cycle of this cell.
+     * @param cycle new cycle
+     */
     public void cycle(int cycle) {
         if(cycle % SEASON_LENGTH == 0)
             seasonalCycle((cycle % (4 * SEASON_LENGTH)) / SEASON_LENGTH);
@@ -44,42 +56,82 @@ public class Cell {
             resources.put("Water", Math.max(resources.get("Water") - 2, 0));
     }
 
+    /**
+     * Gives the total amount of unit slots.
+     * @return space for units
+     */
     public int getUnitSpace() {
         return unitSpace;
     }
 
+    /**
+     * Gives the amount of occupied unit slots.
+     * @return space occupied by units
+     */
     public int getUnitOccupied() {
         return unitOccupied;
     }
 
+    /**
+     * Gives the amount of available unit slots.
+     * @return space available by units
+     */
     public int getUnitAvailable() {
         return unitSpace - unitOccupied;
     }
 
+    /**
+     * Changes the amount of unit slots by the specified amount.
+     * @param amount additional unit slots
+     */
     public void changeUnitSpace(int amount) {
         unitSpace += amount;
     }
 
+    /**
+     * Changes the amount of occupied unit slots by the specified amount.
+     * @param amount additional occupied unit slots
+     */
     public void changeUnitOccupied(int amount) {
         unitOccupied += amount;
     }
 
+    /**
+     * Gives the total amount of building slots.
+     * @return space for buildings
+     */
     public int getBuildingSpace() {
         return buildingSpace;
     }
 
+    /**
+     * Gives the amount of occupied building slots.
+     * @return space occupied by buildings
+     */
     public int getBuildingOccupied() {
         return buildingOccupied;
     }
 
+    /**
+     * Gives the amount of available building slots.
+     * @return space available by buildings
+     */
     public int getBuildingAvailable() {
         return buildingSpace - buildingOccupied;
     }
 
+    /**
+     * Changes the amount of building slots by the specified amount.
+     * @param amount additional building slots
+     */
     public void changeBuildingSpace(int amount) {
         buildingSpace += amount;
     }
 
+    /**
+     * Changes the amount of occupied building slots by the specified amount.
+     * @param amount additional occupied building slots
+     */
     public void changeBuildingOccupied(int amount) {
         buildingOccupied += amount;
     }
@@ -121,14 +173,25 @@ public class Cell {
         return cost;
     }
 
-    public void changeTravelCost(int amount) {
-        travelCost += amount;
-    }
-
+    /**
+     * Gives the available amount of the specified resource.
+     * @param type resource type
+     * @return available resources
+     */
     public int getResource(String type) {
         return resources.get(type);
     }
 
+    /**
+     * Changes the amount of the specified resource held by this cell. The required amount can be changed in certain cases, e.g.:
+     * <ul>
+     *     <li>{@code amount} is negative and the currently held reserves are insufficient,</li>
+     *     <li>{@code type} is WATER and the cell's temperature exceeds its limits</li>
+     * </ul>
+     * @param type resource type
+     * @param amount amount of resource
+     * @return actual amount changed
+     */
     public int changeResource(String type, int amount) {
 
         if(amount < 0)
@@ -142,29 +205,57 @@ public class Cell {
         return amount;
     }
 
+    /**
+     * Changes the amount of the specified resources held by this cell.
+     * @param res container with required resources
+     */
     public void changeResources(ResourceContainer res) {
         for(String resource : res.keySet())
             changeResource(resource, res.get(resource));
     }
 
+    /**
+     * Gives the current temperature of this cell.
+     * @return temperature
+     */
     public int getHeatLevel() { return heatLevel; }
 
+    /**
+     * Changes the temperature of this cell.
+     * @param amount temperature change
+     */
     public void changeHeatLevel(int amount) { heatLevel += amount; }
 
+    /**
+     * Indicates whether this cell contains a field, i.e. whether this cell holds enough water (based on the constant {@link core.GameConstants#WATER_THRESHOLD}).
+     * @return if this is a river
+     */
     public boolean isRiver() { return resources.get("Water") >= WATER_THRESHOLD; }
 
+    /**
+     * Indicates whether this cell contains a field, i.e. whether this cell holds enough wood (based on the constant {@link core.GameConstants#WOOD_THRESHOLD}).
+     * @return if this is a forest
+     */
     public boolean isForest() { return resources.get("Wood") >= WOOD_THRESHOLD; }
 
+    /**
+     * Indicates whether this cell contains a field, i.e. whether this cell holds enough food (based on the constant {@link core.GameConstants#FOOD_THRESHOLD}).
+     * @return if this is a field
+     */
     public boolean isField() { return resources.get("Food") >= FOOD_THRESHOLD; }
 
     /**
-     * Indicates whether this cell contains a natural road, i.e. whether sufficiently many units have moved through this cell (based on the constant {@code GameConstants.ROAD_THRESHOLD}.
+     * Indicates whether this cell contains a natural road, i.e. whether sufficiently many units have moved through this cell (based on the constant {@link core.GameConstants#ROAD_THRESHOLD}).
      * @return if this is a road
      */
     public boolean isRoad() {
         return traversalCount >= ROAD_THRESHOLD;
     }
 
+    /**
+     * Adds an object to this cell.
+     * @param obj new object
+     */
     public void addContent(GameObject<?> obj) {
         if(!equals(obj.getCell())) {
             content.add(obj);
@@ -177,6 +268,10 @@ public class Cell {
             throw new IllegalArgumentException("Object is already located in this cell.");
     }
 
+    /**
+     * Removes an object from this cell.
+     * @param obj object to be removed
+     */
     public void removeContent(GameObject<?> obj) {
         if(equals(obj.getCell())) {
             content.remove(obj);
@@ -188,6 +283,10 @@ public class Cell {
             throw new IllegalArgumentException("Object is not located in this cell.");
     }
 
+    /**
+     * Returns a set of objects contained in this cell.
+     * @return set of objects
+     */
     public HashSet<GameObject<?>> getObjects() { return content; }
 
     /**
@@ -212,18 +311,34 @@ public class Cell {
         }
     }
 
+    /**
+     * Gives the x-coordinate of this cell.
+     * @return x-coordinate
+     */
     public int getX() {
         return loc.x();
     }
 
+    /**
+     * Gives the y-coordinate of this cell.
+     * @return y-coordinate
+     */
     public int getY() {
         return loc.y();
     }
 
+    /**
+     * Gives the z-coordinate of this cell.
+     * @return z-coordinate
+     */
     public int getZ() {
         return loc.z();
     }
 
+    /**
+     * Links a cell (neighbour) to this one.
+     * @param cell new neighbour
+     */
     public void link(Cell cell) {
         Location diff = cell.getLocation().add(loc.negative());
         int dx = diff.x();
@@ -247,6 +362,14 @@ public class Cell {
             down = cell;
     }
 
+    /**
+     * Recursively fetches a cell at the specified relative coordinates.
+     * @param x relative x-coordinate
+     * @param y relative y-coordinate
+     * @param z relative z-coordinate
+     * @return cell
+     * @throws NullPointerException if no cell can be found at the specified relative coordinate
+     */
     @NotNull
     public Cell fetch(int x, int y, int z) throws NullPointerException {
         if(x == 0 && y == 0 && z == 0)
@@ -282,19 +405,37 @@ public class Cell {
         throw new NullPointerException("Cell does not exist.");
     }
 
+    /**
+     * Fetches a cell at the specified relative coordinates.
+     * @param location relative coordinate
+     * @return cell
+     */
     @NotNull
-    public Cell fetch(Location location) {
+    public Cell fetch(@NotNull Location location) {
         return fetch(location.x(), location.y(), location.z());
     }
 
+    /**
+     * Calculates the (L1-)distance between this cell and the specified one.
+     * @param cell target cell
+     * @return (L1-)distance
+     */
     public int distanceTo(Cell cell) {
         return Location.distance(cell.getLocation(), loc);
     }
 
+    /**
+     * Gives the location of this cell
+     * @return location
+     */
     public Location getLocation() {
         return loc;
     }
 
+    /**
+     * Indicates whether this cell lies on the boundary of the game map.
+     * @return if this cell is a boundary cell
+     */
     public boolean isEndOfMap() {
         return loc.x() == 0 || loc.x() == NUMBER_OF_CELLS - 1 || loc.y() == 0 || loc.y() == NUMBER_OF_CELLS - 1;
     }
@@ -307,6 +448,11 @@ public class Cell {
         return Stream.of(north, east, south, west).filter(c -> !c.isEndOfMap()).toArray(Cell[]::new);
     }
 
+    /**
+     * Returns the neighbour of this cell in the specified direction.
+     * @param direction direction
+     * @return neighbouring cell
+     */
     public Cell getNeighbour(Direction direction) {
         return switch(direction) {
             case NORTH -> south;
@@ -321,6 +467,10 @@ public class Cell {
         return "Location(" + loc.x() + ", " + loc.y() + ", " + loc.z() + ")";
     }
 
+    /**
+     * Generates a description of this cell based on its content and properties.
+     * @return description
+     */
     public String getDescription() {
         StringBuilder description = new StringBuilder();
         for(String res : resources.keySet())

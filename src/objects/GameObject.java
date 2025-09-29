@@ -25,14 +25,14 @@ public abstract class GameObject<G extends GameObject<G>> {
     private Player player;
     private final Template template;
 
-    private int size, sight, health, maxHealth, degradeTime, degradeAmount, startCycle;
+    private int size, sight, health, maxHealth, degradationTime, degradeAmount, startCycle;
     private boolean changeFlag;
 
     public GameObject(Template temp) {
         id = CustomMethods.getNewIdentifier();
         changeFlag = false;
 
-        this.degradeTime = temp.degradeTime;
+        this.degradationTime = temp.degradationTime;
         this.degradeAmount = temp.degradeAmount;
 
         this.size = temp.size;
@@ -114,8 +114,8 @@ public abstract class GameObject<G extends GameObject<G>> {
     public void setCell(@NotNull Cell cell) {
         if(this.cell != null)
             this.cell.removeContent(this);
+        cell.addContent(this);
         this.cell = cell;
-        this.cell.addContent(this);
     }
 
     /**
@@ -218,7 +218,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * @param cycle current cycle
      */
     public void degrade(int cycle) {
-        if(cycle != startCycle && degradeTime > 0 && (cycle - startCycle) % degradeTime == 0)
+        if(cycle != startCycle && degradationTime > 0 && (cycle - startCycle) % degradationTime == 0)
             changeHealth(-degradeAmount);
     }
 
@@ -226,7 +226,7 @@ public abstract class GameObject<G extends GameObject<G>> {
      * Gives the time at which this object will start degrading.
      * @return degradation start
      */
-    public int getDegradeTime() { return degradeTime; }
+    public int getDegradationTime() { return degradationTime; }
 
     /**
      * Gives the amount of health this object will lose every cycle beyond its degradation start.
@@ -262,6 +262,11 @@ public abstract class GameObject<G extends GameObject<G>> {
         return Optional.ofNullable(loadoutClass.cast(loadouts.get(loadoutClass.getSimpleName().toLowerCase())));
     }
 
+    /**
+     * Indicates whether this object has a {@code Loadout} of the specified type.
+     * @param loadoutClass requested loadout
+     * @return if this object has the requested loadout
+     */
     public boolean hasLoadout(Class<?> loadoutClass) {
         return loadouts.containsKey(loadoutClass.getSimpleName().toLowerCase());
     }

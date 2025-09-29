@@ -13,6 +13,7 @@ import objects.loadouts.Fighter;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -23,6 +24,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -257,14 +259,17 @@ public class CellPanel extends JPanel {
         gr.fill(shape);
         gr.setColor(Color.black);
         gr.setStroke(new BasicStroke(STROKE_WIDTH));
-        gr.draw(shape);
 
         // Paint static components
         drawField(gr);
         drawForest(gr);
+        drawRoad(gr);
         drawRiver(gr);
         drawObjects(gr);
 
+        gr.setColor(Color.black);
+        gr.setStroke(new BasicStroke(5));
+        gr.draw(shape);
         gr.dispose();
     }
 
@@ -318,7 +323,6 @@ public class CellPanel extends JPanel {
     }
 
     private void drawRiver(Graphics2D gr) {
-        
         if (cell.isRiver()) {
             gr.setColor(new Color(0, 100, 255));
             if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
@@ -343,6 +347,30 @@ public class CellPanel extends JPanel {
                 else
                     gr.fillOval(Math.round(0.5f * getWidth() - (poolSize / 2f)), Math.round(0.5f * getHeight() - (poolSize / 2f)), poolSize, poolSize);
             }
+        }
+    }
+
+    private void drawRoad(Graphics2D gr) {
+        if (cell.isRoad()) {
+            BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = CustomMethods.optimizeGraphics(img.createGraphics());
+
+            Path2D curve = new Path2D.Double();
+            curve.moveTo(getWidth() / 2., getHeight() * 1.5);
+            curve.curveTo(getWidth() * 0.25, getHeight() * 0.2,
+                    getWidth() * 0.75, getHeight() * 0.8,
+                    getWidth(), 0);
+
+            float roadWidth = Sprite.getSpriteSize();
+            Shape roadShape = new BasicStroke(roadWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND).createStrokedShape(curve);
+            Rectangle anchor = new Rectangle(0, 0, COBBLESTONE.getWidth(), COBBLESTONE.getHeight());
+            TexturePaint tp = new TexturePaint(COBBLESTONE, anchor);
+
+            g2.setPaint(tp);
+            g2.fill(roadShape);
+            g2.dispose();
+
+            gr.drawImage(img, 0, 0, null);
         }
     }
 

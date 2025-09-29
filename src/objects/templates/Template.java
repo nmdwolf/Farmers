@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import core.upgrade.BasicUpgrade;
 import core.upgrade.Upgrade;
-import objects.loadouts.Loadout;
 import objects.loadouts.LoadoutFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +20,7 @@ public class Template {
     @JsonIgnore
     private final ArrayList<Upgrade> upgrades;
 
-    public int size, sight, health, degradeTime, degradeAmount;
+    public int size, sight, health, degradationTime, degradeAmount;
     public String type, sprite;
     public String[] tags = new String[]{};
 

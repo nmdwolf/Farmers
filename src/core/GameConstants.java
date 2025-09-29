@@ -8,17 +8,55 @@ import java.util.Random;
 
 public interface GameConstants {
 
+    /**
+     * Number of cells along each axis.
+     */
     int NUMBER_OF_CELLS = 100;
+
+    /**
+     * Number of cells along each axis in the visible part of the map.
+     */
     int NUMBER_OF_CELLS_IN_VIEW = 8;
+
+    /**
+     * Initial size of the game screen during startup.
+     * Should be nonzero to avoid errors.
+     */
     int INITIAL_SCREEN_SIZE = 500;
+
+    /**
+     * Initial cycle in the game loop.
+     */
     int START_CYCLE = 1;
 
+    /**
+     * Unit type identifier.
+     */
     int UNIT_TYPE = 0;
+
+    /**
+     * Building type identifier.
+     */
     int BUILDING_TYPE = 1;
+
+    /**
+     * Identifier for alternative object types.
+     */
     int OTHER_TYPE = 2;
 
+    /**
+     * Initial unit slots for cells.
+     */
     int INITIAL_CELL_UNIT_SPACE = 5;
+
+    /**
+     * Initial building slots for cells.
+     */
     int INITIAL_CELL_BUILDING_SPACE = 5;
+
+    /**
+     * Initial travel cost for empty cells.
+     */
     int INITIAL_TRAVEL_COST = 1;
     int BOOSTER_DISTANCE = 2;
     int SEASON_LENGTH = 10;
@@ -35,7 +73,7 @@ public interface GameConstants {
     int WATER_THRESHOLD = 150;
     int WOOD_THRESHOLD = 150;
     int FOOD_THRESHOLD = 150;
-    int ROAD_THRESHOLD = 10;
+    int ROAD_THRESHOLD = 5;
 
     int START_POP_CAP = 100;
     int START_FOOD = 300;
@@ -65,4 +103,5 @@ public interface GameConstants {
             GameConstants.SPRITE_SIZE).orElseThrow();
     BufferedImage ARROWHEAD = Sprite.loadSprite("src/img/Arrowhead.png",
             GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).orElseThrow();
+    BufferedImage COBBLESTONE = Sprite.loadSprite("src/img/Cobblestone.png", 40, 20).orElseThrow();
 }
