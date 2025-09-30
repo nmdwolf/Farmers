@@ -1,37 +1,21 @@
 package UI;
 
-import core.GameConstants;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-import static javax.swing.ScrollPaneConstants.*;
-
-public class SettingsPanel extends JPanel {
+public class SettingsPanel extends Subpanel {
 
     private final Settings settings;
 
     public SettingsPanel(Settings settings) {
-
         this.settings = settings;
         initialize();
     }
 
-    public JScrollPane pack() {
-        JScrollPane pane = new JScrollPane(this, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-        pane.setOpaque(false);
-        pane.getViewport().setOpaque(false);
-        pane.setBorder(BorderFactory.createEmptyBorder());
-
-        return pane;
-    }
-
     private void initialize() {
-        setOpaque(false);
         setAlignmentX(LEFT_ALIGNMENT);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(new CustomBorder(Color.black));
 
         createAudioSection();
         add(new JSeparator(SwingConstants.HORIZONTAL));
@@ -164,13 +148,4 @@ public class SettingsPanel extends JPanel {
         add(Box.createHorizontalGlue());
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
-
-        gr.setColor(GameConstants.GRAY);
-        gr.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 15, 15);
-        gr.dispose();
-    }
 }

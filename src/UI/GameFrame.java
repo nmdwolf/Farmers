@@ -39,7 +39,8 @@ public class GameFrame extends JFrame {
     private final SpringLayout layout;
     private final JLayeredPane contentPanel;
     private final SettingsPanel settingsPanel;
-    private final JScrollPane settingsScroller;
+    private final MissionPanel missionPanel;
+    private final JScrollPane settingsScroller, missionScroller;
     private final JPanel tintedGlassPanel;
     private Font font;
 
@@ -61,8 +62,6 @@ public class GameFrame extends JFrame {
     private boolean gps;
     private Timer resizeTimer;
     private final HashSet<Motion> motions;
-
-    private int distance;
 
     public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
         parent = main;
@@ -95,7 +94,9 @@ public class GameFrame extends JFrame {
         infoPanel = new InfoPanel(selected);
         cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.get(), selected, target, gameState, settings);
         settingsPanel = new SettingsPanel(settings);
-        settingsScroller = settingsPanel.pack();
+        settingsScroller = CustomMethods.wrapPanel(settingsPanel);
+        missionPanel = new MissionPanel(settings);
+        missionScroller = CustomMethods.wrapPanel(missionPanel);
 
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
@@ -119,7 +120,7 @@ public class GameFrame extends JFrame {
                 if(obj.getPlayer().equals(player.get()))
                     choicePanel.update(obj, cycle.get());
             });
-            refreshWindow();
+            refreshMenubar();
         });
         target.bindIfPresent(pair -> {
             if (pair.key() != null && !pair.value()) {
@@ -130,15 +131,7 @@ public class GameFrame extends JFrame {
                 selected.set(null);
             }
         });
-    }
-
-    public void updateContent(boolean forceReload) {
-        SwingUtilities.invokeLater(() -> {
-            refreshWindow();
-            contentPanel.revalidate();
-            cellPanel.updateContent(forceReload);
-            contentPanel.repaint();
-        });
+        player.bind(p -> missionPanel.update(p.getMissionArchive()));
     }
 
     /**
@@ -156,10 +149,11 @@ public class GameFrame extends JFrame {
         contentPanel.add(infoPanel, Integer.valueOf(1));
         contentPanel.add(tintedGlassPanel, Integer.valueOf(2));
         contentPanel.add(settingsScroller, Integer.valueOf(3));
+        contentPanel.add(missionScroller, Integer.valueOf(3));
 
         setVisible(true);
         setExtendedState(MAXIMIZED_BOTH);
-        reorder();
+        refresh();
 
         setCustomCursor();
         addMouseInputs();
@@ -170,6 +164,16 @@ public class GameFrame extends JFrame {
         hidePanels(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         contentPanel.requestFocus();
+    }
+
+    public void updateContent(boolean forceReload) {
+        SwingUtilities.invokeLater(() -> {
+            refreshMenubar();
+            missionPanel.update(player.get().getMissionArchive());
+            contentPanel.revalidate();
+            cellPanel.updateContent(forceReload);
+            contentPanel.repaint();
+        });
     }
 
     /**
@@ -239,11 +243,27 @@ public class GameFrame extends JFrame {
                 InputEvent.CTRL_DOWN_MASK), "gps");
         contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,
                 InputEvent.CTRL_DOWN_MASK), "missions");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,
+                InputEvent.ALT_DOWN_MASK), "mission_panel");
+        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+                InputEvent.ALT_DOWN_MASK), "settings_panel");
 
         contentPanel.getActionMap().put("missions", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                showMessagePanel(player.get().getCurrentMission());
+                showMessageBox(player.get().getMissionArchive().getNextDescription());
+            }
+        });
+        contentPanel.getActionMap().put("mission_panel", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                missionScroller.setVisible(true);
+            }
+        });
+        contentPanel.getActionMap().put("settings_panel", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                settingsScroller.setVisible(true);
             }
         });
         contentPanel.getActionMap().put("gps", new AbstractAction() {
@@ -357,7 +377,7 @@ public class GameFrame extends JFrame {
                         selected.set(null);
 
                         hidePanels(true);
-                        refreshWindow();
+                        refreshMenubar();
                     }
                 }
             }
@@ -428,7 +448,7 @@ public class GameFrame extends JFrame {
     private void addResizeListener() {
         resizeTimer = new Timer(100, _ -> {
             SwingUtilities.invokeLater(() -> {
-                reorder();
+                refresh();
                 updateContent(true);
             });
 
@@ -543,7 +563,7 @@ public class GameFrame extends JFrame {
         setCursor(tk.createCustomCursor(img, new Point(size.width / 2, size.height / 2), "customCursor"));
     }
 
-    public void showMessagePanel(String text) {
+    public void showMessageBox(String text) {
 
         JPanel panel = new JPanel() {
             @Override
@@ -805,7 +825,7 @@ public class GameFrame extends JFrame {
     /**
      * Refreshes the game window components that are not drawn (menus, ...)
      */
-    public void refreshWindow() {
+    public void refreshMenubar() {
         playerMenu.setText("Player: " + player.get().getName());
         cycleLabel.setText("Cycle: " + cycle.get());
 
@@ -833,7 +853,7 @@ public class GameFrame extends JFrame {
         Sprite.resizeSprites(settings.getSpriteSize());
     }
 
-    private void reorder() {
+    private void refresh() {
         resetScales();
 
         tintedGlassPanel.setPreferredSize(new Dimension(settings.getScreenWidth(), settings.getScreenHeight()));
@@ -861,6 +881,10 @@ public class GameFrame extends JFrame {
         layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * settings.getCellWidth()), SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)settings.getCellHeight(), SpringLayout.NORTH, contentPanel);
 
+        missionScroller.setPreferredSize(new Dimension((int)(4 * settings.getCellWidth()), (int)(5 * settings.getCellHeight())));
+        layout.putConstraint(SpringLayout.WEST, missionScroller, (int)(2 * settings.getCellWidth()), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, missionScroller, (int)settings.getCellHeight(), SpringLayout.NORTH, contentPanel);
+
         contentPanel.revalidate();
     }
 
@@ -869,6 +893,7 @@ public class GameFrame extends JFrame {
         operationsPanel.setVisible(false);
         choicePanel.setVisible(false);
         settingsScroller.setVisible(false);
+        missionScroller.setVisible(false);
         if(alsoCellPanel)
             cellPanel.setVisible(false);
     }
@@ -899,7 +924,7 @@ public class GameFrame extends JFrame {
             if(!motion.isDone()) {
                 Location next = motion.next();
                 parent.moveObject(motion.getObject(), motion.getObject().getCell().getLocation().add(next.x(), next.y(), next.z()));
-                refreshWindow();
+                refreshMenubar();
             }
 
             if(motion.isDone()) {

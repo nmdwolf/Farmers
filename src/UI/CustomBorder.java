@@ -2,6 +2,7 @@ package UI;
 
 import javax.swing.border.AbstractBorder;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 
 import static core.GameConstants.STROKE_WIDTH;
 
@@ -11,6 +12,7 @@ public class CustomBorder extends AbstractBorder
 
     private final Color borderColour;
     private final int thickness;
+    private final float correction;
 
     public CustomBorder(Color colour)
     {
@@ -21,25 +23,18 @@ public class CustomBorder extends AbstractBorder
     {
         borderColour = colour;
         this.thickness = thickness;
+        correction = (thickness % 2 == 1) ? .5f : 0;
     }
 
     @Override
+    // TODO Fix pixel splitting
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
         super.paintBorder(c, g, x, y, width, height);
         if (g instanceof Graphics2D) {
             Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
             gr.setColor(borderColour);
             gr.setStroke(new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-//
-//            gr.drawArc(x + 1, y + 1, 10, 10, 90, 90);
-//            gr.drawArc(x + rectWidth - 11, y + 1, 10, 10, 0, 90);
-//            gr.drawArc(x + 1, y + rectHeight - 11, 10, 10, 180, 90);
-//            gr.drawArc(x + rectWidth - 11, y + rectHeight - 11, 10, 10, 270, 90);
-//            gr.fill(new Rectangle2D.Double(x, y + 5, 2, rectHeight - 10));
-//            gr.fill(new Rectangle2D.Double(x + 5, y, rectWidth - 10, 2));
-//            gr.fill(new Rectangle2D.Double(x + rectWidth - 2, y + 5, 2, rectHeight - 10));
-//            gr.fill(new Rectangle2D.Double(x + 5, y + rectHeight - 2, rectWidth - 10, 2));
-            gr.drawRoundRect(x + 1, y + 1, width - 2, height - 2, RADIUS, RADIUS);
+            gr.draw(new RoundRectangle2D.Float(x + thickness / 2f + correction, y + thickness / 2f + correction, width - thickness - 2 * correction, height - thickness - 2 * correction, RADIUS, RADIUS));
             gr.dispose();
         }
     }

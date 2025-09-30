@@ -1,7 +1,7 @@
 package core.player;
 
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class AwardArchive {
@@ -34,15 +34,15 @@ public class AwardArchive {
         obtainable.add(Award.createAward("You have mined stones for the very first time.", () -> player.getGainedAmount("Stone") > 0));
     }
 
-    public Set<String> getNewAwards() {
-        Set<String> descriptions = newAwards.stream().map(Award::description).collect(Collectors.toSet());
+    public List<String> getNewAwards() {
+        List<String> descriptions = newAwards.stream().map(Award::description).collect(Collectors.toList());
         obtained.addAll(newAwards);
         newAwards.clear();
         return descriptions;
     }
 
-    public Set<String> getAwards() {
-        return obtained.stream().map(Award::description).collect(Collectors.toSet());
+    public List<String> getAwards() {
+        return obtained.stream().map(Award::description).collect(Collectors.toList());
     }
 
     public void awardExternal(Award a) {

@@ -7,4 +7,6 @@ public interface Mission {
     Award getAward();
 
     String getDescription();
+
+    void reward(Player p);
 }

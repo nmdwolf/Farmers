@@ -12,6 +12,7 @@ import objects.units.Unit;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static core.GameConstants.*;
@@ -280,16 +281,15 @@ public class Player {
         discovered.add(cell);
     }
 
-    public Set<String> getMessages() {
-        Set<String> messages = awardArchive.getNewAwards();
-        return messages;
-    }
+    public Civilization getCivilization() { return civ; }
 
     public AwardArchive getAwardArchive() { return awardArchive; }
 
-    public Civilization getCivilization() { return civ; }
+    public List<String> getMessages() {
+        return awardArchive.getNewAwards();
+    }
 
-    public void validateMissions() { missionArchive.validate(); }
-
-    public String getCurrentMission() { return missionArchive.getNextDescription(); }
+    public MissionArchive getMissionArchive() {
+        return missionArchive;
+    }
 }

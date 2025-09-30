@@ -46,7 +46,6 @@ public class Main{
     private final Grid cells;
 
     public static void main(String[] args) {
-
         LoadoutFactory.registerLoadout(Fighter.class);
         LoadoutFactory.registerLoadout(Gatherer.class);
         LoadoutFactory.registerLoadout(Medic.class);
@@ -116,9 +115,9 @@ public class Main{
                 game.updateContent(reload);
 
                 if(gameState.get() != GameState.ANIMATING) {
-                    currentPlayer.get().validateMissions();
+                    currentPlayer.get().getMissionArchive().validate();
                     for (String text : currentPlayer.get().getMessages()) // Shows awards and others
-                        game.showMessagePanel(text);
+                        game.showMessageBox(text);
                 }
 
                 try { Thread.sleep(1000 / FPS); } catch (InterruptedException e) { break; }

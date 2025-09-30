@@ -1,8 +1,14 @@
 package UI;
 
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class CustomMethods {
 
@@ -109,4 +115,22 @@ public class CustomMethods {
         return rotated;
     }
 
+    public static JScrollPane wrapPanel(JPanel panel) {
+        JScrollPane pane = new JScrollPane(panel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+        pane.setOpaque(false);
+        pane.getViewport().setOpaque(false);
+        pane.setBorder(BorderFactory.createEmptyBorder());
+        return pane;
+    }
+
+    public static Border compoundBorder(Border... borders) {
+        if(borders.length == 0)
+            throw new IllegalArgumentException("Number of borders is 0.");
+
+        Border border = borders[0];
+        for(int i = 1; i < borders.length; i++)
+            border = new CompoundBorder(borders[i], border);
+
+        return border;
+    }
 }
