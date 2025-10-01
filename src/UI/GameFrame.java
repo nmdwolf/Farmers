@@ -230,105 +230,82 @@ public class GameFrame extends JFrame {
     }
 
     /**
-     * Adds {@code KeyListener}s to the game window.
+     * Adds key input handling to the game window.
      */
     private void addKeyInputs() {
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('n'), "next_player");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "right");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_G,
-                InputEvent.CTRL_DOWN_MASK), "gps");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,
-                InputEvent.CTRL_DOWN_MASK), "missions");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_M,
-                InputEvent.ALT_DOWN_MASK), "mission_panel");
-        contentPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-                InputEvent.ALT_DOWN_MASK), "settings_panel");
-
-        contentPanel.getActionMap().put("missions", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showMessageBox(player.get().getMissionArchive().getNextDescription());
-            }
-        });
-        contentPanel.getActionMap().put("mission_panel", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                missionScroller.setVisible(true);
-            }
-        });
-        contentPanel.getActionMap().put("settings_panel", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                settingsScroller.setVisible(true);
-            }
-        });
-        contentPanel.getActionMap().put("gps", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gps = !gps;
-            }
-        });
-        contentPanel.getActionMap().put("escape", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                selected.get().ifPresentOrElse(_ -> hidePanels(true), () -> cellPanel.setVisible(false));
-            }
-        });
-        contentPanel.getActionMap().put("next_player", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(gameState.get() == Main.GameState.PLAYING) {
-                    hoverPath.set(null);
-                    selected.set(null);
-                    playerCounter.set(playerCounter.get() + 1);
-                    cellPanel.generateCycleAnimation();
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(event -> {
+            boolean done = true;
+            if (event.getID() == KeyEvent.KEY_PRESSED) {
+                if ((event.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK) {
+                    switch (event.getKeyCode()) {
+                        case KeyEvent.VK_M -> showMessageBox(player.get().getMissionArchive().getNextDescription());
+                        case KeyEvent.VK_G -> gps = !gps;
+                        default -> done = false;
+                    }
+                } else if ((event.getModifiersEx() & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK) {
+                    switch (event.getKeyCode()) {
+                        case KeyEvent.VK_M -> missionScroller.setVisible(true);
+                        case KeyEvent.VK_S -> settingsScroller.setVisible(true);
+                        default -> done = false;
+                    }
+                } else switch(event.getKeyCode()) {
+                    case KeyEvent.VK_ESCAPE:
+                        selected.get().ifPresentOrElse(_ -> hidePanels(true), () -> cellPanel.setVisible(false));
+                        break;
+                    case KeyEvent.VK_N:
+                        if (gameState.get() == Main.GameState.PLAYING) {
+                            hoverPath.set(null);
+                            selected.set(null);
+                            playerCounter.set(playerCounter.get() + 1);
+                            cellPanel.generateCycleAnimation();
+                        }
+                        break;
+                    case KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN:
+                        dispatchArrowKeys(event);
+                        break;
+                    default:
+                        if(choicePanel.isVisible())
+                            return choicePanel.dispatchKeyEvent(event);
+                        else
+                            return false;
                 }
-            }
+            } else
+                return false;
+
+            return done;
         });
-        contentPanel.getActionMap().put("left", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+    }
+
+    private void dispatchArrowKeys(KeyEvent e) {
+        switch(e.getKeyCode()) {
+            case KeyEvent.VK_LEFT:
                 if(player.get().getViewPoint().getX() > 0) {
                     player.get().changeViewpoint(player.get().getViewPoint().fetch(-1, 0, 0));
                     if(cellPanel.isVisible())
                         cellPanel.updateContent(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.get());
                 }
-            }
-        });
-        contentPanel.getActionMap().put("right", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                break;
+            case KeyEvent.VK_RIGHT:
                 if(player.get().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
                     player.get().changeViewpoint(player.get().getViewPoint().fetch(1, 0, 0));
                     if(cellPanel.isVisible())
                         cellPanel.updateContent(cellPanel.getCurrentCell().fetch(1, 0, 0), player.get());
                 }
-            }
-        });
-        contentPanel.getActionMap().put("up", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                break;
+            case KeyEvent.VK_UP:
                 if(player.get().getViewPoint().getY() > 0) {
                     player.get().changeViewpoint(player.get().getViewPoint().fetch(0, -1, 0));
                     if(cellPanel.isVisible())
                         cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, -1, 0), player.get());
                 }
-            }
-        });
-        contentPanel.getActionMap().put("down", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                break;
+            case KeyEvent.VK_DOWN:
                 if(player.get().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
                     player.get().changeViewpoint(player.get().getViewPoint().fetch(0, 1, 0));
                     if(cellPanel.isVisible())
                         cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, 1, 0), player.get());
                 }
-            }
-        });
+        }
     }
 
     /**
@@ -766,6 +743,7 @@ public class GameFrame extends JFrame {
         }
 
         // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistic).
+        // TODO remove grid overlay
         if(gps) {
             Cell vp = player.get().getViewPoint();
             Cell nearestTownHall =

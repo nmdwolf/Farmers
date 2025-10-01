@@ -7,19 +7,17 @@ import objects.units.Worker;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
-import java.util.ArrayList;
+import java.awt.event.*;
+import java.util.HashMap;
 
 public class ChoicePanel extends JPanel {
 
     private final OperationsPanel operationsPanel;
-    private final ArrayList<RoundedButton> buttons;
+    private final HashMap<Integer, RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
     private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
+    private int buttonCounter;
 
     public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, UnsafeProperty<Pair<GameObject<?>, Boolean>> target) {
         this.operationsPanel = operationsPanel;
@@ -30,22 +28,28 @@ public class ChoicePanel extends JPanel {
         showPlayerResources = _ -> showResources.set(InfoPanel.Mode.PLAYER);
 
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-        buttons = new ArrayList<>(); // Move, Resource, Build, Upgrades, Evolutions
+        buttons = new HashMap<>(); // Move, Resource, Build, Upgrades, Evolutions
+        buttonCounter = 0;
 
-        buttons.add(new RoundedButton("Move", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        buttons.add(new RoundedButton("Work", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        buttons.add(new RoundedButton("Construct", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        buttons.add(new RoundedButton("Upgrade", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        buttons.add(new RoundedButton("Evolve", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        buttons.add(new RoundedButton("Attack", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        buttons.add(new RoundedButton("More", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        setLayout(new GridBagLayout());
+        setVisible(false);
+        setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
+        setOpaque(false);
+
+        addButton(KeyEvent.VK_M, new RoundedButton("Move", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_W, new RoundedButton("Work", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_C, new RoundedButton("Construct", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_U, new RoundedButton("Upgrade", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_E, new RoundedButton("Evolve", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_A, new RoundedButton("Attack", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_X, new RoundedButton("More", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
 
         addListeners();
-        setLayout(cellWidth, cellHeight);
     }
 
     public void update(GameObject<?> selected, int cycle) {
-        for(RoundedButton button : buttons) {
+        for(RoundedButton button : buttons.values()) {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());
             for(ActionListener listener : button.getActionListeners())
@@ -54,43 +58,54 @@ public class ChoicePanel extends JPanel {
         }
 
         if(selected instanceof Unit)
-            buttons.get(0).setVisible(true);
+            buttons.get(KeyEvent.VK_M).setVisible(true);
 
         if(selected instanceof Worker) {
-            buttons.get(1).addActionListener(_ -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
-            buttons.get(1).setVisible(true);
+            buttons.get(KeyEvent.VK_W).addActionListener(_ -> operationsPanel.update(selected, OperationCode.RESOURCE, cycle));
+            buttons.get(KeyEvent.VK_W).setVisible(true);
         }
         if(selected instanceof Constructor) {
-            buttons.get(2).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
-            buttons.get(2).setVisible(true);
+            buttons.get(KeyEvent.VK_C).addActionListener(_ -> operationsPanel.update(selected, OperationCode.CONSTRUCTION, cycle));
+            buttons.get(KeyEvent.VK_C).setVisible(true);
         }
         if(!selected.getUpgrades().isEmpty()) {
-            buttons.get(3).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
-            buttons.get(3).setVisible(true);
+            buttons.get(KeyEvent.VK_U).addActionListener(_ -> operationsPanel.update(selected, OperationCode.UPGRADE, cycle));
+            buttons.get(KeyEvent.VK_U).setVisible(true);
         }
         if(selected instanceof Evolvable) {
-            buttons.get(4).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
-            buttons.get(4).setVisible(true);
+            buttons.get(KeyEvent.VK_E).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
+            buttons.get(KeyEvent.VK_E).setVisible(true);
         }
         if(selected instanceof Aggressive) {
-            buttons.get(5).addActionListener(_ -> target.setOptional(new Pair<>(null, true)));
-            buttons.get(5).setVisible(true);
+            buttons.get(KeyEvent.VK_A).addActionListener(_ -> target.setOptional(new Pair<>(null, true)));
+            buttons.get(KeyEvent.VK_A).setVisible(true);
         }
 
         if(selected instanceof Operational<?>) {
-            buttons.get(6).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EXTRA, cycle));
-            buttons.get(6).setVisible(true);
+            buttons.get(KeyEvent.VK_X).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EXTRA, cycle));
+            buttons.get(KeyEvent.VK_X).setVisible(true);
         }
 
-        if(buttons.stream().anyMatch(RoundedButton::isVisible))
+        if(buttons.values().stream().anyMatch(RoundedButton::isVisible))
             setVisible(true);
     }
 
     public void resizePanel(float cellWidth, float cellHeight) {
         setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         buttonSize = new Dimension(Math.round(cellWidth / 1.5f) + 2, Math.round(cellHeight / 2f) + 2);
-        for(RoundedButton button : buttons)
+        for(RoundedButton button : buttons.values())
             button.resizeButton(buttonSize);
+    }
+
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if(event.getModifiersEx() == 0) {
+            JButton button = buttons.get(event.getKeyCode());
+            if(button != null && button.isVisible()) {
+                button.doClick();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -108,56 +123,28 @@ public class ChoicePanel extends JPanel {
     }
 
     private void addListeners() {
-        AbstractAction doClick = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                RoundedButton src = (RoundedButton)e.getSource();
-                if(src.isVisible())
-                    src.doClick();
-            }
-        };
-        buttons.get(0).getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('M', InputEvent.CTRL_DOWN_MASK), "click");
-        buttons.get(0).getActionMap().put("click", doClick);
-        buttons.get(1).getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('W', InputEvent.CTRL_DOWN_MASK), "click");
-        buttons.get(1).getActionMap().put("click", doClick);
-        buttons.get(2).getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('C', InputEvent.CTRL_DOWN_MASK), "click");
-        buttons.get(2).getActionMap().put("click", doClick);
-        buttons.get(3).getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('U', InputEvent.CTRL_DOWN_MASK), "click");
-        buttons.get(3).getActionMap().put("click", doClick);
-        buttons.get(4).getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('E', InputEvent.CTRL_DOWN_MASK), "click");
-        buttons.get(4).getActionMap().put("click", doClick);
-        buttons.get(5).getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('A', InputEvent.CTRL_DOWN_MASK), "click");
-        buttons.get(5).getActionMap().put("click", doClick);
-
-
-        for(JButton button : buttons)
+        for(JButton button : buttons.values())
             button.addActionListener(hideThisListener);
-        buttons.getFirst().addActionListener(hideListener);
-        buttons.get(1).addActionListener(showCellResources);
-        for(JButton buttons : buttons.subList(2, buttons.size()))
-            buttons.addActionListener(showPlayerResources);
+        buttons.get(KeyEvent.VK_M).addActionListener(hideListener);
+        buttons.get(KeyEvent.VK_W).addActionListener(showCellResources);
+        for(Integer key : buttons.keySet())
+            if(key != KeyEvent.VK_M && key != KeyEvent.VK_W)
+                buttons.get(key).addActionListener(showPlayerResources);
 
 
         // Intercepts mouse events
         addMouseListener(new MouseAdapter() {});
     }
 
-    private void setLayout(double width, double height) {
-        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        setLayout(new GridBagLayout());
+    private void addButton(int key, RoundedButton button) {
+        buttons.put(key, button);
         GridBagConstraints c = new GridBagConstraints();
-
-        for(int i = 0; i < buttons.size(); i++) {
-            c.gridx = i % 4;
-            c.gridy = i / 4;
-            c.weightx = 0.25;
-            c.weighty = 0.25;
+        c.gridx = buttonCounter % 4;
+        c.gridy = buttonCounter / 4;
+        c.weightx = 0.25;
+        c.weighty = 0.25;
 //            c.anchor = c.gridx == 0 ? GridBagConstraints.WEST : GridBagConstraints.EAST;
-            add(buttons.get(i), c);
-        }
-
-        setVisible(false);
-        setPreferredSize(new Dimension((int)(3 * width), (int)(2 * height)));
-        setOpaque(false);
+        add(button, c);
+        buttonCounter++;
     }
 }
