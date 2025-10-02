@@ -9,4 +9,6 @@ public interface Mission {
     String getDescription();
 
     void reward(Player p);
+
+    Mission[] getChildren();
 }

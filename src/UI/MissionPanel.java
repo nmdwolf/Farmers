@@ -6,6 +6,8 @@ import core.player.MissionArchive;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
 public class MissionPanel extends Subpanel {
@@ -21,7 +23,7 @@ public class MissionPanel extends Subpanel {
         removeAll();
         for(Mission m : archive.getCompleted())
             add(createBlock(m.getDescription(), true));
-        for(Mission m : archive)
+        for(Mission m : archive.getRemaining())
             add(createBlock(m.getDescription(), false));
     }
 
@@ -71,6 +73,20 @@ public class MissionPanel extends Subpanel {
             gbc.weightx = 1;
             panel.add(area, gbc);
         }
+
+        area.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                super.mouseEntered(e);
+                panel.setBorder(CustomMethods.compoundBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3), new CustomBorder(new Color(200, 150, 0), 3), BorderFactory.createEmptyBorder(3, 3, 3, 3)));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                super.mouseExited(e);
+                panel.setBorder(CustomMethods.compoundBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3), new CustomBorder(Color.gray, 3), BorderFactory.createEmptyBorder(3, 3, 3, 3)));
+            }
+        });
 
         return panel;
     }

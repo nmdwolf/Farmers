@@ -96,6 +96,7 @@ public class GameFrame extends JFrame {
         settingsPanel = new SettingsPanel(settings);
         settingsScroller = CustomMethods.wrapPanel(settingsPanel);
         missionPanel = new MissionPanel(settings);
+        missionPanel.update(player.get().getMissionArchive());
         missionScroller = CustomMethods.wrapPanel(missionPanel);
 
         layout = new SpringLayout();
@@ -155,7 +156,7 @@ public class GameFrame extends JFrame {
         setExtendedState(MAXIMIZED_BOTH);
         refresh();
 
-        setCustomCursor();
+        settings.toggleCursor(CUSTOM_CURSOR);
         addMouseInputs();
         addKeyInputs();
         addMenu();
@@ -169,7 +170,6 @@ public class GameFrame extends JFrame {
     public void updateContent(boolean forceReload) {
         SwingUtilities.invokeLater(() -> {
             refreshMenubar();
-            missionPanel.update(player.get().getMissionArchive());
             contentPanel.revalidate();
             cellPanel.updateContent(forceReload);
             contentPanel.repaint();
@@ -533,14 +533,7 @@ public class GameFrame extends JFrame {
         settingsScroller.setVisible(false);
     }
 
-    public void setCustomCursor() {
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Dimension size = tk.getBestCursorSize(10, 10);
-        Image img = new ImageIcon("src/img/Cursor.png").getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH);
-        setCursor(tk.createCustomCursor(img, new Point(size.width / 2, size.height / 2), "customCursor"));
-    }
-
-    public void showMessageBox(String text) {
+    public JPanel showMessageBox(String text) {
 
         JPanel panel = new JPanel() {
             @Override
@@ -579,7 +572,18 @@ public class GameFrame extends JFrame {
                 super.mouseExited(e);
                 getContentPane().remove(panel);
             }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+
+                // Dispatch to parent
+                panel.dispatchEvent(new MouseEvent(area, e.getID(), e.getWhen(),
+                        e.getModifiersEx(), e.getPoint().x, e.getPoint().y, e.getClickCount(), e.isPopupTrigger()));
+            }
         });
+
+        return panel;
     }
 
     /**
@@ -800,6 +804,10 @@ public class GameFrame extends JFrame {
         gr.setStroke(oldStroke);
     }
 
+    public void cycleAnimation() {
+        cellPanel.cycleAnimation();
+    }
+
     /**
      * Refreshes the game window components that are not drawn (menus, ...)
      */
@@ -912,9 +920,5 @@ public class GameFrame extends JFrame {
             }
         };
         new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
-    }
-
-    public void cycleAnimation() {
-        cellPanel.cycleAnimation();
     }
 }

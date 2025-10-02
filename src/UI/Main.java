@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 
 import static core.GameConstants.*;
@@ -115,9 +117,20 @@ public class Main{
                 game.updateContent(reload);
 
                 if(gameState.get() != GameState.ANIMATING) {
-                    currentPlayer.get().getMissionArchive().validate();
-                    for (String text : currentPlayer.get().getMessages()) // Shows awards and others
-                        game.showMessageBox(text);
+                    currentPlayer.get().getMissionArchive().validateMissions();
+                    for (String text : currentPlayer.get().getAwardArchive().getNewAwards()) {
+                        JPanel messageBox = game.showMessageBox(text);
+                        messageBox.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseReleased(MouseEvent e) {
+                                super.mouseReleased(e);
+                                game.getContentPane().remove(messageBox);
+                            }
+                        });
+
+                    }
+//                    for (String text : currentPlayer.get().getMessages()) // Shows awards and others
+//                        game.showMessageBox(text);
                 }
 
                 try { Thread.sleep(1000 / FPS); } catch (InterruptedException e) { break; }

@@ -1,6 +1,8 @@
 package UI;
 
 import core.Property;
+
+import javax.swing.*;
 import java.awt.*;
 
 import static core.GameConstants.*;
@@ -49,9 +51,12 @@ public class Settings {
     public void toggleCursor(boolean flag) {
         customCursor = flag;
 
-        if(customCursor)
-            frame.setCustomCursor();
-        else
+        if(customCursor) {
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            Dimension size = tk.getBestCursorSize(10, 10);
+            Image img = new ImageIcon("src/img/Cursor.png").getImage().getScaledInstance(10, 10, Image.SCALE_SMOOTH);
+            frame.setCursor(tk.createCustomCursor(img, new Point(size.width / 2, size.height / 2), "customCursor"));
+        } else
             frame.setCursor(Cursor.getDefaultCursor());
     }
 
