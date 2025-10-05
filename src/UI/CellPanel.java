@@ -244,6 +244,8 @@ public class CellPanel extends JPanel {
                 gr.fill(cover);
             }
         }
+
+        gr.dispose();
     }
 
     public void doubleBuffer() {
@@ -319,9 +321,16 @@ public class CellPanel extends JPanel {
         }
     }
 
+    // TODO MAKE RIVERS DYNAMIC AGAIN
     private void drawRiver(Graphics2D gr) {
         if (cell.isRiver()) {
-            gr.setColor(new Color(0, 100, 255));
+//            gr.setColor(new Color(0, 100, 255));
+            Rectangle anchor = new Rectangle(0, 0, RIVER.getWidth(), RIVER.getHeight());
+            System.out.println(settings.getTextureStep());
+            TexturePaint tp = new TexturePaint(settings.getTextureStep() % 2 == 0 ? RIVER : CustomMethods.flipHorizontally(RIVER), anchor);
+
+            gr.setPaint(tp);
+
             if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
                 gr.fillRoundRect(Math.round(0.5f * getWidth() - (poolSize / 2f)), Math.round(0.5f * getHeight() - (poolSize / 2f)), getWidth() + poolSize, getHeight() + poolSize, poolSize, poolSize);
             else {

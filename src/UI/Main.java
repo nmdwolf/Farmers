@@ -114,6 +114,7 @@ public class Main{
                 if(gameState.get() == GameState.ANIMATING)
                     game.cycleAnimation();
 
+                settings.cycleTextures();
                 game.updateContent(reload);
 
                 if(gameState.get() != GameState.ANIMATING) {

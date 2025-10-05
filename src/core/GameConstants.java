@@ -104,5 +104,6 @@ public interface GameConstants {
     BufferedImage ARROWHEAD = Sprite.loadSprite("src/img/Arrowhead.png",
             GameConstants.SPRITE_SIZE, GameConstants.SPRITE_SIZE).orElseThrow();
     BufferedImage COBBLESTONE = Sprite.loadSprite("src/img/Cobblestone.png", 40, 20).orElseThrow();
+    BufferedImage RIVER = Sprite.loadSprite("src/img/WaterTexture.png", 90, 90).orElseThrow();
     BufferedImage CHECK = Sprite.loadSprite("src/img/Check.png", 150, 150).orElseThrow();
 }

@@ -17,7 +17,7 @@ public class Settings {
     private int screenHeight;
     private float cellWidth;
     private float cellHeight;
-    private int spriteSize;
+    private int spriteSize, textureStep;
 
     private Thread audioThread;
     private DJ dj;
@@ -153,5 +153,13 @@ public class Settings {
 
     public void setRangedMode(boolean mode) {
         rangedMode = mode;
+    }
+
+    public void cycleTextures() {
+        textureStep = (textureStep + 1) % 2;
+    }
+
+    public int getTextureStep() {
+        return textureStep;
     }
 }

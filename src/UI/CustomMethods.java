@@ -133,4 +133,12 @@ public class CustomMethods {
 
         return border;
     }
+
+    public static BufferedImage flipHorizontally(BufferedImage img) {
+        BufferedImage flipped = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = optimizeGraphics(flipped.createGraphics());
+        gr.drawImage(img, 0, 0, flipped.getWidth(), flipped.getHeight(), flipped.getWidth(), 0, 0, flipped.getHeight(), null);
+        gr.dispose();
+        return flipped;
+    }
 }
