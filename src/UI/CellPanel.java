@@ -226,16 +226,25 @@ public class CellPanel extends JPanel {
             g2.drawImage(drawing, null, 0, 0);
 
             // Paint dynamic details
+            drawRiver(g2);
             drawDetails(g2);
             drawSelection(g2);
 
             // Clipping/masking
             g2.setComposite(AlphaComposite.DstIn);
             g2.drawImage(mask, 0, 0, null);
+
             g2.dispose();
 
             gr.drawImage(finalImg, 0, 0, null);
 
+            // TODO improve
+            Shape shape = new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30);
+            gr.setColor(Color.black);
+            gr.setStroke(new BasicStroke(5));
+            gr.draw(shape);
+
+            // when ranged
             if (target.get().map(Pair::value).orElse(false)) {
                 Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
                 cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + settings.getSpriteSize()) - settings.getSpriteSize() / 2f, getWidth() - CELL_X_MARGIN, 2 * settings.getSpriteSize(), 30, 30)));
@@ -263,12 +272,9 @@ public class CellPanel extends JPanel {
         drawField(gr);
         drawForest(gr);
         drawRoad(gr);
-        drawRiver(gr);
+//        drawRiver(gr);
         drawObjects(gr);
 
-        gr.setColor(Color.black);
-        gr.setStroke(new BasicStroke(5));
-        gr.draw(shape);
         gr.dispose();
     }
 
@@ -321,14 +327,11 @@ public class CellPanel extends JPanel {
         }
     }
 
-    // TODO MAKE RIVERS DYNAMIC AGAIN
     private void drawRiver(Graphics2D gr) {
         if (cell.isRiver()) {
 //            gr.setColor(new Color(0, 100, 255));
-            Rectangle anchor = new Rectangle(0, 0, RIVER.getWidth(), RIVER.getHeight());
-            System.out.println(settings.getTextureStep());
-            TexturePaint tp = new TexturePaint(settings.getTextureStep() % 2 == 0 ? RIVER : CustomMethods.flipHorizontally(RIVER), anchor);
-
+            Rectangle anchor = new Rectangle(0, 0, settings.getWaterTexture().getWidth(), settings.getWaterTexture().getHeight());
+            TexturePaint tp = new TexturePaint(settings.getWaterTexture(), anchor);
             gr.setPaint(tp);
 
             if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())

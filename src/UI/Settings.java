@@ -4,6 +4,7 @@ import core.Property;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static core.GameConstants.*;
 
@@ -18,6 +19,8 @@ public class Settings {
     private float cellWidth;
     private float cellHeight;
     private int spriteSize, textureStep;
+
+    private BufferedImage waterTexture;
 
     private Thread audioThread;
     private DJ dj;
@@ -34,6 +37,7 @@ public class Settings {
         cellHeight = Math.round(screenHeight / (float)NUMBER_OF_CELLS_IN_VIEW);
 
         rangedMode = false;
+        waterTexture = RIVER;
     }
 
     public void initialize(GameFrame frame) {
@@ -156,10 +160,18 @@ public class Settings {
     }
 
     public void cycleTextures() {
-        textureStep = (textureStep + 1) % 2;
+        int steps = 40;
+        textureStep = (textureStep + 1) % steps;
+
+        int min = RIVER.getWidth();
+        int max = RIVER.getHeight();
+        waterTexture = new BufferedImage(min, max / 3 * 2, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = CustomMethods.optimizeGraphics(waterTexture.createGraphics());
+        gr.drawImage(RIVER, 0, -textureStep * max / (3 * steps), null);
+        gr.dispose();
     }
 
-    public int getTextureStep() {
-        return textureStep;
+    public BufferedImage getWaterTexture() {
+        return waterTexture;
     }
 }
