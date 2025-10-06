@@ -37,13 +37,13 @@ public class ChoicePanel extends JPanel {
         setPreferredSize(new Dimension((int)(3 * cellWidth), (int)(2 * cellHeight)));
         setOpaque(false);
 
-        addButton(KeyEvent.VK_M, new RoundedButton("Move", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        addButton(KeyEvent.VK_W, new RoundedButton("Work", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        addButton(KeyEvent.VK_C, new RoundedButton("Construct", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        addButton(KeyEvent.VK_U, new RoundedButton("Upgrade", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        addButton(KeyEvent.VK_E, new RoundedButton("Evolve", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        addButton(KeyEvent.VK_A, new RoundedButton("Attack", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
-        addButton(KeyEvent.VK_X, new RoundedButton("More", buttonSize, Color.gray, GameConstants.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_M, new RoundedButton("Move", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_W, new RoundedButton("Work", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_C, new RoundedButton("Construct", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_U, new RoundedButton("Upgrade", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_E, new RoundedButton("Evolve", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_A, new RoundedButton("Attack", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
+        addButton(KeyEvent.VK_X, new RoundedButton("More", buttonSize, Color.gray, InternalSettings.STROKE_WIDTH, true));
 
         addListeners();
     }

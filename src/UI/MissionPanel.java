@@ -1,8 +1,10 @@
 package UI;
 
-import core.GameConstants;
+import core.InternalSettings;
+import core.Settings;
 import core.player.Mission;
 import core.player.MissionArchive;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,10 +15,12 @@ import java.awt.event.MouseEvent;
 public class MissionPanel extends Subpanel {
 
     private final Settings settings;
+    private final InternalSettings internalSettings;
 
-    public MissionPanel(Settings settings) {
+    public MissionPanel(@NotNull Settings settings, @NotNull InternalSettings internalSettings) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.settings = settings;
+        this.internalSettings = internalSettings;
     }
 
     public void update(MissionArchive archive) {
@@ -32,9 +36,9 @@ public class MissionPanel extends Subpanel {
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         panel.setBorder(CustomMethods.compoundBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3), new CustomBorder(Color.gray, 3), BorderFactory.createEmptyBorder(3, 3, 3, 3)));
-        panel.setPreferredSize(new Dimension(getWidth() - getInsets().left - getInsets().right, (int)settings.getCellHeight()));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int)settings.getCellHeight()));
-        panel.setMinimumSize(new Dimension(0, (int)settings.getCellHeight()));
+        panel.setPreferredSize(new Dimension(getWidth() - getInsets().left - getInsets().right, (int)internalSettings.getCellHeight()));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, (int)internalSettings.getCellHeight()));
+        panel.setMinimumSize(new Dimension(0, (int)internalSettings.getCellHeight()));
         panel.setOpaque(false);
 
         JTextArea area = new JTextArea(text);
@@ -60,7 +64,7 @@ public class MissionPanel extends Subpanel {
                     super.paintComponent(g);
                     Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
                     int size = Math.min(this.getWidth(), this.getHeight()) - this.getInsets().top;
-                    gr.drawImage(GameConstants.CHECK.getScaledInstance(size, size, Image.SCALE_SMOOTH), getWidth() - size - 5, 0, null);
+                    gr.drawImage(InternalSettings.CHECK.getScaledInstance(size, size, Image.SCALE_SMOOTH), getWidth() - size - 5, 0, null);
                     gr.dispose();
                 }
             };

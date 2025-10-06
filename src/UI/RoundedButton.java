@@ -6,8 +6,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
-import static core.GameConstants.GRAY;
-import static core.GameConstants.STROKE_WIDTH;
+import static core.InternalSettings.GRAY;
+import static core.InternalSettings.STROKE_WIDTH;
 
 public class RoundedButton extends JButton {
 

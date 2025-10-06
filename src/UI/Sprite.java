@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static core.GameConstants.SPRITE_SIZE_MAX;
+import static core.InternalSettings.SPRITE_SIZE_MAX;
 
 public class Sprite {
     private final static HashMap<String, Optional<BufferedImage>> sprites = new HashMap<>();

@@ -1,8 +1,6 @@
 package objects.templates;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import core.upgrade.BasicUpgrade;
@@ -55,6 +53,7 @@ public class Template {
             var array = (ArrayList<HashMap<String, Object>>) properties;
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new ParameterNamesModule(JsonCreator.Mode.PROPERTIES));
+            mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
             for (var map : array)
                 upgrades.add(mapper.convertValue(map, BasicUpgrade.class));
         }

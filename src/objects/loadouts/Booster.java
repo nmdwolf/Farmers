@@ -1,17 +1,19 @@
 package objects.loadouts;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 
 public class Booster extends Loadout implements objects.Booster {
 
-    private final int radius;
+    @JsonProperty
+    private final int radius = 1;
     private final ResourceContainer yield;
 
-    public Booster(@JsonProperty(defaultValue = "1") int radius, @JsonProperty(required = true) ResourceContainer yield) {
+    @JsonCreator
+    public Booster(@JsonProperty(required = true, value = "yield") ResourceContainer yield) {
         super("booster");
-        this.radius = radius;
         this.yield = yield;
     }
 

@@ -1,5 +1,6 @@
 package objects.units;
 
+import core.InternalSettings;
 import UI.Sprite;
 import core.*;
 import core.OperationsList;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 public class Hero extends Unit<Hero> implements Aggressive<Hero> {
 
-    public final static BufferedImage SPRITE_MAX = Sprite.loadSprite("src/img/hero.png", GameConstants.SPRITE_SIZE_MAX, (int)(GameConstants.SPRITE_SIZE_MAX / 0.6)).orElseThrow();
+    public final static BufferedImage SPRITE_MAX = Sprite.loadSprite("src/img/hero.png", InternalSettings.SPRITE_SIZE_MAX, (int)(InternalSettings.SPRITE_SIZE_MAX / 0.6)).orElseThrow();
 
     private String name;
 

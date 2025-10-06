@@ -12,8 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static core.GameConstants.COLD_LEVEL;
-import static core.GameConstants.UNIT_TYPE;
+import static core.InternalSettings.COLD_LEVEL;
+import static core.InternalSettings.UNIT_TYPE;
 import static core.Status.IDLE;
 
 public abstract class Unit<U extends Unit<U>> extends Construction<U> implements Animated<U> {

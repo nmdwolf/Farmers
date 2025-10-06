@@ -8,13 +8,9 @@ import objects.buildings.Directional;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static core.GameConstants.*;
 
 // TODO Fix North/South (y coordinates go down on computers)
 public class Cell {
@@ -39,7 +35,7 @@ public class Cell {
         this.content = new HashSet<>();
         this.unitSpace = unitSpace;
         this.buildingSpace = buildingSpace;
-        travelCost = INITIAL_TRAVEL_COST;
+        travelCost = InternalSettings.INITIAL_TRAVEL_COST;
         traversalCount = 0;
         resources = generateResources();
         seasonalCycle(0); // Start in Winter
@@ -50,9 +46,9 @@ public class Cell {
      * @param cycle new cycle
      */
     public void cycle(int cycle) {
-        if(cycle % SEASON_LENGTH == 0)
-            seasonalCycle((cycle % (4 * SEASON_LENGTH)) / SEASON_LENGTH);
-        if(heatLevel >= HOT_LEVEL)
+        if(cycle % InternalSettings.SEASON_LENGTH == 0)
+            seasonalCycle((cycle % (4 * InternalSettings.SEASON_LENGTH)) / InternalSettings.SEASON_LENGTH);
+        if(heatLevel >= InternalSettings.HOT_LEVEL)
             resources.put("Water", Math.max(resources.get("Water") - 2, 0));
     }
 
@@ -150,7 +146,7 @@ public class Cell {
             cost += 2;
 
         // if "hot"
-        cost += Math.max(0, heatLevel - HOT_LEVEL);
+        cost += Math.max(0, heatLevel - InternalSettings.HOT_LEVEL);
 
         // Obstructions in this cell
         var obstructions = content.stream().filter(Obstruction.class::isInstance).map(Obstruction.class::cast).filter(Obstruction::isActive);
@@ -198,7 +194,7 @@ public class Cell {
             amount = -Math.min(resources.get(type), -amount);
 
         if(type.equals("Water"))
-            if(heatLevel >= 50 || heatLevel <= COLD_LEVEL)
+            if(heatLevel >= 50 || heatLevel <= InternalSettings.COLD_LEVEL)
                 amount = 0;
 
         resources.put(type, resources.get(type) + amount);
@@ -227,29 +223,29 @@ public class Cell {
     public void changeHeatLevel(int amount) { heatLevel += amount; }
 
     /**
-     * Indicates whether this cell contains a field, i.e. whether this cell holds enough water (based on the constant {@link core.GameConstants#WATER_THRESHOLD}).
+     * Indicates whether this cell contains a field, i.e. whether this cell holds enough water (based on the constant {@link InternalSettings#WATER_THRESHOLD}).
      * @return if this is a river
      */
-    public boolean isRiver() { return resources.get("Water") >= WATER_THRESHOLD; }
+    public boolean isRiver() { return resources.get("Water") >= InternalSettings.WATER_THRESHOLD; }
 
     /**
-     * Indicates whether this cell contains a field, i.e. whether this cell holds enough wood (based on the constant {@link core.GameConstants#WOOD_THRESHOLD}).
+     * Indicates whether this cell contains a field, i.e. whether this cell holds enough wood (based on the constant {@link InternalSettings#WOOD_THRESHOLD}).
      * @return if this is a forest
      */
-    public boolean isForest() { return resources.get("Wood") >= WOOD_THRESHOLD; }
+    public boolean isForest() { return resources.get("Wood") >= InternalSettings.WOOD_THRESHOLD; }
 
     /**
-     * Indicates whether this cell contains a field, i.e. whether this cell holds enough food (based on the constant {@link core.GameConstants#FOOD_THRESHOLD}).
+     * Indicates whether this cell contains a field, i.e. whether this cell holds enough food (based on the constant {@link InternalSettings#FOOD_THRESHOLD}).
      * @return if this is a field
      */
-    public boolean isField() { return resources.get("Food") >= FOOD_THRESHOLD; }
+    public boolean isField() { return resources.get("Food") >= InternalSettings.FOOD_THRESHOLD; }
 
     /**
-     * Indicates whether this cell contains a natural road, i.e. whether sufficiently many units have moved through this cell (based on the constant {@link core.GameConstants#ROAD_THRESHOLD}).
+     * Indicates whether this cell contains a natural road, i.e. whether sufficiently many units have moved through this cell (based on the constant {@link InternalSettings#ROAD_THRESHOLD}).
      * @return if this is a road
      */
     public boolean isRoad() {
-        return traversalCount >= ROAD_THRESHOLD;
+        return traversalCount >= InternalSettings.ROAD_THRESHOLD;
     }
 
     /**
@@ -294,20 +290,20 @@ public class Cell {
      * @param season 0: Winter, 1: Spring, 2: Summer, 3: Fall
      */
     private void seasonalCycle(int season) {
-        heatLevel = INITIAL_HEAT_LEVEL;
+        heatLevel = InternalSettings.INITIAL_HEAT_LEVEL;
         if(season == 0)
-            heatLevel -= rand.nextInt(4) + 1;
+            heatLevel -= InternalSettings.rand.nextInt(4) + 1;
         else if(season == 1) {
-            heatLevel += rand.nextInt(3) - 1;
-            if (rand.nextInt(5) >= 3)
-                resources.put("Water", resources.get("Water") + rand.nextInt(30));
+            heatLevel += InternalSettings.rand.nextInt(3) - 1;
+            if (InternalSettings.rand.nextInt(5) >= 3)
+                resources.put("Water", resources.get("Water") + InternalSettings.rand.nextInt(30));
         }
         else if(season == 2)
-            heatLevel += rand.nextInt(5) + 1;
+            heatLevel += InternalSettings.rand.nextInt(5) + 1;
         else if(season == 3) {
-            heatLevel += rand.nextInt(3) - 1;
-            if(rand.nextInt(5) >= 2)
-                resources.put("Water", resources.get("Water") + rand.nextInt(50));
+            heatLevel += InternalSettings.rand.nextInt(3) - 1;
+            if(InternalSettings.rand.nextInt(5) >= 2)
+                resources.put("Water", resources.get("Water") + InternalSettings.rand.nextInt(50));
         }
     }
 
@@ -375,7 +371,7 @@ public class Cell {
         if(x == 0 && y == 0 && z == 0)
             return this;
 
-        if(!GAME_3D && z != 0)
+        if(!InternalSettings.GAME_3D && z != 0)
             return this;
 
         if(Math.abs(x) + Math.abs(y) + Math.abs(z) == 1) {
@@ -387,15 +383,15 @@ public class Cell {
                 return north;
             else if(y == -1)
                 return south;
-            else if(GAME_3D && z == 1)
+            else if(InternalSettings.GAME_3D && z == 1)
                 return up;
-            else if (GAME_3D)
+            else if (InternalSettings.GAME_3D)
                 return down;
         } else {
             if(Math.abs(y) >= Math.abs(x)) {
                 if(Math.abs(y) >= Math.abs(z))
                     return (Integer.signum(y) == 1 ? north : south).fetch(x, y - Integer.signum(y), z);
-                else if(GAME_3D)
+                else if(InternalSettings.GAME_3D)
                     return (Integer.signum(z) == 1 ? up : down).fetch(x, y, z - Integer.signum(z));
             }
             else
@@ -437,7 +433,7 @@ public class Cell {
      * @return if this cell is a boundary cell
      */
     public boolean isEndOfMap() {
-        return loc.x() == 0 || loc.x() == NUMBER_OF_CELLS - 1 || loc.y() == 0 || loc.y() == NUMBER_OF_CELLS - 1;
+        return loc.x() == 0 || loc.x() == InternalSettings.NUMBER_OF_CELLS - 1 || loc.y() == 0 || loc.y() == InternalSettings.NUMBER_OF_CELLS - 1;
     }
 
     /**
@@ -495,16 +491,16 @@ public class Cell {
      */
     private static ResourceContainer generateResources() {
         ResourceContainer resources = new ResourceContainer();
-        resources.put("Food", rand.nextInt(200));
-        resources.put("Wood", rand.nextInt(250));
-        resources.put("Stone", rand.nextInt(100));
-        resources.put("Iron", rand.nextInt(50));
-        resources.put("Coal", rand.nextInt(50));
+        resources.put("Food", InternalSettings.rand.nextInt(200));
+        resources.put("Wood", InternalSettings.rand.nextInt(250));
+        resources.put("Stone", InternalSettings.rand.nextInt(100));
+        resources.put("Iron", InternalSettings.rand.nextInt(50));
+        resources.put("Coal", InternalSettings.rand.nextInt(50));
         resources.put("Time", 0);
 
-        resources.put("Water", rand.nextInt(200));
-        if(resources.get("Water") > GameConstants.WATER_THRESHOLD)
-            resources.put("Water", 300 + rand.nextInt(100));
+        resources.put("Water", InternalSettings.rand.nextInt(200));
+        if(resources.get("Water") > InternalSettings.WATER_THRESHOLD)
+            resources.put("Water", 300 + InternalSettings.rand.nextInt(100));
 
         return resources;
     }

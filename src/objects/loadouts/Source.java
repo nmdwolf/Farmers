@@ -9,7 +9,7 @@ public class Source extends Loadout implements core.resources.Source {
     private final ResourceContainer source;
 
     @JsonCreator
-    public Source(@JsonProperty(required = true) ResourceContainer source) {
+    public Source(@JsonProperty(required = true, value = "source") ResourceContainer source) {
         super("source");
         this.source = source;
     }

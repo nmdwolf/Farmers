@@ -1,6 +1,7 @@
 package objects.buildings;
 
 import UI.CustomMethods;
+import core.InternalSettings;
 import UI.Sprite;
 import core.contracts.ConstructContract;
 import objects.Construction;
@@ -14,12 +15,10 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-import static core.GameConstants.*;
-
 // TODO MERGE WITH BUILDINGS?
 public class Foundation<T extends Construction<T>> extends GameObject<T> {
 
-    public final static BufferedImage FOUNDATION_SPRITE_MAX = Sprite.loadSprite("src/img/foundation.png", SPRITE_SIZE_MAX, SPRITE_SIZE_MAX).orElseThrow();
+    public final static BufferedImage FOUNDATION_SPRITE_MAX = Sprite.loadSprite("src/img/foundation.png", InternalSettings.SPRITE_SIZE_MAX, InternalSettings.SPRITE_SIZE_MAX).orElseThrow();
 
     private final T constructable;
     private final ConstructContract<T> contract;
@@ -89,7 +88,7 @@ public class Foundation<T extends Construction<T>> extends GameObject<T> {
 
     @Override
     public int getType() {
-        return BUILDING_TYPE;
+        return InternalSettings.BUILDING_TYPE;
     }
 
     @Override

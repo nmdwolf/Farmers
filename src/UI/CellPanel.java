@@ -26,8 +26,6 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static core.GameConstants.*;
-
 public class CellPanel extends JPanel {
 
     private int poolSize, unitRow, buildingRow, enemyRow, enemyCounter, cycle;
@@ -40,12 +38,16 @@ public class CellPanel extends JPanel {
     private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
     private final Property<Main.GameState> gameState;
     private final Settings settings;
+    private final InternalSettings internalSettings;
     private Player player;
     private HashMap<GameObject<?>, Rectangle> objectMap;
     private Cell cell;
     private boolean reload;
 
-    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer, @NotNull UnsafeProperty<GameObject<?>> selected, @NotNull UnsafeProperty<Pair<GameObject<?>, Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
+    public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer,
+                     @NotNull UnsafeProperty<GameObject<?>> selected, @NotNull UnsafeProperty<Pair<GameObject<?>,
+                    Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings,
+                     @NotNull InternalSettings internalSettings) {
         cell = initialCell;
         player = initialPlayer;
         objectMap = new HashMap<>();
@@ -57,6 +59,7 @@ public class CellPanel extends JPanel {
         this.selected = selected;
         this.target = target;
         this.settings = settings;
+        this.internalSettings = internalSettings;
         this.gameState = gameState;
 
         // Ranged mode
@@ -142,7 +145,7 @@ public class CellPanel extends JPanel {
 
         poolSize = Math.min(Math.round(getWidth() / 4f), Math.round(getHeight() / 4f)); // TODO Might move to a resize method
         unitRow = 0;
-        buildingRow = cellCoordinateTransform(0, getHeight() - CELL_Y_MARGIN - settings.getSpriteSize()).value();
+        buildingRow = cellCoordinateTransform(0, getHeight() - InternalSettings.CELL_Y_MARGIN - internalSettings.getSpriteSize()).value();
         enemyRow = (buildingRow / 2) + 1;
 
         if(reload || !player.equals(oldPlayer) || !cell.equals(oldCell)) {
@@ -160,7 +163,8 @@ public class CellPanel extends JPanel {
                     else if (object instanceof Building || object instanceof Foundation)
                         objectMap.put(object, constructBoundingBox(object, new Pair<>(buildingCounter++, buildingRow), 0, 0));
                 } else
-                    objectMap.put(object, constructBoundingBox(object, new Pair<>(enemyCounter++, enemyRow), (int)((getWidth() - enemyCount * (CELL_X_MARGIN + settings.getSpriteSize())) / 2f), 0));
+                    objectMap.put(object, constructBoundingBox(object, new Pair<>(enemyCounter++, enemyRow),
+                            (int)((getWidth() - enemyCount * (InternalSettings.CELL_X_MARGIN + internalSettings.getSpriteSize())) / 2f), 0));
             }
 
             if(enemyCount != enemyCounter)
@@ -186,7 +190,8 @@ public class CellPanel extends JPanel {
                                 objectMap.put(object, constructBoundingBox(
                                         object,
                                         new Pair<>((direction == Direction.EAST ? -1 : 1) * (enemyCounter++ + (direction == Direction.EAST ? 1 : 0)), row),
-                                        (direction == Direction.NORTH || direction == Direction.SOUTH) ? (int) ((getWidth() - enemyCount * (CELL_X_MARGIN + settings.getSpriteSize())) / 2f) : 0,
+                                        (direction == Direction.NORTH || direction == Direction.SOUTH) ?
+                                                (int) ((getWidth() - enemyCount * (InternalSettings.CELL_X_MARGIN + internalSettings.getSpriteSize())) / 2f) : 0,
                                         0)
                                 );
                             }
@@ -219,7 +224,8 @@ public class CellPanel extends JPanel {
             gr.drawImage(currentAnimationFrame.key(), null, (getWidth() - currentAnimationFrame.key().getWidth()) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2);
 
             String description = currentAnimationFrame.value();
-            CustomMethods.drawString(gr, description, (getWidth() - CustomMethods.maxLineWidth(gr, description)) / 2, (getHeight() - currentAnimationFrame.key().getHeight()) / 2 + currentAnimationFrame.key().getHeight() + settings.getSpriteSize());
+            CustomMethods.drawString(gr, description, (getWidth() - CustomMethods.maxLineWidth(gr, description)) / 2,
+                    (getHeight() - currentAnimationFrame.key().getHeight()) / 2 + currentAnimationFrame.key().getHeight() + internalSettings.getSpriteSize());
         } else {
             BufferedImage finalImg = new BufferedImage(drawing.getWidth(), drawing.getHeight(), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2 = CustomMethods.optimizeGraphics(finalImg.createGraphics());
@@ -247,7 +253,9 @@ public class CellPanel extends JPanel {
             // when ranged
             if (target.get().map(Pair::value).orElse(false)) {
                 Area cover = new Area(new RoundRectangle2D.Double(1, 1, getWidth() - 3, getHeight() - 3, 30, 30));
-                cover.subtract(new Area(new RoundRectangle2D.Double(CELL_X_MARGIN / 2f, CELL_Y_MARGIN + enemyRow * (CELL_Y_MARGIN + settings.getSpriteSize()) - settings.getSpriteSize() / 2f, getWidth() - CELL_X_MARGIN, 2 * settings.getSpriteSize(), 30, 30)));
+                cover.subtract(new Area(new RoundRectangle2D.Double(InternalSettings.CELL_X_MARGIN / 2f,
+                        InternalSettings.CELL_Y_MARGIN + enemyRow * (InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize()) - internalSettings.getSpriteSize() / 2f,
+                        getWidth() - InternalSettings.CELL_X_MARGIN, 2 * internalSettings.getSpriteSize(), 30, 30)));
 
                 gr.setColor(new Color(0, 0, 0, 128));
                 gr.fill(cover);
@@ -266,7 +274,7 @@ public class CellPanel extends JPanel {
         gr.setColor(Color.white);
         gr.fill(shape);
         gr.setColor(Color.black);
-        gr.setStroke(new BasicStroke(STROKE_WIDTH));
+        gr.setStroke(new BasicStroke(InternalSettings.STROKE_WIDTH));
 
         // Paint static components
         drawField(gr);
@@ -312,7 +320,7 @@ public class CellPanel extends JPanel {
             currentAnimationFrame = new Pair<>(drawing, ""); // Start with current cell (without selection boxes)
 
             for(var obj : drawables)
-                obj.getSprite().ifPresent(_ -> animations.addLast(new Animation(((Animated<?>) obj), SECONDS_PER_ANIMATION * FPS)));
+                obj.getSprite().ifPresent(_ -> animations.addLast(new Animation(((Animated<?>) obj), InternalSettings.SECONDS_PER_ANIMATION * InternalSettings.FPS)));
 
             gameState.set(Main.GameState.ANIMATING);
 
@@ -330,19 +338,20 @@ public class CellPanel extends JPanel {
     private void drawRiver(Graphics2D gr) {
         if (cell.isRiver()) {
 //            gr.setColor(new Color(0, 100, 255));
-            Rectangle anchor = new Rectangle(0, 0, settings.getWaterTexture().getWidth(), settings.getWaterTexture().getHeight());
-            TexturePaint tp = new TexturePaint(settings.getWaterTexture(), anchor);
+            Rectangle anchor = new Rectangle(0, 0, internalSettings.getWaterTexture(player.getCycle()).getWidth(),
+                    internalSettings.getWaterTexture(player.getCycle()).getHeight());
+            TexturePaint tp = new TexturePaint(internalSettings.getWaterTexture(player.getCycle()), anchor);
             gr.setPaint(tp);
 
-            if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
+            if (cell.getX() < InternalSettings.NUMBER_OF_CELLS - 2 && cell.getY() < InternalSettings.NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
                 gr.fillRoundRect(Math.round(0.5f * getWidth() - (poolSize / 2f)), Math.round(0.5f * getHeight() - (poolSize / 2f)), getWidth() + poolSize, getHeight() + poolSize, poolSize, poolSize);
             else {
                 boolean singleFlag = true;
-                if (cell.getX() < NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
+                if (cell.getX() < InternalSettings.NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
                     gr.fillRect(Math.round(0.5f * getWidth()), Math.round(0.5f * getHeight() - (poolSize / 2f)), Math.round(getWidth() / 2f) + 1, poolSize);
                 if (cell.getX() > 0 && cell.fetch(-1, 0, 0).isRiver())
                     gr.fillRect(- 1, Math.round(0.5f * getHeight() - (poolSize / 2f)), Math.round(getWidth() / 2f), poolSize);
-                if (cell.getY() < NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
+                if (cell.getY() < InternalSettings.NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
                     gr.fillRect(Math.round(0.5f * getWidth() - (poolSize / 2f)), Math.round(0.5f * getHeight()), poolSize, Math.round(getHeight() / 2f));
                     singleFlag = false;
                 }
@@ -372,8 +381,8 @@ public class CellPanel extends JPanel {
 
             float roadWidth = Sprite.getSpriteSize();
             Shape roadShape = new BasicStroke(roadWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND).createStrokedShape(curve);
-            Rectangle anchor = new Rectangle(0, 0, COBBLESTONE.getWidth(), COBBLESTONE.getHeight());
-            TexturePaint tp = new TexturePaint(COBBLESTONE, anchor);
+            Rectangle anchor = new Rectangle(0, 0, InternalSettings.COBBLESTONE.getWidth(), InternalSettings.COBBLESTONE.getHeight());
+            TexturePaint tp = new TexturePaint(InternalSettings.COBBLESTONE, anchor);
 
             g2.setPaint(tp);
             g2.fill(roadShape);
@@ -455,8 +464,8 @@ public class CellPanel extends JPanel {
     // TODO Change size of working box based on sprite
     // TODO calibrate arrows
     private void drawDetails(Graphics2D gr) {
-        cycle = (++cycle % FPS);
-        gr.setStroke(new BasicStroke(STROKE_WIDTH));
+        cycle = (++cycle % InternalSettings.FPS);
+        gr.setStroke(new BasicStroke(InternalSettings.STROKE_WIDTH));
         for(GameObject<?> object : objectMap.keySet()) {
             selected.get().ifPresentOrElse(
                     obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
@@ -479,27 +488,36 @@ public class CellPanel extends JPanel {
                     });
                 }
 
-                double pieces = FPS / 4f; // 4 seconds per cycle
+                double pieces = InternalSettings.FPS / 4f; // 4 seconds per cycle
                 int part = (int)(cycle / pieces);
                 double remainder = (cycle / pieces) - part;
 
                 // Drawing of working box
                 if(part > 0) {
-                    gr.drawLine(sourceBox.x, CELL_Y_MARGIN, sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN);
+                    gr.drawLine(sourceBox.x, InternalSettings.CELL_Y_MARGIN, sourceBox.x + internalSettings.getSpriteSize(), InternalSettings.CELL_Y_MARGIN);
                     if(part > 1) {
-                        gr.drawLine(sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN, sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
+                        gr.drawLine(sourceBox.x + internalSettings.getSpriteSize(), InternalSettings.CELL_Y_MARGIN,
+                                sourceBox.x + internalSettings.getSpriteSize(), InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize());
                         if(part > 2) {
-                            gr.drawLine(sourceBox.x, CELL_Y_MARGIN + settings.getSpriteSize(), sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
+                            gr.drawLine(sourceBox.x, InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize(),
+                                    sourceBox.x + internalSettings.getSpriteSize(), InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize());
                             if(part > 3)
-                                gr.drawLine(sourceBox.x, CELL_Y_MARGIN, sourceBox.x, CELL_Y_MARGIN + settings.getSpriteSize());
+                                gr.drawLine(sourceBox.x, InternalSettings.CELL_Y_MARGIN, sourceBox.x,
+                                        InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize());
                             else
-                                gr.drawLine(sourceBox.x, CELL_Y_MARGIN + (int)((1 - remainder) * settings.getSpriteSize()), sourceBox.x, CELL_Y_MARGIN + settings.getSpriteSize());
+                                gr.drawLine(sourceBox.x, InternalSettings.CELL_Y_MARGIN + (int)((1 - remainder) * internalSettings.getSpriteSize()),
+                                        sourceBox.x, InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize());
                         } else
-                            gr.drawLine(sourceBox.x + (int)((1 - remainder) * settings.getSpriteSize()), CELL_Y_MARGIN + settings.getSpriteSize(), sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + settings.getSpriteSize());
+                            gr.drawLine(sourceBox.x + (int)((1 - remainder) * internalSettings.getSpriteSize()),
+                                    InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize(), sourceBox.x + internalSettings.getSpriteSize(),
+                                    InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize());
                     } else
-                        gr.drawLine(sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN, sourceBox.x + settings.getSpriteSize(), CELL_Y_MARGIN + (int)(settings.getSpriteSize() * remainder));
+                        gr.drawLine(sourceBox.x + internalSettings.getSpriteSize(), InternalSettings.CELL_Y_MARGIN,
+                                sourceBox.x + internalSettings.getSpriteSize(),
+                                InternalSettings.CELL_Y_MARGIN + (int)(internalSettings.getSpriteSize() * remainder));
                 } else
-                    gr.drawLine(sourceBox.x, CELL_Y_MARGIN, sourceBox.x + (int)(settings.getSpriteSize() * remainder), CELL_Y_MARGIN);
+                    gr.drawLine(sourceBox.x, InternalSettings.CELL_Y_MARGIN, sourceBox.x + (int)(internalSettings.getSpriteSize() * remainder),
+                            InternalSettings.CELL_Y_MARGIN);
             }
         }
     }
@@ -509,7 +527,7 @@ public class CellPanel extends JPanel {
         selected.ifPresent(obj -> {
             if(objectMap.get(obj) != null) {
                 gr.setColor(obj.getPlayer().getAlternativeColor());
-                gr.setStroke(new BasicStroke(STROKE_WIDTH));
+                gr.setStroke(new BasicStroke(InternalSettings.STROKE_WIDTH));
                 drawBox(gr, obj.getPlayer().getColor(), objectMap.get(obj));
 //                drawBox(gr, obj.getPlayer().getAlternativeColor(), constructBoundingBox(objectMap, objectMap.get(obj), player.equals(obj.getPlayer()) ? 0 : (int)((getWidth() - enemyCounter * (CELL_X_MARGIN + settings.getSpriteSize())) / 2f), 0));
             }
@@ -530,13 +548,14 @@ public class CellPanel extends JPanel {
     private Rectangle constructBoundingBox(GameObject<?> obj, Pair<Integer, Integer> selection, int xShift, int yShift) {
         return obj.getSprite()
                 .map(sprite -> new Rectangle(
-                        selection.key() * (CELL_X_MARGIN + settings.getSpriteSize()) + xShift + ((selection.key() < 0) ? getWidth() : CELL_X_MARGIN),
-                        selection.value() * (CELL_Y_MARGIN + settings.getSpriteSize()) + CELL_Y_MARGIN + yShift,
+                        selection.key() * (InternalSettings.CELL_X_MARGIN + internalSettings.getSpriteSize()) + xShift + ((selection.key() < 0) ?
+                                getWidth() : InternalSettings.CELL_X_MARGIN),
+                        selection.value() * (InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize()) + InternalSettings.CELL_Y_MARGIN + yShift,
                         sprite.getWidth(), sprite.getHeight()))
                 .orElse(new Rectangle(
-                        selection.key() * (CELL_X_MARGIN + settings.getSpriteSize()) + CELL_X_MARGIN + xShift,
-                        selection.value() * (CELL_Y_MARGIN + settings.getSpriteSize()) + CELL_Y_MARGIN + yShift,
-                        settings.getSpriteSize(), settings.getSpriteSize())
+                        selection.key() * (InternalSettings.CELL_X_MARGIN + internalSettings.getSpriteSize()) + InternalSettings.CELL_X_MARGIN + xShift,
+                        selection.value() * (InternalSettings.CELL_Y_MARGIN + internalSettings.getSpriteSize()) + InternalSettings.CELL_Y_MARGIN + yShift,
+                        internalSettings.getSpriteSize(), internalSettings.getSpriteSize())
                 );
     }
 
@@ -549,11 +568,11 @@ public class CellPanel extends JPanel {
         int lineY = y2 - y1;
         double angle = -Math.atan2(lineY, lineX) - Math.PI / 2;
 
-        BufferedImage rotated = CustomMethods.rotateImage(ARROWHEAD, angle);
-        gr.drawLine(x1 + CELL_X_MARGIN + (settings.getSpriteSize() / 2),
-                y1 + (settings.getSpriteSize() / 2), x2 + CELL_X_MARGIN + (settings.getSpriteSize() / 2), y2);
+        BufferedImage rotated = CustomMethods.rotateImageCentered(InternalSettings.ARROWHEAD, angle);
+        gr.drawLine(x1 + InternalSettings.CELL_X_MARGIN + (internalSettings.getSpriteSize() / 2),
+                y1 + (internalSettings.getSpriteSize() / 2), x2 + InternalSettings.CELL_X_MARGIN + (internalSettings.getSpriteSize() / 2), y2);
         gr.setStroke(oldStroke);
-        gr.drawImage(rotated, x2 + (settings.getSpriteSize() / 2) + CELL_X_MARGIN - rotated.getWidth() / 2,
+        gr.drawImage(rotated, x2 + (internalSettings.getSpriteSize() / 2) + InternalSettings.CELL_X_MARGIN - rotated.getWidth() / 2,
                 y2 - rotated.getHeight() / 2,
                 null);
     }
@@ -564,12 +583,12 @@ public class CellPanel extends JPanel {
         double dy = y2 - y1;
 
         double angle = -Math.atan2(dy, dx) - Math.PI / 2;
-        BufferedImage rotated = CustomMethods.rotateImage(ARROWHEAD, angle);
+        BufferedImage rotated = CustomMethods.rotateImageCentered(InternalSettings.ARROWHEAD, angle);
 
-        x1 = x1 + CELL_X_MARGIN + (settings.getSpriteSize() / 2);
-        y1 = y1 + CELL_Y_MARGIN + (settings.getSpriteSize() / 2);
-        x2 = x2 + (settings.getSpriteSize() / 2);
-        y2 = y2 + CELL_Y_MARGIN - rotated.getHeight() / 2;
+        x1 = x1 + InternalSettings.CELL_X_MARGIN + (internalSettings.getSpriteSize() / 2);
+        y1 = y1 + InternalSettings.CELL_Y_MARGIN + (internalSettings.getSpriteSize() / 2);
+        x2 = x2 + (internalSettings.getSpriteSize() / 2);
+        y2 = y2 + InternalSettings.CELL_Y_MARGIN - rotated.getHeight() / 2;
 
         dx = x2 - x1;
         dy = y2 - y1;
@@ -601,8 +620,8 @@ public class CellPanel extends JPanel {
     }
 
     public static Pair<Integer, Integer> cellCoordinateTransform(int x, int y) {
-        int selectionX = (int)Math.floor((x - CELL_X_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_X_MARGIN));
-        int selectionY = (int)Math.floor((y - CELL_Y_MARGIN) / (float)(Sprite.getSpriteSize() + CELL_Y_MARGIN));
+        int selectionX = (int)Math.floor((x - InternalSettings.CELL_X_MARGIN) / (float)(Sprite.getSpriteSize() + InternalSettings.CELL_X_MARGIN));
+        int selectionY = (int)Math.floor((y - InternalSettings.CELL_Y_MARGIN) / (float)(Sprite.getSpriteSize() + InternalSettings.CELL_Y_MARGIN));
         return new Pair<>(selectionX, selectionY);
     }
 

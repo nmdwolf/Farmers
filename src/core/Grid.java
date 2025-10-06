@@ -5,8 +5,6 @@ import objects.GameObject;
 
 import java.util.*;
 
-import static core.GameConstants.*;
-
 public class Grid extends HashMap<Location, Cell> {
 
     private int[][] pathCosts;
@@ -16,7 +14,7 @@ public class Grid extends HashMap<Location, Cell> {
     public Grid(int size) {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                Cell cell = new Cell(i, j, 0, INITIAL_CELL_UNIT_SPACE, INITIAL_CELL_BUILDING_SPACE);
+                Cell cell = new Cell(i, j, 0, InternalSettings.INITIAL_CELL_UNIT_SPACE, InternalSettings.INITIAL_CELL_BUILDING_SPACE);
                 put(cell.getLocation(), cell);
             }
         }

@@ -1,6 +1,6 @@
 package UI;
 
-import core.GameConstants;
+import core.InternalSettings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +17,7 @@ public class Subpanel extends JPanel {
         super.paintComponent(g);
         Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 
-        gr.setColor(GameConstants.GRAY);
+        gr.setColor(InternalSettings.GRAY);
         gr.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 15, 15);
         gr.dispose();
     }

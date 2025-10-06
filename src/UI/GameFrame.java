@@ -23,8 +23,7 @@ import java.util.List;
 
 import static javax.swing.MenuSelectionManager.defaultManager;
 
-import static core.GameConstants.*;
-import static core.GameConstants.NUMBER_OF_CELLS_IN_VIEW;
+import static core.InternalSettings.NUMBER_OF_CELLS_IN_VIEW;
 
 public class GameFrame extends JFrame {
 
@@ -49,6 +48,7 @@ public class GameFrame extends JFrame {
 
     @NotNull private final Main parent;
     @NotNull private final Settings settings;
+    @NotNull private final InternalSettings internalSettings;
     @NotNull private final Property<Main.GameState> gameState;
     @NotNull private final Property<Integer> cycle, playerCounter;
     @NotNull private final Property<Boolean> clicked;
@@ -63,9 +63,10 @@ public class GameFrame extends JFrame {
     private Timer resizeTimer;
     private final HashSet<Motion> motions;
 
-    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings) {
+    public GameFrame(@NotNull Main main, @NotNull Grid cells, @NotNull Property<Integer> cycle, @NotNull Property<Integer> playerCounter, @NotNull Property<Player> player, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings, @NotNull InternalSettings internalSettings) {
         parent = main;
         this.settings = settings;
+        this.internalSettings = internalSettings;
         this.gameState = gameState;
         this.cells = cells;
         this.cycle = cycle;
@@ -89,13 +90,13 @@ public class GameFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
-        operationsPanel = new OperationsPanel(settings.getCellWidth(), settings.getCellHeight());
-        choicePanel = new ChoicePanel(operationsPanel, settings.getCellWidth(), settings.getCellHeight(), _ -> hidePanels(true), showResources, target);
+        operationsPanel = new OperationsPanel(internalSettings.getCellWidth(), internalSettings.getCellHeight());
+        choicePanel = new ChoicePanel(operationsPanel, internalSettings.getCellWidth(), internalSettings.getCellHeight(), _ -> hidePanels(true), showResources, target);
         infoPanel = new InfoPanel(selected);
-        cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.get(), selected, target, gameState, settings);
+        cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.get(), selected, target, gameState, settings, internalSettings);
         settingsPanel = new SettingsPanel(settings);
         settingsScroller = CustomMethods.wrapPanel(settingsPanel);
-        missionPanel = new MissionPanel(settings);
+        missionPanel = new MissionPanel(settings, internalSettings);
         missionPanel.update(player.get().getMissionArchive());
         missionScroller = CustomMethods.wrapPanel(missionPanel);
 
@@ -142,7 +143,7 @@ public class GameFrame extends JFrame {
         super.setTitle("The Game of Ages");
 
         addResizeListener();
-        setSize(new Dimension(INITIAL_SCREEN_SIZE, INITIAL_SCREEN_SIZE));
+        setSize(new Dimension(InternalSettings.INITIAL_SCREEN_SIZE, InternalSettings.INITIAL_SCREEN_SIZE));
 
         contentPanel.add(choicePanel, Integer.valueOf(1));
         contentPanel.add(operationsPanel, Integer.valueOf(1));
@@ -156,7 +157,7 @@ public class GameFrame extends JFrame {
         setExtendedState(MAXIMIZED_BOTH);
         refresh();
 
-        settings.toggleCursor(CUSTOM_CURSOR);
+        settings.toggleCursor(InternalSettings.CUSTOM_CURSOR);
         addMouseInputs();
         addKeyInputs();
         addMenu();
@@ -205,7 +206,7 @@ public class GameFrame extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                if(settings.getCellWidth() > 0 && settings.getCellHeight() > 0) {
+                if(internalSettings.getCellWidth() > 0 && internalSettings.getCellHeight() > 0) {
                     Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
 
                     drawCells(gr);
@@ -214,7 +215,7 @@ public class GameFrame extends JFrame {
                     gr.setColor(player.get().getAlternativeColor());
                     gr.setStroke(new BasicStroke(2));
                     Cell p = posToCellCoord(mouseX, mouseY, 0);
-                    gr.drawRect((int)(p.getX() * settings.getCellWidth()), (int)(p.getY() * settings.getCellHeight()), (int)settings.getCellWidth(), (int)settings.getCellHeight());
+                    gr.drawRect((int)(p.getX() * internalSettings.getCellWidth()), (int)(p.getY() * internalSettings.getCellHeight()), (int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
                     drawPaths(gr);
 
                     gr.dispose();
@@ -286,7 +287,7 @@ public class GameFrame extends JFrame {
                 }
                 break;
             case KeyEvent.VK_RIGHT:
-                if(player.get().getViewPoint().getX() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                if(player.get().getViewPoint().getX() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
                     player.get().changeViewpoint(player.get().getViewPoint().fetch(1, 0, 0));
                     if(cellPanel.isVisible())
                         cellPanel.updateContent(cellPanel.getCurrentCell().fetch(1, 0, 0), player.get());
@@ -300,7 +301,7 @@ public class GameFrame extends JFrame {
                 }
                 break;
             case KeyEvent.VK_DOWN:
-                if(player.get().getViewPoint().getY() < NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
+                if(player.get().getViewPoint().getY() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
                     player.get().changeViewpoint(player.get().getViewPoint().fetch(0, 1, 0));
                     if(cellPanel.isVisible())
                         cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, 1, 0), player.get());
@@ -324,7 +325,7 @@ public class GameFrame extends JFrame {
                 // Moves info panel to make sure that the underlying cells are reachable.
                 selected.ifPresent( obj -> {
                     if(infoPanel != null)
-                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
+                        layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(internalSettings.getScreenWidth() - 2 * internalSettings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
 
                     if(obj.getPlayer().equals(player.get()) && (obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
                         ArrayList<Location> path = cells.getShortestAdmissiblePath(absoluteMousePos);
@@ -346,7 +347,7 @@ public class GameFrame extends JFrame {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 super.mouseWheelMoved(e);
-                if(GAME_3D) {
+                if(InternalSettings.GAME_3D) {
                     if (e.getWheelRotation() != 0 && !player.get().isViewLocked()) {
                         player.get().changeViewpoint(player.get().getViewPoint().fetch(0, 0,
                                 e.getWheelRotation()));
@@ -542,12 +543,12 @@ public class GameFrame extends JFrame {
                 Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D)g.create());
 //                gr.setColor(new Color(200, 150, 0, 76));
                 gr.setColor(new Color(200, 150, 0));
-                gr.fillRoundRect(1, 1, (int)(2 * settings.getCellWidth()) - 2, getHeight() - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
+                gr.fillRoundRect(1, 1, (int)(2 * internalSettings.getCellWidth()) - 2, getHeight() - 2, CustomBorder.RADIUS, CustomBorder.RADIUS);
                 gr.dispose();
             }
         };
 
-        panel.setPreferredSize(new Dimension((int)(2 * settings.getCellWidth()), (int)(2 * settings.getCellHeight())));
+        panel.setPreferredSize(new Dimension((int)(2 * internalSettings.getCellWidth()), (int)(2 * internalSettings.getCellHeight())));
         panel.setBorder(new CustomBorder(Color.black));
         panel.setOpaque(false);
         panel.setLayout(new BorderLayout());
@@ -562,7 +563,7 @@ public class GameFrame extends JFrame {
 
         getContentPane().add(panel, Integer.valueOf(1));
         SpringLayout layout = (SpringLayout) getContentPane().getLayout();
-        layout.putConstraint(SpringLayout.WEST, panel, (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 50), SpringLayout.WEST, getContentPane());
+        layout.putConstraint(SpringLayout.WEST, panel, (int)(internalSettings.getScreenWidth() - 2 * internalSettings.getCellWidth() - 50), SpringLayout.WEST, getContentPane());
         layout.putConstraint(SpringLayout.NORTH, panel, 50, SpringLayout.NORTH, getContentPane());
 
         player.bindSingle(_ -> getContentPane().remove(panel));
@@ -595,7 +596,6 @@ public class GameFrame extends JFrame {
         /*
          * Draw all (visible) cells
          */
-
         for (int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for (int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
                 Cell vp = player.get().getViewPoint();
@@ -603,38 +603,38 @@ public class GameFrame extends JFrame {
 
                 if (cell.isField()) {
                     gr.setColor(new Color(200, 120, 0, 100));
-                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)(settings.getCellWidth() + 2), (int)(settings.getCellHeight() + 2));
+                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1), (int)(internalSettings.getCellWidth() + 2), (int)(internalSettings.getCellHeight() + 2));
                 }
 
                 if (cell.isForest()) {
                     gr.setColor(new Color(20, 150, 20));
-    //                        gr.fillArc(x * settings.getCellWidth() - Math.round(settings.getPoolSize() / 2f), y * settings.getCellHeight() - Math.round(settings.getPoolSize() / 2f), settings.getPoolSize(), settings.getPoolSize(), 270, 90);
-                    gr.fillArc((int)(x * settings.getCellWidth() - settings.getPoolSize()), (int)((y + 1) * settings.getCellHeight() - settings.getPoolSize() - 1), (int)(2 * settings.getPoolSize()), (int)(2 * settings.getPoolSize()), 0, 90);
+    //                        gr.fillArc(x * internalSettings.getCellWidth() - Math.round(settings.getPoolSize() / 2f), y * internalSettings.getCellHeight() - Math.round(settings.getPoolSize() / 2f), settings.getPoolSize(), settings.getPoolSize(), 270, 90);
+                    gr.fillArc((int)(x * internalSettings.getCellWidth() - internalSettings.getPoolSize()), (int)((y + 1) * internalSettings.getCellHeight() - internalSettings.getPoolSize() - 1), (int)(2 * internalSettings.getPoolSize()), (int)(2 * internalSettings.getPoolSize()), 0, 90);
                 }
 
                 if (cell.isRiver()) {
                     gr.setColor(new Color(0, 100, 255));
-                    if (cell.getX() < NUMBER_OF_CELLS - 2 && cell.getY() < NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
-                        gr.fillRoundRect(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), (int)(settings.getCellWidth() + settings.getPoolSize()), (int)(settings.getCellHeight() + settings.getPoolSize()), (int)settings.getPoolSize(), (int)settings.getPoolSize());
+                    if (cell.getX() < InternalSettings.NUMBER_OF_CELLS - 2 && cell.getY() < InternalSettings.NUMBER_OF_CELLS - 2 && cell.fetch(1, 0, 0).isRiver() && cell.fetch(0, 1, 0).isRiver() && cell.fetch(1, 1, 0).isRiver())
+                        gr.fillRoundRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)), (int)(internalSettings.getCellWidth() + internalSettings.getPoolSize()), (int)(internalSettings.getCellHeight() + internalSettings.getPoolSize()), (int)internalSettings.getPoolSize(), (int)internalSettings.getPoolSize());
                     else {
                         boolean singleFlag = true;
-                        if (cell.getX() < NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
-                            gr.fillRect(Math.round((x + 0.5f) * settings.getCellWidth()), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), Math.round(settings.getCellWidth() / 2f) + 1, (int)settings.getPoolSize());
+                        if (cell.getX() < InternalSettings.NUMBER_OF_CELLS - 1 && cell.fetch(1, 0, 0).isRiver())
+                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth()), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)), Math.round(internalSettings.getCellWidth() / 2f) + 1, (int)internalSettings.getPoolSize());
                         if (cell.getX() > 0 && cell.fetch(-1, 0, 0).isRiver())
-                            gr.fillRect((int)(x * settings.getCellWidth() - 1), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), Math.round(settings.getCellWidth() / 2f), (int)settings.getPoolSize());
-                        if (cell.getY() < NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), Math.round((y + 0.5f) * settings.getCellHeight()), (int)settings.getPoolSize(), Math.round(settings.getCellHeight() / 2f));
+                            gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)), Math.round(internalSettings.getCellWidth() / 2f), (int)internalSettings.getPoolSize());
+                        if (cell.getY() < InternalSettings.NUMBER_OF_CELLS - 1 && cell.fetch(0, 1, 0).isRiver()) {
+                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), Math.round((y + 0.5f) * internalSettings.getCellHeight()), (int)internalSettings.getPoolSize(), Math.round(internalSettings.getCellHeight() / 2f));
                             singleFlag = false;
                         }
                         if (cell.getY() > 0 && cell.fetch(0, -1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), (int)(y * settings.getCellHeight()), (int)settings.getPoolSize(), Math.round(settings.getCellHeight() / 2f));
+                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), (int)(y * internalSettings.getCellHeight()), (int)internalSettings.getPoolSize(), Math.round(internalSettings.getCellHeight() / 2f));
                             singleFlag = false;
                         }
 
                         if (singleFlag)
-                            gr.fillOval(Math.round((x + 0.5f) * settings.getCellWidth() - settings.getPoolSize()), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), (int)(settings.getPoolSize() * 2), (int)settings.getPoolSize());
+                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - internalSettings.getPoolSize()), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)), (int)(internalSettings.getPoolSize() * 2), (int)internalSettings.getPoolSize());
                         else
-                            gr.fillOval(Math.round((x + 0.5f) * settings.getCellWidth() - (settings.getPoolSize() / 2f)), Math.round((y + 0.5f) * settings.getCellHeight() - (settings.getPoolSize() / 2f)), (int)settings.getPoolSize(), (int)settings.getPoolSize());
+                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)), (int)internalSettings.getPoolSize(), (int)internalSettings.getPoolSize());
                     }
                 }
             }
@@ -661,7 +661,7 @@ public class GameFrame extends JFrame {
 
     private void drawPath(Graphics2D gr, Location[] path, Cell current) {
         // Draws the initial marker
-        gr.fillOval(Math.round((current.getX() + 0.5f) * settings.getCellWidth()) - 5, Math.round((current.getY() + 0.5f) * settings.getCellHeight()) - 5, 10, 10);
+        gr.fillOval(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()) - 5, Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()) - 5, 10, 10);
 
         Stroke oldStroke = gr.getStroke();
         gr.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
@@ -673,22 +673,22 @@ public class GameFrame extends JFrame {
             Location next = path[i + 1];
 
             if (previous.x() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)(current.getX() * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), (int)(current.getX() * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()));
             else if (previous.x() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)((current.getX() + 1) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), (int)((current.getX() + 1) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()));
             else if (previous.y() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)(current.getY() * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), (int)(current.getY() * internalSettings.getCellHeight()));
             else if (previous.y() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)((current.getY() + 1) * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), (int)((current.getY() + 1) * internalSettings.getCellHeight()));
 
             if (next.x() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)((current.getX() + 1) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), (int)((current.getX() + 1) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()));
             else if (next.x() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), (int)(current.getX() * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), (int)(current.getX() * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()));
             else if (next.y() == 1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)((current.getY() + 1) * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), (int)((current.getY() + 1) * internalSettings.getCellHeight()));
             else if (next.y() == -1)
-                gr.drawLine(Math.round((current.getX() + 0.5f) * settings.getCellWidth()), Math.round((current.getY() + 0.5f) * settings.getCellHeight()), Math.round((current.getX() + 0.5f) * settings.getCellWidth()), (int)(current.getY() * settings.getCellHeight()));
+                gr.drawLine(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()), Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()), (int)(current.getY() * internalSettings.getCellHeight()));
         }
 
         Location finalMove = path[path.length - 1];
@@ -696,9 +696,9 @@ public class GameFrame extends JFrame {
 
         // Draws the destination circle with corresponding distance
         gr.setStroke(oldStroke);
-        gr.drawOval(Math.round((current.getX() + 0.5f) * settings.getCellWidth()) - 10, Math.round((current.getY() + 0.5f) * settings.getCellHeight()) - 10, 20, 20);
+        gr.drawOval(Math.round((current.getX() + 0.5f) * internalSettings.getCellWidth()) - 10, Math.round((current.getY() + 0.5f) * internalSettings.getCellHeight()) - 10, 20, 20);
         String distanceText = String.valueOf(travelDistance);
-        gr.drawString(distanceText, (current.getX() + 0.5f) * settings.getCellWidth() - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * settings.getCellHeight() + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
+        gr.drawString(distanceText, (current.getX() + 0.5f) * internalSettings.getCellWidth() - gr.getFontMetrics().stringWidth(distanceText) / 2f, (current.getY() + 0.5f) * internalSettings.getCellHeight() + (float)(gr.getFont().createGlyphVector(gr.getFontRenderContext(), distanceText).getVisualBounds().getHeight() / 2));
     }
 
     /**
@@ -715,32 +715,32 @@ public class GameFrame extends JFrame {
                 gr.setColor(player.get().getColor());
                 List<Player> playersInCell = new ArrayList<>(cell.getObjects().stream().map(GameObject::getPlayer).distinct().toList());
                 if(playersInCell.contains(player.get())) {
-                    gr.fillOval((int)(x * settings.getCellWidth() + 5), (int)(y * settings.getCellHeight() + 5), 10, 10);
+                    gr.fillOval((int)(x * internalSettings.getCellWidth() + 5), (int)(y * internalSettings.getCellHeight() + 5), 10, 10);
                     playersInCell.remove(player.get());
                 }
 
                 if(cell.isEndOfMap()) {
                     gr.setColor(Color.black);
-                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
+                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1), (int)internalSettings.getCellWidth() + 2, (int)internalSettings.getCellHeight() + 2);
                 } else if (!player.get().hasSpotted(cell)) {
                     gr.setColor(Color.lightGray);
-                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
-                } else if (!player.get().hasDiscovered(cell)) {
+                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1), (int)internalSettings.getCellWidth() + 2, (int)internalSettings.getCellHeight() + 2);
+                } else if (!player.get().hasVisited(cell)) {
                     drawWall(gr, cell, x, y);
                     gr.setColor(new Color(192, 192, 192, 200));
-                    gr.fillRect((int)(x * settings.getCellWidth() - 1), (int)(y * settings.getCellHeight() - 1), (int)settings.getCellWidth() + 2, (int)settings.getCellHeight() + 2);
+                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1), (int)internalSettings.getCellWidth() + 2, (int)internalSettings.getCellHeight() + 2);
                 } else {
                     drawWall(gr, cell, x, y);
-                    if (cell.getHeatLevel() <= COLD_LEVEL)
-                        gr.drawImage(CLOUD, (int)((x + 1) * settings.getCellWidth() - CLOUD.getWidth() - 5),
-                                (int)(y * settings.getCellHeight() + 5), null);
-                    else if (cell.getHeatLevel() >= HOT_LEVEL)
-                        gr.drawImage(SUN, (int)((x + 1) * settings.getCellWidth() - SUN.getWidth() - 5),
-                                (int)(y * settings.getCellHeight() + 5), null);
+                    if (cell.getHeatLevel() <= InternalSettings.COLD_LEVEL)
+                        gr.drawImage(InternalSettings.CLOUD, (int)((x + 1) * internalSettings.getCellWidth() - InternalSettings.CLOUD.getWidth() - 5),
+                                (int)(y * internalSettings.getCellHeight() + 5), null);
+                    else if (cell.getHeatLevel() >= InternalSettings.HOT_LEVEL)
+                        gr.drawImage(InternalSettings.SUN, (int)((x + 1) * internalSettings.getCellWidth() - InternalSettings.SUN.getWidth() - 5),
+                                (int)(y * internalSettings.getCellHeight() + 5), null);
 
                     for(int i = 0; i < playersInCell.size(); i++) {
                         gr.setColor(playersInCell.get(i).getColor());
-                        gr.drawOval((int)(x * settings.getCellWidth() + 5 + 15 * (i + 1)), (int)(y * settings.getCellHeight() + 5), 10, 10);
+                        gr.drawOval((int)(x * internalSettings.getCellWidth() + 5 + 15 * (i + 1)), (int)(y * internalSettings.getCellHeight() + 5), 10, 10);
                     }
                 }
             }
@@ -761,8 +761,8 @@ public class GameFrame extends JFrame {
             Stroke oldStroke =  gr.getStroke();
             gr.setStroke(new BasicStroke(5));
             Location drawLoc = nearestTownHall.getLocation().add(vp.getLocation().negative());
-            gr.drawRoundRect((int)(drawLoc.x() * settings.getCellWidth() - 10), (int)(drawLoc.y() * settings.getCellHeight() - 10), (int)settings.getCellWidth() + 20,
-                    (int)settings.getCellHeight() + 20, 20, 20);
+            gr.drawRoundRect((int)(drawLoc.x() * internalSettings.getCellWidth() - 10), (int)(drawLoc.y() * internalSettings.getCellHeight() - 10), (int)internalSettings.getCellWidth() + 20,
+                    (int)internalSettings.getCellHeight() + 20, 20, 20);
             gr.setStroke(oldStroke);
 
             if (drawLoc.x() >= NUMBER_OF_CELLS_IN_VIEW)
@@ -778,8 +778,8 @@ public class GameFrame extends JFrame {
 
         gr.setColor(Color.lightGray);
         for (int i = 0; i < NUMBER_OF_CELLS_IN_VIEW - 1; i++) {
-            gr.fillRect((int)((i + 1) * settings.getCellWidth() - 1), 0, 1, settings.getScreenHeight());
-            gr.fillRect(0, (int)((i + 1) * settings.getCellHeight() - 1), settings.getScreenWidth(), 1);
+            gr.fillRect((int)((i + 1) * internalSettings.getCellWidth() - 1), 0, 1, internalSettings.getScreenHeight());
+            gr.fillRect(0, (int)((i + 1) * internalSettings.getCellHeight() - 1), internalSettings.getScreenWidth(), 1);
         }
     }
 
@@ -795,10 +795,10 @@ public class GameFrame extends JFrame {
                 .toList();
         for(Direction d : walls) {
             switch(d) {
-                case NORTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2);
-                case SOUTH -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
-                case WEST -> gr.drawLine((int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)(x * settings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
-                case EAST -> gr.drawLine((int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)(y * settings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * settings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * settings.getCellHeight()) - strokeWidth / 2);
+                case NORTH -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2);
+                case SOUTH -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2, (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2);
+                case WEST -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2, (int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2);
+                case EAST -> gr.drawLine((int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2);
             }
         }
         gr.setStroke(oldStroke);
@@ -833,43 +833,43 @@ public class GameFrame extends JFrame {
      * Recalculates screen size and rescales derived dimensions.
      */
     public void resetScales() {
-        settings.setScreenWidth(getContentPane().getWidth());
-        settings.setScreenHeight(getContentPane().getHeight());
-        Sprite.setSpriteSize(settings.getSpriteSize());
-        Sprite.resizeSprites(settings.getSpriteSize());
+        internalSettings.setScreenWidth(getContentPane().getWidth());
+        internalSettings.setScreenHeight(getContentPane().getHeight());
+        Sprite.setSpriteSize(internalSettings.getSpriteSize());
+        Sprite.resizeSprites(internalSettings.getSpriteSize());
     }
 
     private void refresh() {
         resetScales();
 
-        tintedGlassPanel.setPreferredSize(new Dimension(settings.getScreenWidth(), settings.getScreenHeight()));
+        tintedGlassPanel.setPreferredSize(new Dimension(internalSettings.getScreenWidth(), internalSettings.getScreenHeight()));
         layout.putConstraint(SpringLayout.WEST, tintedGlassPanel, 0, SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, tintedGlassPanel, 0, SpringLayout.NORTH, contentPanel);
 
-        choicePanel.resizePanel((int)settings.getCellWidth(), (int)settings.getCellHeight());
-        layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((settings.getScreenWidth() - 3 * settings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, choicePanel, Math.round(settings.getScreenHeight() - 3 * settings.getCellHeight()), SpringLayout.NORTH, contentPanel);
+        choicePanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+        layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((internalSettings.getScreenWidth() - 3 * internalSettings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, choicePanel, Math.round(internalSettings.getScreenHeight() - 3 * internalSettings.getCellHeight()), SpringLayout.NORTH, contentPanel);
 
-        operationsPanel.resizePanel((int)settings.getCellWidth(), (int)settings.getCellHeight());
-        layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((settings.getScreenWidth() - 3 * settings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, operationsPanel, Math.round(settings.getScreenHeight() - 3 * settings.getCellHeight()), SpringLayout.NORTH, contentPanel);
+        operationsPanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+        layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((internalSettings.getScreenWidth() - 3 * internalSettings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, operationsPanel, Math.round(internalSettings.getScreenHeight() - 3 * internalSettings.getCellHeight()), SpringLayout.NORTH, contentPanel);
 
-        cellPanel.setPreferredSize(new Dimension((int)((NUMBER_OF_CELLS_IN_VIEW - 2) * settings.getCellWidth() + 40), ( int)((NUMBER_OF_CELLS_IN_VIEW - 2) * settings.getCellHeight() + 40)));
-        layout.putConstraint(SpringLayout.WEST, cellPanel, (int)(settings.getCellWidth() - 20), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, cellPanel, (int)(settings.getCellHeight() - 20), SpringLayout.NORTH, contentPanel);
+        cellPanel.setPreferredSize(new Dimension((int)((NUMBER_OF_CELLS_IN_VIEW - 2) * internalSettings.getCellWidth() + 40), ( int)((NUMBER_OF_CELLS_IN_VIEW - 2) * internalSettings.getCellHeight() + 40)));
+        layout.putConstraint(SpringLayout.WEST, cellPanel, (int)(internalSettings.getCellWidth() - 20), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, cellPanel, (int)(internalSettings.getCellHeight() - 20), SpringLayout.NORTH, contentPanel);
 
-        infoPanel.resizePanel((int)settings.getCellWidth(), (int)settings.getCellHeight());
+        infoPanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
         layout.putConstraint(SpringLayout.WEST, infoPanel,
-                (clickPos.x() - player.get().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (int)(settings.getScreenWidth() - 2 * settings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
+                (clickPos.x() - player.get().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (int)(internalSettings.getScreenWidth() - 2 * internalSettings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
-        settingsScroller.setPreferredSize(new Dimension((int)(4 * settings.getCellWidth()), (int)(5 * settings.getCellHeight())));
-        layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * settings.getCellWidth()), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)settings.getCellHeight(), SpringLayout.NORTH, contentPanel);
+        settingsScroller.setPreferredSize(new Dimension((int)(4 * internalSettings.getCellWidth()), (int)(5 * internalSettings.getCellHeight())));
+        layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * internalSettings.getCellWidth()), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)internalSettings.getCellHeight(), SpringLayout.NORTH, contentPanel);
 
-        missionScroller.setPreferredSize(new Dimension((int)(4 * settings.getCellWidth()), (int)(5 * settings.getCellHeight())));
-        layout.putConstraint(SpringLayout.WEST, missionScroller, (int)(2 * settings.getCellWidth()), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, missionScroller, (int)settings.getCellHeight(), SpringLayout.NORTH, contentPanel);
+        missionScroller.setPreferredSize(new Dimension((int)(4 * internalSettings.getCellWidth()), (int)(5 * internalSettings.getCellHeight())));
+        layout.putConstraint(SpringLayout.WEST, missionScroller, (int)(2 * internalSettings.getCellWidth()), SpringLayout.WEST, contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, missionScroller, (int)internalSettings.getCellHeight(), SpringLayout.NORTH, contentPanel);
 
         contentPanel.revalidate();
     }
@@ -893,7 +893,7 @@ public class GameFrame extends JFrame {
      */
     @NotNull
     private Cell posToCellCoord(int x, int y, int h) {
-        return cells.get(new Location((int)(x / settings.getCellWidth()), (int)(y / settings.getCellHeight()), h));
+        return cells.get(new Location((int)(x / internalSettings.getCellWidth()), (int)(y / internalSettings.getCellHeight()), h));
     }
 
     /**

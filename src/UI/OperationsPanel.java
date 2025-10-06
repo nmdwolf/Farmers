@@ -11,7 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 
-import static core.GameConstants.GRAY;
+import static core.InternalSettings.GRAY;
 
 public class OperationsPanel extends JPanel {
 

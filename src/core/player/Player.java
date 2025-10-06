@@ -1,5 +1,6 @@
 package core.player;
 
+import core.InternalSettings;
 import core.Cell;
 import core.resources.ResourceContainer;
 import objects.GameObject;
@@ -15,8 +16,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static core.GameConstants.*;
-
 public class Player {
 
     private final String name;
@@ -28,7 +27,7 @@ public class Player {
     private final Set<GameObject<?>> objects;
     private Set<GameObject<?>> newObjects, removableObjects;
     private final HashSet<Upgrade> enabledUpgrades;
-    private final HashSet<Cell> discovered, spotted;
+    private final HashMap<Cell, Integer> visited, spotted;
     private final HashSet<Player> allies;
     private final ResourceContainer resources, totalResources, gained, spent;
 
@@ -39,29 +38,29 @@ public class Player {
     public Player(String name, Color color, Color alternativeColor, Cell start) {
         this.name = name;
         this.color = color;
-        cycle = START_CYCLE;
+        cycle = InternalSettings.START_CYCLE;
         missionArchive = new MissionArchive(this);
         awardArchive = new AwardArchive(this);
         civ = new Nomads();
         altColor = alternativeColor;
-        popCap = START_POP_CAP;
+        popCap = InternalSettings.START_POP_CAP;
         viewLocked = true;
         viewpoint = start;
         objects = ConcurrentHashMap.newKeySet();
         newObjects = ConcurrentHashMap.newKeySet();
         removableObjects = ConcurrentHashMap.newKeySet();
         enabledUpgrades = new HashSet<>();
-        discovered = new HashSet<>();
-        spotted = new HashSet<>();
+        visited = new HashMap<>();
+        spotted = new HashMap<>();
         allies = new HashSet<>();
 
         resources = new ResourceContainer();
-        resources.put("Food", START_FOOD);
-        resources.put("Water", START_WATER);
-        resources.put("Wood", START_WOOD);
-        resources.put("Stone", START_STONE);
-        resources.put("Coal", START_COAL);
-        resources.put("Iron", START_IRON);
+        resources.put("Food", InternalSettings.START_FOOD);
+        resources.put("Water", InternalSettings.START_WATER);
+        resources.put("Wood", InternalSettings.START_WOOD);
+        resources.put("Stone", InternalSettings.START_STONE);
+        resources.put("Coal", InternalSettings.START_COAL);
+        resources.put("Iron", InternalSettings.START_IRON);
 
         totalResources = new ResourceContainer(resources); // TODO What is this variable used for?
         spent = new ResourceContainer();
@@ -120,7 +119,7 @@ public class Player {
             object.initialize(this, cycle);
             object.setCell(cell);
 
-            if (object.getType() == UNIT_TYPE)
+            if (object.getType() == InternalSettings.UNIT_TYPE)
                 changePop(object.getSize());
 
             // Change popcap
@@ -128,7 +127,7 @@ public class Player {
             object.getLoadout(Spacer.class).ifPresent(spacer -> cell.changeUnitSpace(spacer.getSpaceBoost()));
 
             Cell loc = object.getCell();
-            discover(loc);
+            visit(loc);
             spot(loc.fetch(1, 0, 0));
             spot(loc.fetch(-1, 0, 0));
             spot(loc.fetch(0, 1, 0));
@@ -150,7 +149,7 @@ public class Player {
         // change popcap
         object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(-spacer.getSpaceBoost()));
         object.getLoadout(Spacer.class).ifPresent(spacer -> object.getCell().changeUnitSpace(-spacer.getSpaceBoost()));
-        if(object.getType() == UNIT_TYPE)
+        if(object.getType() == InternalSettings.UNIT_TYPE)
             changePop(-object.getSize());
 
         object.getCell().removeContent(object);
@@ -241,6 +240,15 @@ public class Player {
 
     public void cycle() {
         cycle++;
+        visited.replaceAll((key, value) -> value + 1);
+        var removables = visited.keySet().stream()
+                .filter(key -> visited.get(key) >= InternalSettings.FORGET_CELL_THRESHOLD
+                        && key.getObjects().stream().map(GameObject::getPlayer).noneMatch(p -> p.equals(this)))
+                .toList();
+        removables.forEach(key -> {
+                    visited.remove(key);
+                    spotted.put(key, cycle);
+                });
     }
 
     public int getCycle() { return cycle; }
@@ -267,18 +275,18 @@ public class Player {
 
     public void changePopCap(int amount) { popCap += amount; }
 
-    public boolean hasSpotted(Cell loc) { return discovered.contains(loc) || spotted.contains(loc); }
+    public boolean hasSpotted(Cell loc) { return visited.containsKey(loc) || spotted.containsKey(loc); }
 
-    public boolean hasDiscovered(Cell loc) { return discovered.contains(loc); }
+    public boolean hasVisited(Cell loc) { return visited.containsKey(loc); }
 
     public void spot(Cell cell) {
-        if(!discovered.contains(cell))
-            spotted.add(cell);
+        if(!visited.containsKey(cell))
+            spotted.put(cell, cycle);
     }
 
-    public void discover(Cell cell) {
+    public void visit(Cell cell) {
         spotted.remove(cell);
-        discovered.add(cell);
+        visited.put(cell, cycle);
     }
 
     public Civilization getCivilization() { return civ; }

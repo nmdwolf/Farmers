@@ -25,8 +25,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 
-import static core.GameConstants.*;
-
 public class Main{
 
     @NotNull private final Property<Integer> cycle, playerCounter;
@@ -66,16 +64,17 @@ public class Main{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
-        cycle = new Property<>(START_CYCLE);
+        cycle = new Property<>(InternalSettings.START_CYCLE);
         playerCounter = new Property<>(0);
-        cells = new Grid(NUMBER_OF_CELLS);
+        cells = new Grid(InternalSettings.NUMBER_OF_CELLS);
         gameState = new Property<>(GameState.PLAYING);
 
         Settings settings = new Settings();
+        InternalSettings internalSettings = new InternalSettings();
         showPlayerInputDialog();
         currentPlayer.set(players.getFirst());
 
-        game = new GameFrame(this, cells, cycle, playerCounter, currentPlayer, gameState, settings);
+        game = new GameFrame(this, cells, cycle, playerCounter, currentPlayer, gameState, settings, internalSettings);
         game.initialize();
 
         playerCounter.bind(_ -> {
@@ -114,7 +113,7 @@ public class Main{
                 if(gameState.get() == GameState.ANIMATING)
                     game.cycleAnimation();
 
-                settings.cycleTextures();
+                internalSettings.cycleTextures();
                 game.updateContent(reload);
 
                 if(gameState.get() != GameState.ANIMATING) {
@@ -134,7 +133,7 @@ public class Main{
 //                        game.showMessageBox(text);
                 }
 
-                try { Thread.sleep(1000 / FPS); } catch (InterruptedException e) { break; }
+                try { Thread.sleep(1000 / InternalSettings.FPS); } catch (InterruptedException e) { break; }
             }
         });
         gameLoop.start();
@@ -207,7 +206,7 @@ public class Main{
             String name = JOptionPane.showInputDialog("What is the name of the Hero?");
             if(name == null || name.isEmpty())
                 name = "Player " + (i + 1);
-            String col = (String)JOptionPane.showInputDialog(null, "Choose the player color.", "Choose the player color.", JOptionPane.QUESTION_MESSAGE, null, PLAYER_COLORS, "Blue");
+            String col = (String)JOptionPane.showInputDialog(null, "Choose the player color.", "Choose the player color.", JOptionPane.QUESTION_MESSAGE, null, InternalSettings.PLAYER_COLORS, "Blue");
             Color color = switch(col) {
                 case "Green" -> Color.green;
                 case "Yellow" -> Color.yellow;
@@ -281,7 +280,7 @@ public class Main{
                 target.changeUnitSpace(spacer.getSpaceBoost());
             });
 
-            obj.getPlayer().discover(target);
+            obj.getPlayer().visit(target);
             int sight = obj.getSight();
             for(int x = -sight; x < sight + 1; x++)
                 for(int y = -sight; y < sight + 1; y++)

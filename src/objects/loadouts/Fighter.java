@@ -10,7 +10,7 @@ public class Fighter extends Loadout implements Aggressive<Warrior> {
     private int attack, attackCost, range;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public Fighter(@JsonProperty(required = true) int attack, @JsonProperty(defaultValue = "0") int attackCost, @JsonProperty(defaultValue = "0") int range) {
+    public Fighter(@JsonProperty(required = true, value = "attack") int attack, @JsonProperty(value = "attackCost") int attackCost, @JsonProperty(value = "range") int range) {
         super("fighter");
         this.attack = attack;
         this.attackCost = attackCost;

@@ -88,7 +88,7 @@ public class CustomMethods {
      * @param angle rotation angle in radians
      * @return rotated image
      */
-    public static BufferedImage rotateImage(BufferedImage img, double angle) {
+    public static BufferedImage rotateImageCentered(BufferedImage img, double angle) {
         double sin = Math.abs(Math.sin(angle));
         double cos = Math.abs(Math.cos(angle));
         int w = img.getWidth();
@@ -102,6 +102,35 @@ public class CustomMethods {
         int newW = maxDim; // Always using the maximum size ensures that the center coordinate is fixed
         int newH = maxDim;
         BufferedImage rotated = new BufferedImage(newW, newH, img.getType());
+
+        AffineTransform tf = new AffineTransform();
+        tf.translate(newW / 2f, newH / 2f);
+        tf.rotate(-angle);
+        tf.translate( -w / 2f, -h / 2f);
+
+        Graphics2D g2d = CustomMethods.optimizeGraphics(rotated.createGraphics());
+        g2d.drawRenderedImage(img, tf);
+        g2d.dispose();
+
+        return rotated;
+    }
+
+    /**
+     * Rotates a given image about its geometric center over the specified angle.
+     * @param img original image to be rotated
+     * @param angle rotation angle in radians
+     * @return rotated image
+     */
+    public static BufferedImage rotateImage(BufferedImage img, double angle) {
+        double sin = Math.abs(Math.sin(angle));
+        double cos = Math.abs(Math.cos(angle));
+        int w = img.getWidth();
+        int h = img.getHeight();
+
+        // Calculate the new dimensions of the rotated image
+        double newW = Math.floor(w * cos + h * sin);
+        double newH = Math.floor(h * cos + w * sin);
+        BufferedImage rotated = new BufferedImage((int)newW, (int)newH, img.getType());
 
         AffineTransform tf = new AffineTransform();
         tf.translate(newW / 2f, newH / 2f);

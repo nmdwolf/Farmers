@@ -5,7 +5,6 @@ import core.contracts.*;
 import objects.Animated;
 import objects.GameObject;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -68,9 +67,9 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
 
     private BufferedImage generateFrame(int step, int length) {
         if(code == Logger.Log.CONSTRUCT)
-            return CustomMethods.rotateImage(image, -2 * Math.PI * step / length);
+            return CustomMethods.rotateImageCentered(image, -2 * Math.PI * step / length);
         else if(code == Logger.Log.LABOUR)
-            return CustomMethods.rotateImage(image, 2 * Math.PI * step / length);
+            return CustomMethods.rotateImageCentered(image, 2 * Math.PI * step / length);
         else if(code == Logger.Log.ATTACK) {
             double shift = image.getWidth() / 2d;
             double scale = Math.cos(2 * Math.PI * step / length);

@@ -1,8 +1,8 @@
 package core.upgrade;
 
+import core.InternalSettings;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import core.GameConstants;
 import core.resources.ResourceContainer;
 import objects.Aggressive;
 import objects.Energetic;
@@ -10,29 +10,29 @@ import objects.GameObject;
 
 public class BasicUpgrade extends Upgrade {
 
-    @JsonProperty(defaultValue = "0")
+    @JsonProperty
     private int health;
 
-    @JsonProperty(defaultValue = "0")
+    @JsonProperty
     private int energy;
 
-    @JsonProperty(defaultValue = "0")
+    @JsonProperty
     private int attack;
 
-    @JsonProperty(defaultValue = "0")
+    @JsonProperty
     private int range;
 
-    @JsonProperty(defaultValue = "0")
+    @JsonProperty
     private int sight;
 
-    @JsonProperty(defaultValue = "0")
+    @JsonProperty
     private int space;
 
-    @JsonProperty(defaultValue = "")
-    private String target;
+    @JsonProperty
+    private String target = "";
 
     @JsonCreator
-    public BasicUpgrade(@JsonProperty(required = true) ResourceContainer cost, int cycle, @JsonProperty(required = true) String description, @JsonProperty(defaultValue = "false") boolean global) {
+    public BasicUpgrade(@JsonProperty(value = "cost", required = true) ResourceContainer cost, @JsonProperty(value = "cycle") int cycle, @JsonProperty(required = true, value = "description") String description, @JsonProperty(value = "global") boolean global) {
         super(cost, cycle, description, global);
     }
 
@@ -57,8 +57,8 @@ public class BasicUpgrade extends Upgrade {
 
     public static boolean validateType(BasicUpgrade upgrade, GameObject<?> obj) {
         return switch(upgrade.target) {
-            case "unit" -> obj.getType() == GameConstants.UNIT_TYPE;
-            case "building" -> obj.getType() == GameConstants.BUILDING_TYPE;
+            case "unit" -> obj.getType() == InternalSettings.UNIT_TYPE;
+            case "building" -> obj.getType() == InternalSettings.BUILDING_TYPE;
             case "" -> true;
             default -> obj.getClassLabel().equals(upgrade.target);
         };

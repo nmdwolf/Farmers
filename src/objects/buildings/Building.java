@@ -3,7 +3,7 @@ package objects.buildings;
 import objects.Construction;
 import objects.templates.ConstructionTemplate;
 
-import static core.GameConstants.BUILDING_TYPE;
+import static core.InternalSettings.BUILDING_TYPE;
 
 public class Building<B extends Building<B>> extends Construction<B> {
 

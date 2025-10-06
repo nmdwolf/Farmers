@@ -4,7 +4,7 @@ import javax.swing.border.AbstractBorder;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
-import static core.GameConstants.STROKE_WIDTH;
+import static core.InternalSettings.STROKE_WIDTH;
 
 public class CustomBorder extends AbstractBorder
 {

@@ -12,7 +12,7 @@ import objects.units.Worker;
 import java.awt.*;
 import java.util.*;
 
-import static core.GameConstants.rand;
+import static core.InternalSettings.rand;
 
 public class AI extends Player {
 
