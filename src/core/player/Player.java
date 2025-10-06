@@ -33,10 +33,10 @@ public class Player {
     private int pop, popCap, cycle;
     private boolean viewLocked;
     private final Civilization civ;
-    private final Memory memory;
+    private final Profile profile;
 
-    public Player(Memory memory, Color color, Color alternativeColor, Cell start) {
-        this.memory = memory;
+    public Player(Profile profile, Color color, Color alternativeColor, Cell start) {
+        this.profile = profile;
         this.color = color;
         cycle = InternalSettings.START_CYCLE;
         missionArchive = new MissionArchive(this);
@@ -157,7 +157,7 @@ public class Player {
     }
 
     public String getName() {
-        return memory.getName();
+        return profile.getName();
     }
 
     public Color getColor() {
@@ -301,7 +301,7 @@ public class Player {
         return missionArchive;
     }
 
-    public Memory getMemory() {
-        return memory;
+    public Profile getProfile() {
+        return profile;
     }
 }

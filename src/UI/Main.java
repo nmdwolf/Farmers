@@ -3,7 +3,7 @@ package UI;
 import core.*;
 
 import core.player.AI;
-import core.player.Memory;
+import core.player.Profile;
 import core.player.Player;
 import objects.*;
 import objects.buildings.BasicBuilding;
@@ -150,7 +150,7 @@ public class Main{
             if(settings.save()) {
                 try {
                     for (Player p : allPlayers)
-                        p.getMemory().output(p);
+                        p.getProfile().output(p);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -220,9 +220,9 @@ public class Main{
             if(name == null || name.isEmpty())
                 name = "Player " + (i + 1);
 
-            Memory memory;
+            Profile profile;
             try {
-                memory = Memory.load(name);
+                profile = Profile.load(name);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -237,7 +237,7 @@ public class Main{
             int y = 20;
 //            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
 //            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            addPlayer(new Player(memory, color, Color.magenta, cells.get(new Location(x, y, 0))));
+            addPlayer(new Player(profile, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
         int x = 21;
