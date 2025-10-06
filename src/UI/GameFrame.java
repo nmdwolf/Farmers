@@ -141,6 +141,7 @@ public class GameFrame extends JFrame {
      */
     public void initialize() {
         super.setTitle("The Game of Ages");
+        setUndecorated(true);
 
         addResizeListener();
         setSize(new Dimension(InternalSettings.INITIAL_SCREEN_SIZE, InternalSettings.INITIAL_SCREEN_SIZE));
@@ -379,8 +380,10 @@ public class GameFrame extends JFrame {
                     if (SwingUtilities.isLeftMouseButton(e)) {
 
                         // Unselect GameObject on left click
-                        if (clicked.get() && !target.get().map(Pair::value).orElse(false))
+                        if (clicked.get()) {
                             selected.set(null);
+                            target.set(null);
+                        }
 
                         // If clicked on cell with objects, show info panel
                         // TODO Change this check to cells within view distance
@@ -508,7 +511,14 @@ public class GameFrame extends JFrame {
             settingsScroller.setVisible(true);
             contentPanel.requestFocus();
         });
+        JMenuItem closeItem = new JMenuItem("Close");
+        closeItem.addActionListener(_ -> System.exit(0));
+        JCheckBoxMenuItem saveBox = new JCheckBoxMenuItem("Save enabled");
+        saveBox.setState(settings.save());
+        saveBox.addActionListener(_ -> settings.save(saveBox.getState()));
         settingsMenu.add(viewItem);
+        settingsMenu.add(saveBox);
+        settingsMenu.add(closeItem);
     }
 
     /**

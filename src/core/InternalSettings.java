@@ -74,6 +74,10 @@ public class InternalSettings {
     public static final int START_IRON = 0;
     public static final int START_COAL = 10;
 
+    /**
+     * Flag indicating whether player experience should be saved on {@code System.exit(0)}.
+     */
+    public static final boolean SAVE = true;
 
     //Random rand = new Random(19970605);
     public static final Random rand = new Random(19960808);

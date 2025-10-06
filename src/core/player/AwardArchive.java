@@ -31,7 +31,7 @@ public class AwardArchive {
     }
 
     private void initialize() {
-        obtainable.add(Award.createAward("You have mined stones for the very first time.", () -> player.getGainedAmount("Stone") > 0));
+        obtainable.add(Award.createAward("You have mined stones for the very first time.", () -> player.getGained("Stone") > 0));
     }
 
     public List<String> getNewAwards() {

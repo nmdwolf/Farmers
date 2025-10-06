@@ -6,11 +6,13 @@ import UI.GameFrame;
 import javax.swing.*;
 import java.awt.*;
 
+import static core.InternalSettings.SAVE;
+
 public class Settings {
 
     private final Property<Boolean> playMusic, shuffleMusic, showArrows;
     private String audioSource;
-    private boolean customCursor, rangedMode;
+    private boolean customCursor, rangedMode, save;
     private GameFrame frame;
 
     private Thread audioThread;
@@ -22,6 +24,7 @@ public class Settings {
         shuffleMusic = new Property<>(InternalSettings.SHUFFLE_MUSIC);
         audioSource = InternalSettings.MUSIC_FOLDER;
         customCursor = InternalSettings.CUSTOM_CURSOR;
+        save = SAVE;
     }
 
     public void initialize(GameFrame frame) {
@@ -34,6 +37,14 @@ public class Settings {
 
         toggleCursor(customCursor);
         setAudioSource(audioSource);
+    }
+
+    public boolean save() {
+        return save;
+    }
+
+    public void save(boolean save) {
+        this.save = save;
     }
 
     public void toggleCursor(boolean flag) {

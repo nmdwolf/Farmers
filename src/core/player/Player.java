@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Player {
 
-    private final String name;
     private final Color color, altColor;
     private Cell viewpoint;
     private final MissionArchive missionArchive;
@@ -34,9 +33,10 @@ public class Player {
     private int pop, popCap, cycle;
     private boolean viewLocked;
     private final Civilization civ;
+    private final Memory memory;
 
-    public Player(String name, Color color, Color alternativeColor, Cell start) {
-        this.name = name;
+    public Player(Memory memory, Color color, Color alternativeColor, Cell start) {
+        this.memory = memory;
         this.color = color;
         cycle = InternalSettings.START_CYCLE;
         missionArchive = new MissionArchive(this);
@@ -157,7 +157,7 @@ public class Player {
     }
 
     public String getName() {
-        return name;
+        return memory.getName();
     }
 
     public Color getColor() {
@@ -230,12 +230,12 @@ public class Player {
                 changeResource(resource, res.get(resource));
     }
 
-    public int getGainedAmount(String type) {
-        return gained.get(type);
+    public ResourceContainer getGained() {
+        return gained;
     }
 
-    public int getSpentAmount(String type) {
-        return spent.get(type);
+    public ResourceContainer getSpent() {
+        return spent;
     }
 
     public void cycle() {
@@ -299,5 +299,9 @@ public class Player {
 
     public MissionArchive getMissionArchive() {
         return missionArchive;
+    }
+
+    public Memory getMemory() {
+        return memory;
     }
 }

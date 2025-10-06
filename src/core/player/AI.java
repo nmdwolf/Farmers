@@ -25,7 +25,7 @@ public class AI extends Player {
     private final HashMap<Cell, ArrayList<String>> harvested;
 
     public AI(String name, Color color, Color alternativeColor, Cell start, Main game, Grid grid) {
-        super(name, color, alternativeColor, start);
+        super(new Memory(name), color, alternativeColor, start);
         harvested = new HashMap<>();
         main = game;
         this.grid = grid;

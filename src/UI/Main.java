@@ -3,6 +3,7 @@ package UI;
 import core.*;
 
 import core.player.AI;
+import core.player.Memory;
 import core.player.Player;
 import objects.*;
 import objects.buildings.BasicBuilding;
@@ -23,7 +24,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.*;
+
+import static core.InternalSettings.*;
 
 public class Main{
 
@@ -64,9 +68,9 @@ public class Main{
         players = new ArrayList<>();
         currentPlayer = new Property<>();
         ais = new ArrayList<>();
-        cycle = new Property<>(InternalSettings.START_CYCLE);
+        cycle = new Property<>(START_CYCLE);
         playerCounter = new Property<>(0);
-        cells = new Grid(InternalSettings.NUMBER_OF_CELLS);
+        cells = new Grid(NUMBER_OF_CELLS);
         gameState = new Property<>(GameState.PLAYING);
 
         Settings settings = new Settings();
@@ -142,6 +146,15 @@ public class Main{
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             gameState.set(GameState.CLOSE);
             gameLoop.interrupt();
+
+            if(settings.save()) {
+                try {
+                    for (Player p : allPlayers)
+                        p.getMemory().output(p);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }));
 
         JOptionPane.showMessageDialog(game, "To get you started, you can first try to finish some 'missions'. These will help you get a hang of the game. To see the next mission, press CTRL + M.");
@@ -206,6 +219,14 @@ public class Main{
             String name = JOptionPane.showInputDialog("What is the name of the Hero?");
             if(name == null || name.isEmpty())
                 name = "Player " + (i + 1);
+
+            Memory memory;
+            try {
+                memory = Memory.load(name);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             String col = (String)JOptionPane.showInputDialog(null, "Choose the player color.", "Choose the player color.", JOptionPane.QUESTION_MESSAGE, null, InternalSettings.PLAYER_COLORS, "Blue");
             Color color = switch(col) {
                 case "Green" -> Color.green;
@@ -216,7 +237,7 @@ public class Main{
             int y = 20;
 //            int x = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
 //            int y = ThreadLocalRandom.current().nextInt(10, NUMBER_OF_CELLS - 10);
-            addPlayer(new Player(name, color, Color.magenta, cells.get(new Location(x, y, 0))));
+            addPlayer(new Player(memory, color, Color.magenta, cells.get(new Location(x, y, 0))));
         }
 
         int x = 21;
