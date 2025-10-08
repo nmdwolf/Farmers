@@ -31,15 +31,15 @@ public class GameFrame extends JFrame {
     private JMenu playerMenu, viewMenu, cellMenu;
     private JMenuItem cycleLabel, popLabel;
     private JMenuItem[] playerLabels, resourceLabels;
-    private final InfoPanel infoPanel;
-    private final ChoicePanel choicePanel;
-    private final OperationsPanel operationsPanel;
+//    private final InfoPanel infoPanel;
+    private final JLayer<InfoPanel> infoPanel;
+    private final JLayer<ChoicePanel> choicePanel;
+    private final JLayer<OperationsPanel> operationsPanel;
     private final CellPanel cellPanel;
     private final SpringLayout layout;
     private final JLayeredPane contentPanel;
-    private final SettingsPanel settingsPanel;
-    private final MissionPanel missionPanel;
     private final JScrollPane settingsScroller, missionScroller;
+    private final JLayer<JScrollPane> settingsPanel, missionsPanel;
     private final JPanel tintedGlassPanel;
     private Font font;
 
@@ -90,15 +90,28 @@ public class GameFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
-        operationsPanel = new OperationsPanel(internalSettings.getCellWidth(), internalSettings.getCellHeight());
-        choicePanel = new ChoicePanel(operationsPanel, internalSettings.getCellWidth(), internalSettings.getCellHeight(), _ -> hidePanels(true), showResources, target);
-        infoPanel = new InfoPanel(selected);
         cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.get(), selected, target, gameState, settings, internalSettings);
-        settingsPanel = new SettingsPanel(settings);
-        settingsScroller = CustomMethods.wrapPanel(settingsPanel);
-        missionPanel = new MissionPanel(settings, internalSettings);
-        missionPanel.update(player.get().getMissionArchive());
-        missionScroller = CustomMethods.wrapPanel(missionPanel);
+
+        TranslucentLayerUI<OperationsPanel> operationsProxy =
+                new TranslucentLayerUI<>(new OperationsPanel(internalSettings.getCellWidth(), internalSettings.getCellHeight()));
+        operationsPanel = new JLayer<>(operationsProxy.getPanel(), operationsProxy);
+
+        TranslucentLayerUI<ChoicePanel> choiceProxy = new TranslucentLayerUI<>(new ChoicePanel(operationsPanel.getView(),
+                internalSettings.getCellWidth(), internalSettings.getCellHeight(), _ -> hidePanels(true), showResources, target));
+        choicePanel = new JLayer<>(choiceProxy.getPanel(), choiceProxy);
+
+        TranslucentLayerUI<InfoPanel> infoProxy = new TranslucentLayerUI<>(new InfoPanel(selected));
+        infoPanel = new JLayer<>(infoProxy.getPanel(), infoProxy);
+
+        settingsScroller = CustomMethods.wrapPanel(new SettingsPanel(settings));
+        TranslucentLayerUI<JScrollPane> settingsProxy = new TranslucentLayerUI<>(settingsScroller);
+        settingsPanel = new JLayer<>(settingsProxy.getPanel(), settingsProxy);
+
+        MissionPanel mp = new MissionPanel(settings, internalSettings);
+        mp.update(player.get().getMissionArchive());
+        missionScroller = CustomMethods.wrapPanel(mp);
+        TranslucentLayerUI<JScrollPane> missionsProxy = new TranslucentLayerUI<>(missionScroller);
+        missionsPanel = new JLayer<>(missionsProxy.getPanel(), missionsProxy);
 
         layout = new SpringLayout();
         contentPanel = constructContentPanel();
@@ -111,16 +124,17 @@ public class GameFrame extends JFrame {
             }
         };
 
-        showResources.bind(prop -> selected.ifPresent(_ -> infoPanel.update(prop)));
+        showResources.bind(prop -> selected.ifPresent(_ -> infoPanel.getView().update(prop)));
         selected.bind(_ -> {
             hidePanels(false);
             selected.ifPresent(obj -> {
                 if(obj instanceof Energetic<?> en) // Calculate path finding costs
                     cells.populateDistanceMatrix(cells.get(clickPos), player.get(), en.getEnergy());
                 showResources.set(InfoPanel.Mode.OBJECT);
-                infoPanel.setVisible(true);
-                if(obj.getPlayer().equals(player.get()))
-                    choicePanel.update(obj, cycle.get());
+                infoPanel.getView().setVisible(true);
+                if(obj.getPlayer().equals(player.get())) {
+                    choicePanel.getView().setVisible(choicePanel.getView().update(obj, cycle.get()));
+                }
             });
             refreshMenubar();
         });
@@ -133,7 +147,7 @@ public class GameFrame extends JFrame {
                 selected.set(null);
             }
         });
-        player.bind(p -> missionPanel.update(p.getMissionArchive()));
+        player.bind(p -> mp.update(p.getMissionArchive()));
     }
 
     /**
@@ -151,8 +165,8 @@ public class GameFrame extends JFrame {
         contentPanel.add(cellPanel, Integer.valueOf(0));
         contentPanel.add(infoPanel, Integer.valueOf(1));
         contentPanel.add(tintedGlassPanel, Integer.valueOf(2));
-        contentPanel.add(settingsScroller, Integer.valueOf(3));
-        contentPanel.add(missionScroller, Integer.valueOf(3));
+        contentPanel.add(settingsPanel, Integer.valueOf(3));
+        contentPanel.add(missionsPanel, Integer.valueOf(3));
 
         setVisible(true);
         setExtendedState(MAXIMIZED_BOTH);
@@ -246,8 +260,8 @@ public class GameFrame extends JFrame {
                     }
                 } else if ((event.getModifiersEx() & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK) {
                     switch (event.getKeyCode()) {
-                        case KeyEvent.VK_M -> missionScroller.setVisible(true);
-                        case KeyEvent.VK_S -> settingsScroller.setVisible(true);
+                        case KeyEvent.VK_M -> missionsPanel.getView().setVisible(true);
+                        case KeyEvent.VK_S -> settingsPanel.getView().setVisible(true);
                         default -> done = false;
                     }
                 } else switch(event.getKeyCode()) {
@@ -267,7 +281,7 @@ public class GameFrame extends JFrame {
                         break;
                     default:
                         if(choicePanel.isVisible())
-                            return choicePanel.dispatchKeyEvent(event);
+                            return choicePanel.getView().dispatchKeyEvent(event);
                         else
                             return false;
                 }
@@ -508,7 +522,7 @@ public class GameFrame extends JFrame {
 
         JMenuItem viewItem = new JMenuItem("Audio & Visuals");
         viewItem.addActionListener(_ -> {
-            settingsScroller.setVisible(true);
+            settingsPanel.getView().setVisible(true);
             contentPanel.requestFocus();
         });
         JMenuItem closeItem = new JMenuItem("Close");
@@ -525,7 +539,6 @@ public class GameFrame extends JFrame {
      * Adds a {@code SettingsPanel} to the game window.
      */
     private void initializeSettingsPanel() {
-
         tintedGlassPanel.setOpaque(false);
         settingsScroller.addComponentListener(new ComponentAdapter() {
             @Override
@@ -540,8 +553,7 @@ public class GameFrame extends JFrame {
                 tintedGlassPanel.setVisible(false);
             }
         });
-
-        settingsScroller.setVisible(false);
+        settingsPanel.getView().setVisible(false);
     }
 
     public JPanel showMessageBox(String text) {
@@ -856,11 +868,11 @@ public class GameFrame extends JFrame {
         layout.putConstraint(SpringLayout.WEST, tintedGlassPanel, 0, SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, tintedGlassPanel, 0, SpringLayout.NORTH, contentPanel);
 
-        choicePanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+        choicePanel.getView().resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
         layout.putConstraint(SpringLayout.WEST, choicePanel, Math.round((internalSettings.getScreenWidth() - 3 * internalSettings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, choicePanel, Math.round(internalSettings.getScreenHeight() - 3 * internalSettings.getCellHeight()), SpringLayout.NORTH, contentPanel);
 
-        operationsPanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+        operationsPanel.getView().resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
         layout.putConstraint(SpringLayout.WEST, operationsPanel, Math.round((internalSettings.getScreenWidth() - 3 * internalSettings.getCellWidth()) / 2f), SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, operationsPanel, Math.round(internalSettings.getScreenHeight() - 3 * internalSettings.getCellHeight()), SpringLayout.NORTH, contentPanel);
 
@@ -868,28 +880,33 @@ public class GameFrame extends JFrame {
         layout.putConstraint(SpringLayout.WEST, cellPanel, (int)(internalSettings.getCellWidth() - 20), SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, cellPanel, (int)(internalSettings.getCellHeight() - 20), SpringLayout.NORTH, contentPanel);
 
-        infoPanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+//        infoPanel.resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+        infoPanel.getView().resizePanel((int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
         layout.putConstraint(SpringLayout.WEST, infoPanel,
                 (clickPos.x() - player.get().getViewPoint().getX()) >= Math.round(NUMBER_OF_CELLS_IN_VIEW / 2f) ? 10 : (int)(internalSettings.getScreenWidth() - 2 * internalSettings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
         layout.putConstraint(SpringLayout.NORTH, infoPanel, 10, SpringLayout.NORTH, contentPanel);
 
         settingsScroller.setPreferredSize(new Dimension((int)(4 * internalSettings.getCellWidth()), (int)(5 * internalSettings.getCellHeight())));
-        layout.putConstraint(SpringLayout.WEST, settingsScroller, (int)(2 * internalSettings.getCellWidth()), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, settingsScroller, (int)internalSettings.getCellHeight(), SpringLayout.NORTH, contentPanel);
+        layout.putConstraint(SpringLayout.WEST, settingsPanel, (int)(2 * internalSettings.getCellWidth()), SpringLayout.WEST,
+                contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, settingsPanel, (int)internalSettings.getCellHeight(), SpringLayout.NORTH,
+                contentPanel);
 
         missionScroller.setPreferredSize(new Dimension((int)(4 * internalSettings.getCellWidth()), (int)(5 * internalSettings.getCellHeight())));
-        layout.putConstraint(SpringLayout.WEST, missionScroller, (int)(2 * internalSettings.getCellWidth()), SpringLayout.WEST, contentPanel);
-        layout.putConstraint(SpringLayout.NORTH, missionScroller, (int)internalSettings.getCellHeight(), SpringLayout.NORTH, contentPanel);
+        layout.putConstraint(SpringLayout.WEST, missionsPanel, (int)(2 * internalSettings.getCellWidth()), SpringLayout.WEST,
+                contentPanel);
+        layout.putConstraint(SpringLayout.NORTH, missionsPanel, (int)internalSettings.getCellHeight(), SpringLayout.NORTH,
+                contentPanel);
 
         contentPanel.revalidate();
     }
 
     public void hidePanels(boolean alsoCellPanel) {
-        infoPanel.setVisible(false);
-        operationsPanel.setVisible(false);
-        choicePanel.setVisible(false);
-        settingsScroller.setVisible(false);
-        missionScroller.setVisible(false);
+        infoPanel.getView().setVisible(false);
+        operationsPanel.getView().setVisible(false);
+        choicePanel.getView().setVisible(false);
+        settingsPanel.getView().setVisible(false);
+        missionsPanel.getView().setVisible(false);
         if(alsoCellPanel)
             cellPanel.setVisible(false);
     }

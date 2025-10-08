@@ -48,7 +48,7 @@ public class ChoicePanel extends JPanel {
         addListeners();
     }
 
-    public void update(GameObject<?> selected, int cycle) {
+    public boolean update(GameObject<?> selected, int cycle) {
         for(RoundedButton button : buttons.values()) {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());
@@ -86,8 +86,7 @@ public class ChoicePanel extends JPanel {
             buttons.get(KeyEvent.VK_X).setVisible(true);
         }
 
-        if(buttons.values().stream().anyMatch(RoundedButton::isVisible))
-            setVisible(true);
+        return buttons.values().stream().anyMatch(RoundedButton::isVisible);
     }
 
     public void resizePanel(float cellWidth, float cellHeight) {
@@ -147,4 +146,5 @@ public class ChoicePanel extends JPanel {
         add(button, c);
         buttonCounter++;
     }
+
 }
