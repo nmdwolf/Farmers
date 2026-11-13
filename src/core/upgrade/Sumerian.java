@@ -30,7 +30,7 @@ public class Sumerian implements Civilization {
     }
 
     @Override
-    public GameObject<?> initObject(GameObject<?> obj) {
+    public GameObject initObject(GameObject obj) {
         return obj;
     }
 
@@ -44,7 +44,7 @@ public class Sumerian implements Civilization {
         }
 
         @Override
-        public void apply(GameObject<?> object) {
+        public void apply(GameObject object) {
             object.changeMaxHealth(10);
         }
     }

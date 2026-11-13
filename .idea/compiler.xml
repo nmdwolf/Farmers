@@ -15,6 +15,7 @@
     <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Farmers" options="" />
+      <module name="age-of-farmers" options="" />
     </option>
   </component>
 </project>

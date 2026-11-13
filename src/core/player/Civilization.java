@@ -16,5 +16,5 @@ public interface Civilization {
      * @param obj basic instance
      * @return civilization-adapted instance
      */
-    GameObject<?> initObject(GameObject<?> obj);
+    GameObject initObject(GameObject obj);
 }

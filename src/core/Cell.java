@@ -17,7 +17,7 @@ public class Cell {
 
     private final ResourceContainer resources;
     private final Location loc;
-    private final HashSet<GameObject<?>> content;
+    private final HashSet<GameObject> content;
     private int unitSpace, unitOccupied, buildingSpace, buildingOccupied, travelCost, heatLevel, traversalCount;
 
     private Cell east, west, north, south, up, down;
@@ -252,7 +252,7 @@ public class Cell {
      * Adds an object to this cell.
      * @param obj new object
      */
-    public void addContent(GameObject<?> obj) {
+    public void addContent(GameObject obj) {
         if(!equals(obj.getCell())) {
             content.add(obj);
             if (obj instanceof Unit) {
@@ -268,7 +268,7 @@ public class Cell {
      * Removes an object from this cell.
      * @param obj object to be removed
      */
-    public void removeContent(GameObject<?> obj) {
+    public void removeContent(GameObject obj) {
         if(equals(obj.getCell())) {
             content.remove(obj);
             if (obj instanceof Unit)
@@ -283,7 +283,7 @@ public class Cell {
      * Returns a set of objects contained in this cell.
      * @return set of objects
      */
-    public HashSet<GameObject<?>> getObjects() { return content; }
+    public HashSet<GameObject> getObjects() { return content; }
 
     /**
      * Changes parameters of the cell when the season switches

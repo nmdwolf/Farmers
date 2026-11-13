@@ -18,7 +18,7 @@ public class Nomads implements Civilization {
     }
 
     @Override
-    public GameObject<?> initObject(GameObject<?> obj) {
+    public GameObject initObject(GameObject obj) {
         return obj;
     }
 }

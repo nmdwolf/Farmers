@@ -14,7 +14,7 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class Worker extends Unit<Worker> implements objects.Gatherer {
+public abstract class Worker extends Unit implements objects.Gatherer {
 
     private List<Booster> boosters;
 

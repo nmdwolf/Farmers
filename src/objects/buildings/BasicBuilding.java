@@ -3,7 +3,7 @@ package objects.buildings;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 
-public class BasicBuilding extends Building<BasicBuilding> {
+public class BasicBuilding extends Building {
 
     public BasicBuilding(ConstructionTemplate temp) {
         super(temp);

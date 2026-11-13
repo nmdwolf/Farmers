@@ -1,11 +1,12 @@
 package core.contracts;
 
 import objects.Construction;
+import objects.GameObject;
 import objects.buildings.Foundation;
 import objects.Spacer;
 import objects.units.Worker;
 
-public class ConstructContract<T extends Construction<T>> extends Contract<Worker>{
+public class ConstructContract<T extends Construction> extends Contract{
 
     private final T constructable;
     private final Foundation<T> foundation;
@@ -18,9 +19,9 @@ public class ConstructContract<T extends Construction<T>> extends Contract<Worke
 
     @Override
     public void initialize() {
-        if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())
-                && getEmployee().getPlayer().addObject(foundation, getEmployee().getCell())) {
-            getEmployee().getPlayer().changeResources(constructable.getCost().negative());
+        if(!isStarted() && ((GameObject)getEmployee()).getPlayer().hasResources(constructable.getCost())
+                && ((GameObject)getEmployee()).getPlayer().addObject(foundation, ((GameObject)getEmployee()).getCell())) {
+            ((GameObject)getEmployee()).getPlayer().changeResources(constructable.getCost().negative());
             super.initialize();
         }
     }
@@ -28,10 +29,10 @@ public class ConstructContract<T extends Construction<T>> extends Contract<Worke
     @Override
     public void terminate() {
 //        constructable.initialize(foundation.getPlayer(), foundation.getStartCycle());
-        getEmployee().getPlayer().removeObject(foundation);
-        getEmployee().getPlayer().addObject(constructable, foundation.getCell());
+        ((GameObject)getEmployee()).getPlayer().removeObject(foundation);
+        ((GameObject)getEmployee()).getPlayer().addObject(constructable, foundation.getCell());
         constructable.handleCompletion();
-        constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
+        constructable.getConstructionAward().ifPresent(a -> ((GameObject)getEmployee()).getPlayer().getAwardArchive().awardExternal(a));
     }
 
     @Override

@@ -16,13 +16,13 @@ import static core.InternalSettings.COLD_LEVEL;
 import static core.InternalSettings.UNIT_TYPE;
 import static core.Status.IDLE;
 
-public abstract class Unit<U extends Unit<U>> extends Construction<U> implements Animated<U> {
+public abstract class Unit extends Construction implements Animated {
 
     private int energy, maxEnergy, step;
     private final int animationDelay;
     private Status status, oldStatus;
     private final int cycleLength;
-    private final ArrayList<Contract<U>> contracts;
+    private final ArrayList<Contract> contracts;
     private Logger logger;
 
     public Unit(UnitTemplate temp) {
@@ -138,8 +138,8 @@ public abstract class Unit<U extends Unit<U>> extends Construction<U> implements
         if(!contracts.isEmpty()) {
             setStatus(Status.WORKING);
 
-            for (Iterator<Contract<U>> iterator = contracts.iterator(); iterator.hasNext(); ) {
-                Contract<U> c = iterator.next();
+            for (Iterator<Contract> iterator = contracts.iterator(); iterator.hasNext(); ) {
+                Contract c = iterator.next();
                 while(getEnergy() >= c.getEnergyCost()) {
                     if (c.work(logger)) {
                         iterator.remove();
@@ -168,7 +168,7 @@ public abstract class Unit<U extends Unit<U>> extends Construction<U> implements
      * @throws IllegalArgumentException If the given contract does not have this Worker as assigned employee, an exception is thrown. For existing contracts, the {@code transferContract(Contract c) } method should be used.
      */
     @Override
-    public void addContract(Contract<U> c) throws IllegalArgumentException {
+    public void addContract(Contract c) throws IllegalArgumentException {
         if(!c.getEmployee().equals(this))
             throw new IllegalArgumentException("Contract is required to have this Worker as assigned employee.");
 
@@ -184,8 +184,8 @@ public abstract class Unit<U extends Unit<U>> extends Construction<U> implements
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void transferContract(Contract<U> c) {
-        c.setEmployee((U)this);
+    public void transferContract(Contract c) {
+        c.setEmployee(this);
         addContract(c);
     }
 
@@ -201,7 +201,7 @@ public abstract class Unit<U extends Unit<U>> extends Construction<U> implements
     }
 
     @Override
-    public ArrayList<Contract<U>> getContracts() { return contracts; }
+    public ArrayList<Contract> getContracts() { return contracts; }
 
     @Override
     public String toString() {

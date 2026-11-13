@@ -34,7 +34,7 @@ public class Grid extends HashMap<Location, Cell> {
         }
     }
 
-    public static int objectDistance(GameObject<?> obj1, GameObject<?> obj2) {
+    public static int objectDistance(GameObject obj1, GameObject obj2) {
         return distance(obj1.getCell(), obj2.getCell());
     }
 

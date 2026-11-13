@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 // TODO MERGE WITH BUILDINGS?
-public class Foundation<T extends Construction<T>> extends GameObject<T> {
+public class Foundation<T extends Construction> extends GameObject {
 
     public final static BufferedImage FOUNDATION_SPRITE_MAX = Sprite.loadSprite("src/img/foundation.png", InternalSettings.SPRITE_SIZE_MAX, InternalSettings.SPRITE_SIZE_MAX).orElseThrow();
 

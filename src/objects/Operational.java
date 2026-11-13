@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Signals that a GameObject can "work" or perform operations.
  * This is also used for the graphics modules to generate a working animation (if applicable).
  */
-public interface Operational<U extends GameObject<U> & Operational<U>> {
+public interface Operational {
 
     /**
      * Gives a list of all operations of the specified type that this object can perform at the current time.
@@ -29,19 +29,19 @@ public interface Operational<U extends GameObject<U> & Operational<U>> {
      * Adds a contract (compatible with this object's type) to the list of active contracts.
      * @param c new contract
      */
-    void addContract(Contract<U> c);
+    void addContract(Contract c);
 
     /**
      * Transfers a contract from an existing owner to this object.
      * @param c contract to transfer
      */
-    void transferContract(Contract<U> c);
+    void transferContract(Contract c);
 
     /**
      * Retrieves the list of active contracts.
      * @return list of active contracts
      */
-    ArrayList<Contract<U>> getContracts();
+    ArrayList<Contract> getContracts();
 
     /**
      * Stops working on all contracts and stops moving.

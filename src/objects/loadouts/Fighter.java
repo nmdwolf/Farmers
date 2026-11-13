@@ -1,11 +1,16 @@
 package objects.loadouts;
 
 import com.fasterxml.jackson.annotation.*;
+import core.OperationCode;
+import core.OperationsList;
+import core.contracts.Contract;
 import objects.Aggressive;
 import objects.GameObject;
 import objects.units.Warrior;
 
-public class Fighter extends Loadout implements Aggressive<Warrior> {
+import java.util.ArrayList;
+
+public class Fighter extends Loadout implements Aggressive {
 
     private int attack, attackCost, range;
 
@@ -31,7 +36,7 @@ public class Fighter extends Loadout implements Aggressive<Warrior> {
     }
 
     @Override
-    public void attack(GameObject<?> object) { object.changeHealth(-attack); }
+    public void attack(GameObject object) { object.changeHealth(-attack); }
 
     @Override
     public void changeAttack(int amount) { attack += amount; }
@@ -46,4 +51,33 @@ public class Fighter extends Loadout implements Aggressive<Warrior> {
                 ((range > 0) ? "\nRange: " + range : "");
     }
 
+    @Override
+    public OperationsList getOperations(int cycle, OperationCode code) {
+        return null;
+    }
+
+    @Override
+    public void work() {
+
+    }
+
+    @Override
+    public void addContract(Contract c) {
+
+    }
+
+    @Override
+    public void transferContract(Contract c) {
+
+    }
+
+    @Override
+    public ArrayList<Contract> getContracts() {
+        return null;
+    }
+
+    @Override
+    public void seizeActions() {
+
+    }
 }

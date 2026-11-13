@@ -16,10 +16,10 @@ public class ChoicePanel extends JPanel {
     private final HashMap<Integer, RoundedButton> buttons;
     private Dimension buttonSize;
     private final ActionListener hideListener, hideThisListener, showCellResources, showPlayerResources;
-    private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
+    private final UnsafeProperty<Pair<GameObject, Boolean>> target;
     private int buttonCounter;
 
-    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, UnsafeProperty<Pair<GameObject<?>, Boolean>> target) {
+    public ChoicePanel(OperationsPanel operationsPanel, float cellWidth, float cellHeight, ActionListener hide, Property<InfoPanel.Mode> showResources, UnsafeProperty<Pair<GameObject, Boolean>> target) {
         this.operationsPanel = operationsPanel;
         this.hideListener = hide;
         this.target = target;
@@ -48,7 +48,7 @@ public class ChoicePanel extends JPanel {
         addListeners();
     }
 
-    public boolean update(GameObject<?> selected, int cycle) {
+    public boolean update(GameObject selected, int cycle) {
         for(RoundedButton button : buttons.values()) {
             button.setVisible(false);
             button.setColor(selected.getPlayer().getAlternativeColor());
@@ -81,7 +81,7 @@ public class ChoicePanel extends JPanel {
             buttons.get(KeyEvent.VK_A).setVisible(true);
         }
 
-        if(selected instanceof Operational<?>) {
+        if(selected instanceof Operational) {
             buttons.get(KeyEvent.VK_X).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EXTRA, cycle));
             buttons.get(KeyEvent.VK_X).setVisible(true);
         }

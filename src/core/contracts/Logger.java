@@ -17,14 +17,14 @@ public class Logger {
     }
 
     public void logLabour(String resource, boolean finished) {
-        if(!(object instanceof Operational<?>))
+        if(!(object instanceof Operational))
             throw new IllegalStateException("The object used to initialize this Logger is not of type 'Operational'.");
 
         logs.addLast(new Log(Log.LABOUR,object.getClassLabel() + " extracted " + resource + (finished ? " and the source was emptied." : ".")));
     }
 
     public void logConstruction(boolean built) {
-        if(!(object instanceof Operational<?>))
+        if(!(object instanceof Operational))
             throw new IllegalStateException("The object used to initialize this Logger is not of type 'Operational'.");
 
         logs.addLast(new Log(Log.CONSTRUCT, object.getClassLabel() + (built ? " finished a construction." : " progressed in a construction.")));

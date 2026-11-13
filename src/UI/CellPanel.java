@@ -34,18 +34,18 @@ public class CellPanel extends JPanel {
     private ArrayDeque<Animation> animations;
     private Rectangle selectionBox;
 
-    private final UnsafeProperty<GameObject<?>> selected;
-    private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
+    private final UnsafeProperty<GameObject> selected;
+    private final UnsafeProperty<Pair<GameObject, Boolean>> target;
     private final Property<Main.GameState> gameState;
     private final Settings settings;
     private final InternalSettings internalSettings;
     private Player player;
-    private HashMap<GameObject<?>, Rectangle> objectMap;
+    private HashMap<GameObject, Rectangle> objectMap;
     private Cell cell;
     private boolean reload;
 
     public CellPanel(@NotNull Cell initialCell, @NotNull Player initialPlayer,
-                     @NotNull UnsafeProperty<GameObject<?>> selected, @NotNull UnsafeProperty<Pair<GameObject<?>,
+                     @NotNull UnsafeProperty<GameObject> selected, @NotNull UnsafeProperty<Pair<GameObject,
                     Boolean>> target, @NotNull Property<Main.GameState> gameState, @NotNull Settings settings,
                      @NotNull InternalSettings internalSettings) {
         cell = initialCell;
@@ -76,8 +76,8 @@ public class CellPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 if(gameState.get() == Main.GameState.PLAYING) {
-                    GameObject<?> obj = null;
-                    for(GameObject<?> object : objectMap.keySet())
+                    GameObject obj = null;
+                    for(GameObject object : objectMap.keySet())
                         if(objectMap.get(object).contains(e.getPoint())) {
                             obj = object;
                             break; // early stopping
@@ -99,7 +99,7 @@ public class CellPanel extends JPanel {
 
                 if(gameState.get() == Main.GameState.PLAYING) {
                     selectionBox = null;
-                    for(GameObject<?> object : objectMap.keySet()) {
+                    for(GameObject object : objectMap.keySet()) {
                         if (objectMap.get(object).contains(e.getPoint())) {
                             selectionBox = objectMap.get(object);
                             break; // early stopping
@@ -156,7 +156,7 @@ public class CellPanel extends JPanel {
 
             // Objects in current cell
             int enemyCount = (int)cell.getObjects().stream().filter(obj -> !player.equals(obj.getPlayer())).count();
-            for (GameObject<?> object : cell.getObjects()) {
+            for (GameObject object : cell.getObjects()) {
                 if (object.getPlayer().equals(player)) {
                     if (object instanceof Unit)
                         objectMap.put(object, constructBoundingBox(object, new Pair<>(unitCounter++, unitRow), 0, 0));
@@ -185,7 +185,7 @@ public class CellPanel extends JPanel {
                     };
 
                     if(!neighbour.isEndOfMap()) {
-                        for (GameObject<?> object : neighbour.getObjects())
+                        for (GameObject object : neighbour.getObjects())
                             if (!object.getPlayer().equals(player)) {
                                 objectMap.put(object, constructBoundingBox(
                                         object,
@@ -310,17 +310,17 @@ public class CellPanel extends JPanel {
             if(drawing == null)
                 doubleBuffer();
 
-            java.util.List<GameObject<?>> drawables = cell.getObjects().stream()
+            java.util.List<GameObject> drawables = cell.getObjects().stream()
                     .filter(obj -> obj.getPlayer().equals(player))
                     .filter(Animated.class::isInstance)
-                    .filter(obj -> ((Animated<?>) obj).getLogger().size() > 0)
+                    .filter(obj -> ((Animated) obj).getLogger().size() > 0)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             animations = new ArrayDeque<>(drawables.size());
             currentAnimationFrame = new Pair<>(drawing, ""); // Start with current cell (without selection boxes)
 
             for(var obj : drawables)
-                obj.getSprite().ifPresent(_ -> animations.addLast(new Animation(((Animated<?>) obj), InternalSettings.SECONDS_PER_ANIMATION * InternalSettings.FPS)));
+                obj.getSprite().ifPresent(_ -> animations.addLast(new Animation((Animated) obj, InternalSettings.SECONDS_PER_ANIMATION * InternalSettings.FPS)));
 
             gameState.set(Main.GameState.ANIMATING);
 
@@ -417,7 +417,7 @@ public class CellPanel extends JPanel {
         /*
          * Draw all (visible/relevant) game objects taking into account their state
          */
-        for(GameObject<?> object : objectMap.keySet()) {
+        for(GameObject object : objectMap.keySet()) {
             Rectangle boundingBox = objectMap.get(object);
             int x = boundingBox.x;
             int y = boundingBox.y;
@@ -466,13 +466,13 @@ public class CellPanel extends JPanel {
     private void drawDetails(Graphics2D gr) {
         cycle = (++cycle % InternalSettings.FPS);
         gr.setStroke(new BasicStroke(InternalSettings.STROKE_WIDTH));
-        for(GameObject<?> object : objectMap.keySet()) {
+        for(GameObject object : objectMap.keySet()) {
             selected.get().ifPresentOrElse(
                     obj -> gr.setColor(object.equals(obj) ? object.getPlayer().getAlternativeColor() : object.getPlayer().getColor()),
                     () -> gr.setColor(object.getPlayer().getColor()));
 
             // Draws animation around working Units
-            if(object.getPlayer().equals(player) && object instanceof Unit<?> u && u.getStatus() == Status.WORKING) {
+            if(object.getPlayer().equals(player) && object instanceof Unit u && u.getStatus() == Status.WORKING) {
                 Rectangle sourceBox = objectMap.get(u);
                 if(settings.showArrows()) {
                     u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
@@ -481,7 +481,7 @@ public class CellPanel extends JPanel {
                             drawArrow(gr, sourceBox.x, sourceBox.y, targetBox.x, targetBox.y);
                     });
 
-                    u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract<?>)c).forEach(c -> {
+                    u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract)c).forEach(c -> {
                         Rectangle targetBox = objectMap.get(c.getTarget());
                         if(targetBox != null)
                             drawWavyArrow(gr, sourceBox.x, sourceBox.y, targetBox.x, targetBox.y);
@@ -545,7 +545,7 @@ public class CellPanel extends JPanel {
         gr.setColor(oldColor);
     }
 
-    private Rectangle constructBoundingBox(GameObject<?> obj, Pair<Integer, Integer> selection, int xShift, int yShift) {
+    private Rectangle constructBoundingBox(GameObject obj, Pair<Integer, Integer> selection, int xShift, int yShift) {
         return obj.getSprite()
                 .map(sprite -> new Rectangle(
                         selection.key() * (InternalSettings.CELL_X_MARGIN + internalSettings.getSpriteSize()) + xShift + ((selection.key() < 0) ?

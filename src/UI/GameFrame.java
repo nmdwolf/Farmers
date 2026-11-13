@@ -53,8 +53,8 @@ public class GameFrame extends JFrame {
     @NotNull private final Property<Integer> cycle, playerCounter;
     @NotNull private final Property<Boolean> clicked;
     @NotNull private final Property<InfoPanel.Mode> showResources;
-    @NotNull private final UnsafeProperty<GameObject<?>> selected;
-    @NotNull private final UnsafeProperty<Pair<GameObject<?>, Boolean>> target;
+    @NotNull private final UnsafeProperty<GameObject> selected;
+    @NotNull private final UnsafeProperty<Pair<GameObject, Boolean>> target;
     private int travelDistance;
     private Location clickPos, destination;
     @NotNull private final UnsafeProperty<Location[]> hoverPath;
@@ -128,7 +128,7 @@ public class GameFrame extends JFrame {
         selected.bind(_ -> {
             hidePanels(false);
             selected.ifPresent(obj -> {
-                if(obj instanceof Energetic<?> en) // Calculate path finding costs
+                if(obj instanceof Energetic en) // Calculate path finding costs
                     cells.populateDistanceMatrix(cells.get(clickPos), player.get(), en.getEnergy());
                 showResources.set(InfoPanel.Mode.OBJECT);
                 infoPanel.getView().setVisible(true);
@@ -140,9 +140,11 @@ public class GameFrame extends JFrame {
         });
         target.bindIfPresent(pair -> {
             if (pair.key() != null && !pair.value()) {
-                selected.ifPresent(fighter -> {
-                    if(Grid.objectDistance(fighter, pair.key()) <= ((Aggressive<?>) fighter).getRange()) // TODO Fix this
-                        ((Unit<?>) fighter).addContract(new AttackContract(fighter, ((Aggressive<?>) fighter).getAttackCost(), pair.key()));
+                selected.ifPresent(obj -> {
+                    if(obj instanceof Aggressive fighter)
+                        if(Grid.objectDistance(obj, pair.key()) <= fighter.getRange()) // TODO Fix this
+                            ((Unit) fighter).addContract(new AttackContract(fighter, fighter.getAttackCost(),
+                                    pair.key()));
                 });
                 selected.set(null);
             }
@@ -342,7 +344,7 @@ public class GameFrame extends JFrame {
                     if(infoPanel != null)
                         layout.putConstraint(SpringLayout.WEST, infoPanel, (mousePos.getX() > (NUMBER_OF_CELLS_IN_VIEW - 4)) ? 10 : (int)(internalSettings.getScreenWidth() - 2 * internalSettings.getCellWidth() - 30), SpringLayout.WEST, contentPanel);
 
-                    if(obj.getPlayer().equals(player.get()) && (obj instanceof Unit<?> unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
+                    if(obj.getPlayer().equals(player.get()) && (obj instanceof Unit unit) && (hoverPath.get().isEmpty() || !mousePos.getLocation().equals(destination)) && !absoluteMousePos.isEndOfMap()) {
                         ArrayList<Location> path = cells.getShortestAdmissiblePath(absoluteMousePos);
 
                         if (path != null) {
@@ -412,7 +414,7 @@ public class GameFrame extends JFrame {
                     } else if (SwingUtilities.isRightMouseButton(e)) {
                         selected.ifPresent(obj -> {
 
-                            if(obj instanceof Unit<?> unit) {
+                            if(obj instanceof Unit unit) {
                                 ArrayList<Location> path = cells.getShortestAdmissiblePath(cells.get(clickPos));
 
                                 if (path != null) {

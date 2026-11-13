@@ -4,24 +4,24 @@ import objects.Energetic;
 import objects.GameObject;
 import objects.Operational;
 
-public abstract class Contract<T extends GameObject<T> & Operational<T>> {
+public abstract class Contract {
 
-    private T employee;
+    private Operational employee;
     private final int energyCost;
     private boolean isStarted, idle;
 
-    public Contract(T employee, int energyCost) {
+    public Contract(Operational employee, int energyCost) {
         this.employee = employee;
         this.energyCost = energyCost;
         isStarted = false;
         idle = true;
     }
 
-    public T getEmployee() {
+    public Operational getEmployee() {
         return employee;
     }
 
-    public void setEmployee(T worker) {
+    public void setEmployee(Operational worker) {
         employee = worker;
         idle = (worker == null);
     }
@@ -58,7 +58,7 @@ public abstract class Contract<T extends GameObject<T> & Operational<T>> {
         if(!isStarted)
             initialize();
 
-        if (isStarted && employee instanceof Energetic<?> energetic && energetic.getEnergy() >= energyCost)
+        if (isStarted && employee instanceof Energetic energetic && energetic.getEnergy() >= energyCost)
             energetic.changeEnergy(-energyCost);
 
         return isStarted;

@@ -23,8 +23,8 @@ public class Player {
     private final MissionArchive missionArchive;
     private final AwardArchive awardArchive;
 
-    private final Set<GameObject<?>> objects;
-    private Set<GameObject<?>> newObjects, removableObjects;
+    private final Set<GameObject> objects;
+    private Set<GameObject> newObjects, removableObjects;
     private final HashSet<Upgrade> enabledUpgrades;
     private final HashMap<Cell, Integer> visited, spotted;
     private final HashSet<Player> allies;
@@ -83,20 +83,20 @@ public class Player {
         allies.add(p);
     }
 
-    public Set<GameObject<?>> getObjects() {
+    public Set<GameObject> getObjects() {
         return objects;
     }
 
-    public Set<GameObject<?>> getNewObjects() {
+    public Set<GameObject> getNewObjects() {
         objects.addAll(newObjects);
-        HashSet<GameObject<?>> temp = new HashSet<>(newObjects);
+        HashSet<GameObject> temp = new HashSet<>(newObjects);
         newObjects = ConcurrentHashMap.newKeySet();
         return temp;
     }
 
-    public Set<GameObject<?>> getRemovableObjects() {
+    public Set<GameObject> getRemovableObjects() {
         objects.removeAll(removableObjects);
-        HashSet<GameObject<?>> temp = new HashSet<>(removableObjects);
+        HashSet<GameObject> temp = new HashSet<>(removableObjects);
         removableObjects = ConcurrentHashMap.newKeySet();
         return temp;
     }
@@ -105,7 +105,7 @@ public class Player {
      * Make new object ready to be added to the game field.
      * @param object GameObject to be added
      */
-    public boolean addObject(GameObject<?> object, Cell cell) {
+    public boolean addObject(GameObject object, Cell cell) {
         object = civ.initObject(object);
 
         boolean added = false;
@@ -144,7 +144,7 @@ public class Player {
         return added;
     }
 
-    public void removeObject(GameObject<?> object) {
+    public void removeObject(GameObject object) {
 
         // change popcap
         object.getLoadout(Spacer.class).ifPresent(spacer -> changePopCap(-spacer.getSpaceBoost()));

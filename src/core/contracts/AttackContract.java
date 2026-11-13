@@ -4,11 +4,12 @@ import objects.Aggressive;
 import objects.GameObject;
 import objects.Operational;
 
-public class AttackContract<T extends GameObject<T> & Operational<T> & Aggressive<T>> extends Contract<T> {
+public class AttackContract extends Contract {
 
-    private final GameObject<?> target;
+    private final GameObject target;
 
-    public AttackContract(T aggressor, int energyCost, GameObject<?> target) {
+    public <T extends Aggressive> AttackContract(T aggressor, int energyCost,
+                                                                            GameObject target) {
         super(aggressor, energyCost);
         this.target = target;
     }
@@ -16,7 +17,7 @@ public class AttackContract<T extends GameObject<T> & Operational<T> & Aggressiv
     @Override
     public boolean work(Logger logger) {
         if(super.work(logger)) {
-            getEmployee().attack(target);
+            ((Aggressive)getEmployee()).attack(target);     // employer will always be Aggressor in this class
             boolean result = target.getHealth() <= 0;
             logger.logAttack(result);
             return result;
@@ -30,7 +31,7 @@ public class AttackContract<T extends GameObject<T> & Operational<T> & Aggressiv
     @Override
     public void abandon() {}
 
-    public GameObject<?> getTarget() {
+    public GameObject getTarget() {
         return target;
     }
 }

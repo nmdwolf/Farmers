@@ -23,7 +23,7 @@ public class Booster extends Loadout implements objects.Booster {
     }
 
     @Override
-    public int getBoostAmount(GameObject<?> obj, String res) {
+    public int getBoostAmount(GameObject obj, String res) {
         return yield.get(res);
     }
 

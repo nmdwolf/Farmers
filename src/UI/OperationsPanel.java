@@ -62,7 +62,7 @@ public class OperationsPanel extends JPanel {
         setOpaque(false);
     }
 
-    public void update(GameObject<?> selected, OperationCode code, int cycle) throws IllegalArgumentException {
+    public void update(GameObject selected, OperationCode code, int cycle) throws IllegalArgumentException {
         for (int i = 0; i < 16; i++) {
             RoundedButton button = buttons[i];
             button.setColor(selected.getPlayer().getAlternativeColor());
@@ -82,7 +82,7 @@ public class OperationsPanel extends JPanel {
                     operations.put(u.getDescription(), _ -> u.upgrade(selected.getPlayer()));
             }
         } else
-            operations = ((Operational<?>)selected).getOperations(cycle, code);
+            operations = ((Operational)selected).getOperations(cycle, code);
 
         if(!operations.isEmpty()) {
             for (int i = 0; i < operations.size(); i++) {

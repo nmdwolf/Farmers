@@ -6,7 +6,7 @@ import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class Wall extends Building<Wall> implements Obstruction, Directional { ;
+public class Wall extends Building implements Obstruction, Directional { ;
 
     private final Direction direction;
 

@@ -61,7 +61,7 @@ public abstract class Upgrade {
         if(global) {
             p.changeResources(cost.negative());
             p.enableUpgrade(this);
-            for (GameObject<?> obj : p.getObjects())
+            for (GameObject obj : p.getObjects())
                 apply(obj);
         }
     }
@@ -70,7 +70,7 @@ public abstract class Upgrade {
      * Method used to apply upgrades post-hoc
      * @param object upgradable object
      */
-    public abstract void apply(GameObject<?> object);
+    public abstract void apply(GameObject object);
 
     public boolean isVisible(Player p) {
         return p.getCycle() >= threshold && !p.hasUpgrade(this);

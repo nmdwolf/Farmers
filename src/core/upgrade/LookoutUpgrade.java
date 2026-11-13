@@ -20,5 +20,5 @@ public class LookoutUpgrade extends Upgrade {
     }
 
     @Override
-    public void apply(GameObject<?> object) {}
+    public void apply(GameObject object) {}
 }

@@ -9,7 +9,7 @@ import objects.templates.ConstructionTemplate;
 
 import java.util.ArrayList;
 
-public abstract class ConstructiveBuilding<B extends ConstructiveBuilding<B>> extends Building<B> implements Constructor, Operational<B> {
+public abstract class ConstructiveBuilding extends Building implements Constructor, Operational {
 
     private int x, y;
     public ConstructiveBuilding(ConstructionTemplate temp, int x, int y) {
@@ -53,16 +53,16 @@ public abstract class ConstructiveBuilding<B extends ConstructiveBuilding<B>> ex
 
     // TODO implement contracts
     @Override
-    public ArrayList<Contract<B>> getContracts() {
+    public ArrayList<Contract> getContracts() {
         return null;
     }
 
     @Override
-    public void transferContract(Contract<B> c) {}
+    public void transferContract(Contract c) {}
 
     // TODO implement contracts
     @Override
-    public void addContract(Contract<B> c) {
+    public void addContract(Contract c) {
 
     }
 }

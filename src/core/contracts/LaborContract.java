@@ -6,7 +6,7 @@ import objects.units.Worker;
 /**
  * This Contract type implements the extraction of resources.
  */
-public class LaborContract extends Contract<Worker> {
+public class LaborContract extends Contract {
 
     private final String resource;
     private final Cell cell;
@@ -25,10 +25,10 @@ public class LaborContract extends Contract<Worker> {
     @Override
     public boolean work(Logger logger) {
         if(super.work(logger)) {
-            int amount = getEmployee().getYield(resource);
+            int amount = ((Worker)getEmployee()).getYield(resource);
             int gain = -cell.changeResource(resource, -amount);
-            getEmployee().getPlayer().changeResource(resource, gain);
-            getEmployee().step();
+            ((Worker)getEmployee()).getPlayer().changeResource(resource, gain);
+            ((Worker)getEmployee()).step();
 
             boolean finished = (cell.getResource(resource) == 0);
             logger.logLabour(resource, finished);

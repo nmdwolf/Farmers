@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-public class Hero extends Unit<Hero> implements Aggressive<Hero> {
+public class Hero extends Unit implements Aggressive {
 
     public final static BufferedImage SPRITE_MAX = Sprite.loadSprite("src/img/hero.png", InternalSettings.SPRITE_SIZE_MAX, (int)(InternalSettings.SPRITE_SIZE_MAX / 0.6)).orElseThrow();
 
@@ -73,7 +73,7 @@ public class Hero extends Unit<Hero> implements Aggressive<Hero> {
     }
 
     @Override
-    public void attack(GameObject<?> obj) {
+    public void attack(GameObject obj) {
         getLoadout(Fighter.class).ifPresent(l -> l.attack(obj));
     }
 

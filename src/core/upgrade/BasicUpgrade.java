@@ -37,7 +37,7 @@ public class BasicUpgrade extends Upgrade {
     }
 
     @Override
-    public void apply(GameObject<?> object) {
+    public void apply(GameObject object) {
 
         if(validateType(this, object)) {
 
@@ -45,17 +45,17 @@ public class BasicUpgrade extends Upgrade {
             object.changeSight(sight);
             object.changeSize(space);
 
-            if (object instanceof Energetic<?> e)
+            if (object instanceof Energetic e)
                 e.changeMaxEnergy(energy);
 
-            if (object instanceof Aggressive<?> a) {
+            if (object instanceof Aggressive a) {
                 a.changeAttack(attack);
                 a.changeRange(range);
             }
         }
     }
 
-    public static boolean validateType(BasicUpgrade upgrade, GameObject<?> obj) {
+    public static boolean validateType(BasicUpgrade upgrade, GameObject obj) {
         return switch(upgrade.target) {
             case "unit" -> obj.getType() == InternalSettings.UNIT_TYPE;
             case "building" -> obj.getType() == InternalSettings.BUILDING_TYPE;

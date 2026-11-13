@@ -5,7 +5,7 @@ import objects.templates.ConstructionTemplate;
 
 import static core.InternalSettings.BUILDING_TYPE;
 
-public class Building<B extends Building<B>> extends Construction<B> {
+public class Building extends Construction {
 
     public Building(ConstructionTemplate temp) {
         super(temp);

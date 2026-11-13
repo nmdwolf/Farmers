@@ -101,10 +101,10 @@ public class Main{
                 for(Player p : allPlayers) {
                     reload = !p.getNewObjects().isEmpty() || reload;
 
-                    for (GameObject<?> obj : p.getObjects()) {
+                    for (GameObject obj : p.getObjects()) {
                         if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                             p.removeObject(obj);
-                        if(obj instanceof Animated<?> a)
+                        if(obj instanceof Animated a)
                             a.step();
 
                         // Checks whether the object has changed
@@ -164,8 +164,8 @@ public class Main{
      * Switches to the next player.
      */
     private void nextPlayer() {
-        for (GameObject<?> object : currentPlayer.get().getObjects()) {
-            if(object instanceof Energetic<?> op)
+        for (GameObject object : currentPlayer.get().getObjects()) {
+            if(object instanceof Energetic op)
                 op.initLogger();
         }
         currentPlayer.get().cycle();
@@ -262,11 +262,11 @@ public class Main{
 //        else
         players.add(p);
 
-        GameObject<?> base = new TownHall();
-//        GameObject<?> building = BasicBuilding.createBuilding("House");
-        GameObject<?> building = BasicBuilding.createBuilding("Lumberjack");
-        GameObject<?> v1 = new Villager();
-        GameObject<?> v2 = new Villager();
+        GameObject base = new TownHall();
+//        GameObject building = BasicBuilding.createBuilding("House");
+        GameObject building = BasicBuilding.createBuilding("Lumberjack");
+        GameObject v1 = new Villager();
+        GameObject v2 = new Villager();
         Hero hero = new Hero();
         hero.setName(p.getName());
 
@@ -285,7 +285,7 @@ public class Main{
      * @param obj object to move
      * @param loc new Location of object
      */
-    public void moveObject(GameObject<?> obj, Location loc) {
+    public void moveObject(GameObject obj, Location loc) {
         Cell target = cells.get(loc);
         if (!obj.getCell().equals(target)) {
             if(obj instanceof Unit) {

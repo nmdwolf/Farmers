@@ -11,7 +11,7 @@ public interface Booster {
     int getBoostRadius();
 
     // TODO Why also a GameObject?
-    int getBoostAmount(GameObject<?> obj, String res);
+    int getBoostAmount(GameObject obj, String res);
 
     ResourceContainer getYield();
 }

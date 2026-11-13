@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class GameObject<G extends GameObject<G>> {
+public abstract class GameObject {
 
     private final int id;
     private final HashMap<String, Loadout> loadouts;
@@ -287,7 +287,7 @@ public abstract class GameObject<G extends GameObject<G>> {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof GameObject<?> go) && (id == go.getObjectIdentifier());
+        return (obj instanceof GameObject go) && (id == go.getObjectIdentifier());
     }
 
     @Override

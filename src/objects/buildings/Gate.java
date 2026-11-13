@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class Gate extends Building<Gate> implements Obstruction, Directional, Operational<Gate> {
+public class Gate extends Building implements Obstruction, Directional, Operational {
 
     private boolean open;
     private final Direction direction;
@@ -65,17 +65,17 @@ public class Gate extends Building<Gate> implements Obstruction, Directional, Op
     }
 
     @Override
-    public void addContract(Contract<Gate> c) {
+    public void addContract(Contract c) {
 
     }
 
     @Override
-    public void transferContract(Contract<Gate> c) {
+    public void transferContract(Contract c) {
 
     }
 
     @Override
-    public ArrayList<Contract<Gate>> getContracts() {
+    public ArrayList<Contract> getContracts() {
         return null;
     }
 

@@ -26,7 +26,7 @@ public class Medic extends Loadout implements Healer {
     }
 
     @Override
-    public void heal(GameObject<?> obj) {
+    public void heal(GameObject obj) {
         obj.changeHealth(heal);
     }
 

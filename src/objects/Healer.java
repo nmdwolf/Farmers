@@ -2,7 +2,7 @@ package objects;
 
 public interface Healer {
 
-    void heal(GameObject<?> obj);
+    void heal(GameObject obj);
 
     int getHeal();
 

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-public class TownHall extends ConstructiveBuilding<TownHall> implements Spacer, Evolvable {
+public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable {
 
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
     public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});

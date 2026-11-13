@@ -1,6 +1,6 @@
 package objects;
 
-public interface Aggressive<T extends GameObject<T> & Aggressive<T>> {
+public interface Aggressive extends Operational {
 
     int getAttack();
 
@@ -8,7 +8,7 @@ public interface Aggressive<T extends GameObject<T> & Aggressive<T>> {
 
     int getRange();
 
-    void attack(GameObject<?> obj);
+    void attack(GameObject obj);
 
     void changeAttack(int amount);
 

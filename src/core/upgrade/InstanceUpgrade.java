@@ -5,7 +5,7 @@ import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 
-public abstract class InstanceUpgrade<T extends GameObject<T>> extends Upgrade{
+public abstract class InstanceUpgrade<T extends GameObject> extends Upgrade{
 
     private final T object;
     public final int id;
@@ -22,7 +22,7 @@ public abstract class InstanceUpgrade<T extends GameObject<T>> extends Upgrade{
     }
 
     @Override
-    public void apply(GameObject<?> object) {}
+    public void apply(GameObject object) {}
 
     @Override
     public void upgrade(Player p) {
