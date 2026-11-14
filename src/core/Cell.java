@@ -5,6 +5,7 @@ import objects.GameObject;
 import objects.Obstruction;
 import objects.buildings.Building;
 import objects.buildings.Directional;
+import objects.loadouts.Spacer;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -260,6 +261,10 @@ public class Cell {
                 changeUnitOccupied(obj.getSize());
             } else if (obj instanceof Building)
                 changeBuildingOccupied(obj.getSize());
+
+            obj.getLoadout(Spacer.class).ifPresent(spacer -> {
+                this.changeUnitSpace(spacer.getSpaceBoost());
+            });
         } else
             throw new IllegalArgumentException("Object is already located in this cell.");
     }
@@ -275,6 +280,10 @@ public class Cell {
                 changeUnitOccupied(-obj.getSize());
             else if (obj instanceof Building)
                 changeBuildingOccupied(-obj.getSize());
+
+            obj.getLoadout(Spacer.class).ifPresent(spacer -> {
+                this.changeUnitSpace(-spacer.getSpaceBoost());
+            });
         } else
             throw new IllegalArgumentException("Object is not located in this cell.");
     }

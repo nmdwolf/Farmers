@@ -11,6 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * A template for GameObjects, including loadouts, upgrades and animation information.
+ */
 public class Template {
 
     private final HashMap<String, Object> loadouts;

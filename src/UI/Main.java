@@ -7,7 +7,6 @@ import core.player.Profile;
 import core.player.Player;
 import objects.*;
 import objects.buildings.BasicBuilding;
-import objects.buildings.Building;
 import objects.buildings.TownHall;
 import objects.loadouts.*;
 import objects.loadouts.Booster;
@@ -15,7 +14,6 @@ import objects.loadouts.Gatherer;
 import objects.loadouts.Spacer;
 import objects.templates.*;
 import objects.units.Hero;
-import objects.units.Unit;
 import objects.units.Villager;
 import objects.units.Warrior;
 import org.jetbrains.annotations.NotNull;
@@ -105,7 +103,7 @@ public class Main{
                         if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                             p.removeObject(obj);
                         if(obj instanceof Animated a)
-                            a.step();
+                            a.nextFrame();
 
                         // Checks whether the object has changed
                         reload = reload || obj.hasChanged();
@@ -288,19 +286,6 @@ public class Main{
     public void moveObject(GameObject obj, Location loc) {
         Cell target = cells.get(loc);
         if (!obj.getCell().equals(target)) {
-            if(obj instanceof Unit) {
-                obj.getCell().changeUnitOccupied(-obj.getSize());
-                target.changeUnitOccupied(obj.getSize());
-            }
-            if(obj instanceof Building) {
-                obj.getCell().changeBuildingOccupied(-obj.getSize());
-                target.changeBuildingOccupied(obj.getSize());
-            }
-            obj.getLoadout(Spacer.class).ifPresent(spacer -> {
-                obj.getCell().changeUnitSpace(-spacer.getSpaceBoost());
-                target.changeUnitSpace(spacer.getSpaceBoost());
-            });
-
             obj.getPlayer().visit(target);
             int sight = obj.getSight();
             for(int x = -sight; x < sight + 1; x++)

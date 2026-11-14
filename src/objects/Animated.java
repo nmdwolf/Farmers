@@ -3,14 +3,14 @@ package objects;
 public interface Animated extends Energetic {
 
     @Deprecated
-    void step();
+    void nextFrame();
 
     /**
      * Current step in the working cycle.
      * @return current working stage
      */
     @Deprecated
-    int getCurrentStep();
+    int getCurrentFrame();
 
     /**
      * The total number of steps in a working cycle.
@@ -18,7 +18,7 @@ public interface Animated extends Energetic {
      * @return working cycle length
      */
     @Deprecated
-    int getCycleLength();
+    int getAnimationLength();
 
     /**
      * Gives this object's "move speed". Used by {@code Motion}'s for animation purposes.

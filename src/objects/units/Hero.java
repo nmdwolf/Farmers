@@ -6,9 +6,6 @@ import core.*;
 import core.OperationsList;
 import core.player.Player;
 import core.upgrade.Upgrade;
-import objects.Aggressive;
-import objects.GameObject;
-import objects.loadouts.Fighter;
 import objects.templates.TemplateFactory;
 import objects.templates.UnitTemplate;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-public class Hero extends Unit implements Aggressive {
+public class Hero extends Unit {
 
     public final static BufferedImage SPRITE_MAX = Sprite.loadSprite("src/img/hero.png", InternalSettings.SPRITE_SIZE_MAX, (int)(InternalSettings.SPRITE_SIZE_MAX / 0.6)).orElseThrow();
 
@@ -56,35 +53,4 @@ public class Hero extends Unit implements Aggressive {
     public OperationsList getOperations(int cycle, OperationCode code) {
         return OperationsList.EMPTY_LIST;
     }
-
-    @Override
-    public int getAttack() {
-        return getLoadout(Fighter.class).map(Fighter::getAttack).orElse(0);
-    }
-
-    @Override
-    public int getAttackCost() {
-        return getLoadout(Fighter.class).map(Fighter::getAttackCost).orElse(0);
-    }
-
-    @Override
-    public int getRange() {
-        return getLoadout(Fighter.class).map(Fighter::getRange).orElse(0);
-    }
-
-    @Override
-    public void attack(GameObject obj) {
-        getLoadout(Fighter.class).ifPresent(l -> l.attack(obj));
-    }
-
-    @Override
-    public void changeAttack(int amount) {
-        getLoadout(Fighter.class).ifPresent(l -> l.changeAttack(amount));
-    }
-
-    @Override
-    public void changeRange(int amount) {
-        getLoadout(Fighter.class).ifPresent(l -> l.changeRange(amount));
-    }
-
 }

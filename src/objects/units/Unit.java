@@ -89,7 +89,7 @@ public abstract class Unit extends Construction implements Animated {
      * @return current working stage
      */
     @Override
-    public int getCurrentStep() { return step; }
+    public int getCurrentFrame() { return step; }
 
     /**
      * The total number of steps in a working cycle.
@@ -97,10 +97,10 @@ public abstract class Unit extends Construction implements Animated {
      * @return working cycle length
      */
     @Override
-    public int getCycleLength() { return cycleLength; }
+    public int getAnimationLength() { return cycleLength; }
 
     @Override
-    public void step() { step = (++step) % cycleLength; }
+    public void nextFrame() { step = (++step) % cycleLength; }
 
     /**
      * Returns the current status of the GameObject.
@@ -183,7 +183,6 @@ public abstract class Unit extends Construction implements Animated {
      * @param c new contract
      */
     @Override
-    @SuppressWarnings("unchecked")
     public void transferContract(Contract c) {
         c.setEmployee(this);
         addContract(c);

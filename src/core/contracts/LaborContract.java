@@ -24,11 +24,13 @@ public class LaborContract extends Contract {
 
     @Override
     public boolean work(Logger logger) {
+        Worker w = (Worker) getEmployee();
+
         if(super.work(logger)) {
-            int amount = ((Worker)getEmployee()).getYield(resource);
+            int amount = w.getYield(resource);
             int gain = -cell.changeResource(resource, -amount);
-            ((Worker)getEmployee()).getPlayer().changeResource(resource, gain);
-            ((Worker)getEmployee()).step();
+            w.getPlayer().changeResource(resource, gain);
+            w.nextFrame();
 
             boolean finished = (cell.getResource(resource) == 0);
             logger.logLabour(resource, finished);

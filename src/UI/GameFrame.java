@@ -143,7 +143,7 @@ public class GameFrame extends JFrame {
                 selected.ifPresent(obj -> {
                     if(obj instanceof Aggressive fighter)
                         if(Grid.objectDistance(obj, pair.key()) <= fighter.getRange()) // TODO Fix this
-                            ((Unit) fighter).addContract(new AttackContract(fighter, fighter.getAttackCost(),
+                            fighter.addContract(new AttackContract(fighter, fighter.getAttackCost(),
                                     pair.key()));
                 });
                 selected.set(null);
@@ -336,8 +336,19 @@ public class GameFrame extends JFrame {
                 super.mouseMoved(e);
                 mouseX = e.getX(); // TODO Merge clickPos and mousePos variables!
                 mouseY = e.getY();
+
                 Cell mousePos = posToCellCoord(mouseX, mouseY, player.get().getViewPoint().getZ());
                 Cell absoluteMousePos = mousePos.fetch(player.get().getViewPoint().getLocation());
+
+                // only change cell menu content when player is hovering over game frame
+                if(!cellPanel.isVisible()) {
+                    if (player.get().hasVisited(absoluteMousePos))
+                        setCellMenuContent(absoluteMousePos);
+                    else
+                        setCellMenuContent(null);
+                }
+
+
 
                 // Moves info panel to make sure that the underlying cells are reachable.
                 selected.ifPresent( obj -> {
@@ -848,9 +859,6 @@ public class GameFrame extends JFrame {
         Cell cell = cells.get(clickPos);
         for(int i = 0; i < resources.length; i++)
             resourceLabels[i].setText(resources[i] + ": " + cell.getResource(resources[i]));
-
-        cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
-                " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
     }
 
     /**
@@ -949,5 +957,17 @@ public class GameFrame extends JFrame {
             }
         };
         new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
+    }
+
+    public void setCellMenuContent(Cell cell) {
+        if (cell != null) {
+            cellMenu.setText("Space: " + cell.getUnitOccupied() + "/" + cell.getUnitSpace() +
+                    " | " + cell.getBuildingOccupied() + "/" + cell.getBuildingSpace());
+            cellMenu.setEnabled(true);
+        }
+        else {
+            cellMenu.setText("Cell is unknown");
+            cellMenu.setEnabled(false);
+        }
     }
 }

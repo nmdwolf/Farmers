@@ -65,6 +65,7 @@
   {
     "type": "Lumberjack",
     "health": 250,
+    "sprite": "Lumberjack",
     "size": 1,
     "sight": 1,
     "energyCost": 1,

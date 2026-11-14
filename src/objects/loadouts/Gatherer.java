@@ -12,8 +12,10 @@ public class Gatherer extends Loadout implements objects.Gatherer {
     private ResourceContainer yield;
     private int energyCost;
 
-    @JsonCreator
-    private Gatherer(@JsonProperty(required = true) ResourceContainer yield, @JsonProperty(required = true) int energyCost) {
+    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+    private Gatherer(@JsonProperty(required = true, value = "yield") ResourceContainer yield,
+                     @JsonProperty(required =
+            true, value = "energyCost") int energyCost) {
         super("gatherer");
         this.yield = yield;
         this.energyCost = energyCost;

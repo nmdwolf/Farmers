@@ -41,12 +41,13 @@ public abstract class GameObject {
         this.health = temp.health;
         maxHealth = temp.health;
 
+        // Retrieve all loadouts from the template.
         loadouts = new HashMap<>();
-        var props = new HashMap<>(temp.getLoadouts());
-        for(String type : props.keySet()) {
+        var props = temp.getLoadouts();
+        for(String type : props.keySet()) {     // for each available loadout, create an instance and assign
             Loadout l = LoadoutFactory.createLoadout(type, props.get(type));
             loadouts.put(type, l);
-            l.setOwner(this);
+            l.setOwner(this);       // assign ownership to this object
         }
 
         upgrades = temp.getUpgrades();
