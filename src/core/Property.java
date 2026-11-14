@@ -29,7 +29,7 @@ public class Property<T> {
         return property;
     }
 
-    public void set(T property) {
+    public void set(@NotNull T property) {
         for (Consumer<T> action : earlyActions)
             action.accept(property);
         this.property = property;

@@ -1,5 +1,7 @@
 package core;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -17,11 +19,8 @@ public class UnsafeProperty<T> extends Property<Optional<T>> {
         super.set(Optional.ofNullable(value));
     }
 
-    public void set(Optional<T> value) {
-        if(value == null)
-            super.set(Optional.empty());
-        else
-            super.set(value);
+    public void unset() {
+        super.set(Optional.empty());
     }
 
     public void ifPresent(Consumer<T> action) {
