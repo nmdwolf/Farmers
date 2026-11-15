@@ -10,6 +10,11 @@ import java.util.Random;
 public class InternalSettings {
 
     /**
+     * Cell shift on hover
+     */
+    public final static int HOVER_SHIFT = -5;
+
+    /**
      * Number of cells along each axis.
      */
     public static final int NUMBER_OF_CELLS = 100;

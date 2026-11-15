@@ -1,8 +1,8 @@
 package core.contracts;
 
-import objects.Aggressive;
 import objects.GameObject;
 import objects.Operational;
+import objects.loadouts.Fighter;
 
 import java.util.ArrayDeque;
 
@@ -31,7 +31,7 @@ public class Logger {
     }
 
     public void logAttack(boolean killed) {
-        if(!(object instanceof Aggressive))
+        if(!(object.hasLoadout(Fighter.class)))
             throw new IllegalStateException("The object used to initialize this Logger is not of type 'Aggressive'.");
 
         logs.addLast(new Log(Log.ATTACK, object.getClassLabel() + " attacked his target" + (killed ? " and the enemy was killed." : ".")));

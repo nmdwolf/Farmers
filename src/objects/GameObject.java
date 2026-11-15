@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class GameObject {
@@ -278,6 +279,15 @@ public abstract class GameObject {
      */
     public void addLoadout(@NotNull Loadout l) {
         loadouts.put(l.getClass().getSimpleName().toLowerCase(), l);
+    }
+
+    /**
+     * Dispatches the method to the specified loadout if it is present.
+     */
+    public <T extends Loadout> void dispatchToLoadout(Class<T> loadoutClass, Consumer<T> consumer) {
+        Loadout l = loadouts.get(loadoutClass.getSimpleName().toLowerCase());
+        if (l != null)
+            consumer.accept(loadoutClass.cast(l));
     }
 
     // BASE METHODS INHERITED FROM OBJECT

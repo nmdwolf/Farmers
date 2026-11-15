@@ -3,12 +3,13 @@ package UI;
 import core.*;
 import core.contracts.AttackContract;
 import core.player.Player;
-import objects.Aggressive;
 import objects.Energetic;
 import objects.GameObject;
 import core.Status;
+import objects.Operational;
 import objects.buildings.TownHall;
 import objects.buildings.Wall;
+import objects.loadouts.Fighter;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static core.InternalSettings.HOVER_SHIFT;
 import static javax.swing.MenuSelectionManager.defaultManager;
 
 import static core.InternalSettings.NUMBER_OF_CELLS_IN_VIEW;
@@ -141,10 +143,11 @@ public class GameFrame extends JFrame {
         target.bindIfPresent(pair -> {
             if (pair.key() != null && !pair.value()) {
                 selected.ifPresent(obj -> {
-                    if(obj instanceof Aggressive fighter)
-                        if(Grid.objectDistance(obj, pair.key()) <= fighter.getRange()) // TODO Fix this
-                            fighter.addContract(new AttackContract(fighter, fighter.getAttackCost(),
-                                    pair.key()));
+                    if(obj instanceof Operational fighter && obj.hasLoadout(Fighter.class))
+                        if(Grid.objectDistance(obj, pair.key()) <= obj.getLoadout(Fighter.class)
+                                                                        .orElse(new Fighter()).getRange()) //
+                            // TODO Fix this
+                            fighter.addContract(new AttackContract(fighter, pair.key()));
                 });
                 selected.unset();
             }
@@ -226,31 +229,73 @@ public class GameFrame extends JFrame {
                 if(internalSettings.getCellWidth() > 0 && internalSettings.getCellHeight() > 0) {
                     Graphics2D gr = CustomMethods.optimizeGraphics((Graphics2D) g.create());
 
+                    // draw gray background
+                    gr.setColor(Color.lightGray);
+                    gr.fillRect(0, 0, internalSettings.getScreenWidth(), internalSettings.getScreenHeight());
+
                     drawCells(gr);
-                    drawDetails(gr);
 
-                    Cell p = posToCellCoord(mouseX, mouseY, 0);
+                    // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistic).
+                    // TODO remove grid overlay
+                    if(gps) {
+                        Cell viewpoint = player.get().getViewPoint();
+
+                        // find the nearest townhall
+                        Cell nearestTownHall =
+                                player.get().getObjects().stream()
+                                        .filter(obj -> obj instanceof TownHall)
+                                        .min((obj1, obj2) -> Integer.min(obj1.getCell().getLocation().distanceTo(viewpoint.getLocation())
+                                                , obj2.getCell().getLocation().distanceTo(viewpoint.getLocation())))
+                                        .map(GameObject::getCell)
+                                        .orElse(viewpoint);
+
+                        gr.setColor(Color.black);
+                        Stroke oldStroke =  gr.getStroke();
+                        gr.setStroke(new BasicStroke(5));
+                        Location drawLoc = nearestTownHall.getLocation().add(viewpoint.getLocation().negative());
+                        gr.drawRoundRect((int)(drawLoc.x() * internalSettings.getCellWidth() - 10), (int)(drawLoc.y() * internalSettings.getCellHeight() - 10), (int)internalSettings.getCellWidth() + 20,
+                                (int)internalSettings.getCellHeight() + 20, 20, 20);
+                        gr.setStroke(oldStroke);
+
+                        if (drawLoc.x() >= NUMBER_OF_CELLS_IN_VIEW)
+                            gr.fillOval(this.getWidth() - 60, this.getHeight() / 2 - 10, 20, 20);
+                        else if(drawLoc.x() < 0)
+                            gr.fillOval(40, this.getHeight() / 2 - 10, 20, 20);
+
+                        if (drawLoc.y() >= NUMBER_OF_CELLS_IN_VIEW)
+                            gr.fillOval(this.getWidth() / 2 - 10, this.getHeight() - 60, 20, 20);
+                        else if(drawLoc.y() < 0)
+                            gr.fillOval(this.getWidth() / 2 - 10, 40, 20, 20);
+                    }
+
                     // indicate cell over which the active player is hovering the mouse
-//                    gr.setColor(player.get().getAlternativeColor());
-//                    gr.setStroke(new BasicStroke(2));
-//                    gr.drawRect((int)(p.getX() * internalSettings.getCellWidth()),
-//                            (int)(p.getY() * internalSettings.getCellHeight() - 5),
-//                            (int)internalSettings.getCellWidth(), (int)internalSettings.getCellHeight());
+                    // but only if the player has already spotted that cell
+                    Cell p = posToCellCoord(mouseX, mouseY, 0);
+                    if(player.get().hasSpotted(player.get().getViewPoint().fetch(p.getLocation()))) {
 
-                    // draw small shadows around hovered cell to imitate raising
-                    int leftEdge = (int)(p.getX() * internalSettings.getCellWidth());
-                    int rightEdge = (int)((p.getX() + 1) * internalSettings.getCellWidth());
-                    int topEdge = (int)(p.getY() * internalSettings.getCellHeight());
-                    int bottomEdge = (int)((p.getY() + 1) * internalSettings.getCellHeight());
-                    int[] Xs = {leftEdge, leftEdge + 5, rightEdge + 5, rightEdge + 5};
-                    int[] Ys = {bottomEdge - 5, bottomEdge, bottomEdge, bottomEdge - 5};
+                        int leftEdge = (int) (p.getX() * internalSettings.getCellWidth());
+                        int rightEdge = (int) ((p.getX() + 1) * internalSettings.getCellWidth());
+                        int topEdge = (int) (p.getY() * internalSettings.getCellHeight());
+                        int bottomEdge = (int) ((p.getY() + 1) * internalSettings.getCellHeight());
 
-                    gr.setColor(new Color(50, 50, 50));
-                    gr.fillPolygon(Xs, Ys, 4);
 
-                    Xs = new int[]{rightEdge, rightEdge + 5, rightEdge + 5, rightEdge};
-                    Ys = new int[]{bottomEdge, bottomEdge, topEdge + 5, topEdge};
-                    gr.fillPolygon(Xs, Ys, 4);
+                        Color altColor = player.get().getAlternativeColor();
+                        altColor = new Color(altColor.getRed(), altColor.getGreen(), altColor.getBlue(), 20);
+                        gr.setColor(altColor);
+                        gr.fillRect(leftEdge + HOVER_SHIFT, topEdge + HOVER_SHIFT, (int) internalSettings.getCellWidth(),
+                                (int) internalSettings.getCellHeight());
+
+                        // draw small shadows around hovered cell to imitate raising
+
+                        int[] Xs = {leftEdge + HOVER_SHIFT, leftEdge, rightEdge, rightEdge};      // bottom shadow
+                        int[] Ys = {bottomEdge + HOVER_SHIFT, bottomEdge, bottomEdge, bottomEdge + HOVER_SHIFT};
+                        gr.setColor(new Color(50, 50, 50));
+                        gr.fillPolygon(Xs, Ys, 4);
+
+                        Xs = new int[]{rightEdge + HOVER_SHIFT, rightEdge, rightEdge, rightEdge + HOVER_SHIFT};     // right shadow
+                        Ys = new int[]{bottomEdge, bottomEdge, topEdge, topEdge + HOVER_SHIFT};
+                        gr.fillPolygon(Xs, Ys, 4);
+                    }
 
                     // draw all relevant paths
                     drawPaths(gr);
@@ -315,34 +360,40 @@ public class GameFrame extends JFrame {
     }
 
     private void dispatchArrowKeys(KeyEvent e) {
+        Cell targetCell = null;
+        Cell targetViewpoint = null;
+
         switch(e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
                 if(player.get().getViewPoint().getX() > 0) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(-1, 0, 0));
-                    if(cellPanel.isVisible())
-                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(-1, 0, 0), player.get());
+                    targetCell = cellPanel.getCurrentCell().fetch(-1, 0, 0);
+                    targetViewpoint = player.get().getViewPoint().fetch(-1, 0, 0);
                 }
                 break;
             case KeyEvent.VK_RIGHT:
                 if(player.get().getViewPoint().getX() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(1, 0, 0));
-                    if(cellPanel.isVisible())
-                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(1, 0, 0), player.get());
+                    targetCell = cellPanel.getCurrentCell().fetch(1, 0, 0);
+                    targetViewpoint = player.get().getViewPoint().fetch(1, 0, 0);
                 }
                 break;
             case KeyEvent.VK_UP:
                 if(player.get().getViewPoint().getY() > 0) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(0, -1, 0));
-                    if(cellPanel.isVisible())
-                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, -1, 0), player.get());
+                    targetCell = cellPanel.getCurrentCell().fetch(0, -1, 0);
+                    targetViewpoint = player.get().getViewPoint().fetch(0, -1, 0);
                 }
                 break;
             case KeyEvent.VK_DOWN:
                 if(player.get().getViewPoint().getY() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    player.get().changeViewpoint(player.get().getViewPoint().fetch(0, 1, 0));
-                    if(cellPanel.isVisible())
-                        cellPanel.updateContent(cellPanel.getCurrentCell().fetch(0, 1, 0), player.get());
+                    targetCell = cellPanel.getCurrentCell().fetch(0, 1, 0);
+                    targetViewpoint = player.get().getViewPoint().fetch(0, 1, 0);
                 }
+        }
+
+        // Check if target cell lies within map boundary and whether player has visited it before
+        if (targetCell != null && player.get().hasVisited(targetCell)) {
+            player.get().changeViewpoint(targetViewpoint);
+            if(cellPanel.isVisible())
+                cellPanel.updateContent(targetCell, player.get());
         }
     }
 
@@ -648,32 +699,38 @@ public class GameFrame extends JFrame {
     private void drawCells(Graphics2D gr) {
 
         Cell mousePos = posToCellCoord(mouseX, mouseY, 0);
+        Cell viewPoint = player.get().getViewPoint();
 
         /*
          * Draw all (visible) cells
          */
         for (int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for (int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
-                Cell viewPoint = player.get().getViewPoint();
                 Cell currentCell = cells.get(viewPoint.getLocation().add(x, y, 0));
 
-                int yShift = 0;
-                if (mousePos.getX() == x && mousePos.getY() == y)
-                    yShift = -5;
+                // do not draw cells that have not been visited
+                if(!player.get().hasSpotted(currentCell))
+                    continue;
 
-                // draw field effect
-                if (currentCell.isField()) {
+                int cellShift = 0;
+                if (mousePos.getX() == x && mousePos.getY() == y)
+                    cellShift = HOVER_SHIFT;
+
+                // draw field effect, else draw white background
+                if (currentCell.isField())
                     gr.setColor(new Color(200, 120, 0, 100));
-                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1),
-                            (int)(y * internalSettings.getCellHeight() - 1),
-                            (int)(internalSettings.getCellWidth() + 2), (int)(internalSettings.getCellHeight() + 2 + yShift));
-                }
+                else
+                    gr.setColor(new Color(255, 255, 255));
+
+                gr.fillRect((int)(x * internalSettings.getCellWidth()) + cellShift,
+                        (int)(y * internalSettings.getCellHeight()) + cellShift,
+                        (int)(internalSettings.getCellWidth()), (int)(internalSettings.getCellHeight()));
 
                 // draw forest effect
                 if (currentCell.isForest()) {
                     gr.setColor(new Color(20, 150, 20));
-                    gr.fillArc((int)(x * internalSettings.getCellWidth() - internalSettings.getPoolSize()),
-                            (int)((y + 1) * internalSettings.getCellHeight() - internalSettings.getPoolSize() - 1)   + yShift,
+                    gr.fillArc((int)(x * internalSettings.getCellWidth() - internalSettings.getPoolSize()) + cellShift,
+                            (int)((y + 1) * internalSettings.getCellHeight() - internalSettings.getPoolSize()) + cellShift,
                             (int)(2 * internalSettings.getPoolSize()), (int)(2 * internalSettings.getPoolSize()), 0, 90);
                 }
 
@@ -681,30 +738,54 @@ public class GameFrame extends JFrame {
                 if (currentCell.isRiver()) {
                     gr.setColor(new Color(0, 100, 255));
                     if (currentCell.getX() < InternalSettings.NUMBER_OF_CELLS - 2 && currentCell.getY() < InternalSettings.NUMBER_OF_CELLS - 2 && currentCell.fetch(1, 0, 0).isRiver() && currentCell.fetch(0, 1, 0).isRiver() && currentCell.fetch(1, 1, 0).isRiver())
-                        gr.fillRoundRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)  + yShift), (int)(internalSettings.getCellWidth() + internalSettings.getPoolSize()), (int)(internalSettings.getCellHeight() + internalSettings.getPoolSize()), (int)internalSettings.getPoolSize(), (int)internalSettings.getPoolSize());
+                        gr.fillRoundRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                (int)(internalSettings.getCellWidth() + internalSettings.getPoolSize()),
+                                (int)(internalSettings.getCellHeight() + internalSettings.getPoolSize()),
+                                (int)internalSettings.getPoolSize(),
+                                (int)internalSettings.getPoolSize());
                     else {
                         boolean singleFlag = true;
                         if (currentCell.getX() < InternalSettings.NUMBER_OF_CELLS - 1 && currentCell.fetch(1, 0, 0).isRiver())
-                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth()),
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)  + yShift), Math.round(internalSettings.getCellWidth() / 2f) + 1, (int)internalSettings.getPoolSize());
+                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth()) + cellShift,
+                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    Math.round(internalSettings.getCellWidth() / 2f) + 1,
+                                    (int)internalSettings.getPoolSize());
                         if (currentCell.getX() > 0 && currentCell.fetch(-1, 0, 0).isRiver())
-                            gr.fillRect((int)(x * internalSettings.getCellWidth() - 1),
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f) + yShift), Math.round(internalSettings.getCellWidth() / 2f), (int)internalSettings.getPoolSize());
+                            gr.fillRect((int)(x * internalSettings.getCellWidth() - 1) + cellShift,
+                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    Math.round(internalSettings.getCellWidth() / 2f),
+                                    (int)internalSettings.getPoolSize());
                         if (currentCell.getY() < InternalSettings.NUMBER_OF_CELLS - 1 && currentCell.fetch(0, 1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), Math.round((y + 0.5f) * internalSettings.getCellHeight() + yShift), (int)internalSettings.getPoolSize(), Math.round(internalSettings.getCellHeight() / 2f));
+                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    Math.round((y + 0.5f) * internalSettings.getCellHeight()) + cellShift,
+                                    (int)internalSettings.getPoolSize(),
+                                    Math.round(internalSettings.getCellHeight() / 2f));
                             singleFlag = false;
                         }
                         if (currentCell.getY() > 0 && currentCell.fetch(0, -1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), (int)(y * internalSettings.getCellHeight() + yShift), (int)internalSettings.getPoolSize(), Math.round(internalSettings.getCellHeight() / 2f));
+                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    (int)(y * internalSettings.getCellHeight()) + cellShift,
+                                    (int)internalSettings.getPoolSize(),
+                                    Math.round(internalSettings.getCellHeight() / 2f));
                             singleFlag = false;
                         }
 
                         if (singleFlag)
-                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - internalSettings.getPoolSize()), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f) + yShift), (int)(internalSettings.getPoolSize() * 2), (int)internalSettings.getPoolSize());
+                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - internalSettings.getPoolSize()) + cellShift,
+                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    (int)(internalSettings.getPoolSize() * 2),
+                                    (int)internalSettings.getPoolSize());
                         else
-                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)), Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f) + yShift), (int)internalSettings.getPoolSize(), (int)internalSettings.getPoolSize());
+                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
+                                    (int)internalSettings.getPoolSize(),
+                                    (int)internalSettings.getPoolSize());
                     }
                 }
+
+                // draw all elements of the cell
+                drawDetails(gr, currentCell, x, y);
             }
         }
     }
@@ -770,116 +851,81 @@ public class GameFrame extends JFrame {
     }
 
     /**
-     * Draws currently visible/relevant game objects
+     * Draws currently visible/relevant game objects in the provided cell
      * @param gr Graphics object of the game panel
      */
-    private void drawDetails(Graphics2D gr) {
+    private void drawDetails(Graphics2D gr, Cell currentCell, int x, int y) {
         Cell viewpoint = player.get().getViewPoint();
         Cell mousePos = posToCellCoord(mouseX, mouseY, 0);
 
-        // draw cell details
-        for(int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
-            for(int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
+        // shift to indicate the hovered cell
+        int cellShift = 0;
+        if (mousePos.getX() == x && mousePos.getY() == y)
+            cellShift = HOVER_SHIFT;
 
-                Cell currentCell = cells.get(viewpoint.getLocation().add(x, y, 0));
+        // set player color as brush color
+        gr.setColor(player.get().getColor());
 
-                // shift to indicate the hovered cell
-                int yShift = 0;
-                if (mousePos.getX() == x && mousePos.getY() == y)
-                    yShift = -5;
+        // fetch a list of all players that have an object in the current cell
+        List<Player> playersInCell = new ArrayList<>(currentCell.getObjects().stream().map(GameObject::getPlayer).distinct().toList());
 
-                // set player color as brush color
-                gr.setColor(player.get().getColor());
+        // if the active player has an object in the current cell, indicate the cell
+        if(playersInCell.contains(player.get())) {
+            gr.fillOval((int)(x * internalSettings.getCellWidth() + 5) + cellShift,
+                    (int)(y * internalSettings.getCellHeight() + 5) + cellShift,
+                    10, 10);
+            playersInCell.remove(player.get());
+        }
 
-                // fetch a list of all players that have an object in the current cell
-                List<Player> playersInCell = new ArrayList<>(currentCell.getObjects().stream().map(GameObject::getPlayer).distinct().toList());
+        // fill all cells outside the map boundary in black
+        if(currentCell.isEndOfMap()) {
+            gr.setColor(Color.black);
+            gr.fillRect((int)(x * internalSettings.getCellWidth() - 1) + cellShift,
+                    (int)(y * internalSettings.getCellHeight() - 1) + cellShift,
+                    (int)internalSettings.getCellWidth() + 2,
+                    (int)internalSettings.getCellHeight() + 2);
+        }
+//                //  hide all cells that the active player has not visited nor spotted
+//                else if (!player.get().hasSpotted(currentCell)) {
+//                    gr.setColor(Color.lightGray);
+//                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1) + cellShift,
+//                            (int)(y * internalSettings.getCellHeight() - 1) + cellShift,
+//                            (int)internalSettings.getCellWidth() + 2,
+//                            (int)internalSettings.getCellHeight() + 2);
+//                }
+        // blur all cells that the active player has only spotted
+        else if (!player.get().hasVisited(currentCell)) {
+            drawWalls(gr, currentCell, x, y);
+            gr.setColor(new Color(192, 192, 192, 200));
+            gr.fillRect((int)(x * internalSettings.getCellWidth() - 1) + cellShift,
+                    (int)(y * internalSettings.getCellHeight() - 1) + cellShift,
+                    (int)internalSettings.getCellWidth() + 2,
+                    (int)internalSettings.getCellHeight() + 2);
+        } else {
 
-                // if the active player has an object in the current cell, indicate the cell
-                if(playersInCell.contains(player.get())) {
-                    gr.fillOval((int)(x * internalSettings.getCellWidth() + 5),
-                            (int)(y * internalSettings.getCellHeight() + 5  + yShift), 10, 10);
-                    playersInCell.remove(player.get());
-                }
+            // draw walls (if any)
+            drawWalls(gr, currentCell, x, y);
 
-                // fill all cells outside the map boundary in black
-                if(currentCell.isEndOfMap()) {
-                    gr.setColor(Color.black);
-                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1 + yShift), (int)internalSettings.getCellWidth() + 2, (int)internalSettings.getCellHeight() + 2);
-                }
-                //  hide all cells that the active player has not visited nor spotted
-                else if (!player.get().hasSpotted(currentCell)) {
-                    gr.setColor(Color.lightGray);
-                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1), (int)internalSettings.getCellWidth() + 2, (int)internalSettings.getCellHeight() + 2 + yShift);
-                }
-                // blur all cells that the active player has only spotted
-                else if (!player.get().hasVisited(currentCell)) {
-                    drawWalls(gr, currentCell, x, y);
-                    gr.setColor(new Color(192, 192, 192, 200));
-                    gr.fillRect((int)(x * internalSettings.getCellWidth() - 1), (int)(y * internalSettings.getCellHeight() - 1), (int)internalSettings.getCellWidth() + 2, (int)internalSettings.getCellHeight() + 2 + yShift);
-                } else {
+            // indicate if the temperature of this cell is below 'freezing point'
+            if (currentCell.getHeatLevel() <= InternalSettings.COLD_LEVEL)
+                gr.drawImage(InternalSettings.CLOUD, (int)((x + 1) * internalSettings.getCellWidth() - InternalSettings.CLOUD.getWidth() - 5) + cellShift,
+                        (int)(y * internalSettings.getCellHeight() + 5) + cellShift, null);
+            // indicate if the temperature of this cell is above the 'boiling point'
+            else if (currentCell.getHeatLevel() >= InternalSettings.HOT_LEVEL)
+                gr.drawImage(InternalSettings.SUN, (int)((x + 1) * internalSettings.getCellWidth() - InternalSettings.SUN.getWidth() - 5) + cellShift,
+                        (int)(y * internalSettings.getCellHeight() + 5) + cellShift, null);
 
-                    // draw walls (if any)
-                    drawWalls(gr, currentCell, x, y);
-
-                    // indicate if the temperature of this cell is below 'freezing point'
-                    if (currentCell.getHeatLevel() <= InternalSettings.COLD_LEVEL)
-                        gr.drawImage(InternalSettings.CLOUD, (int)((x + 1) * internalSettings.getCellWidth() - InternalSettings.CLOUD.getWidth() - 5),
-                                (int)(y * internalSettings.getCellHeight() + 5 + yShift), null);
-                    // indicate if the temperature of this cell is above the 'boiling point'
-                    else if (currentCell.getHeatLevel() >= InternalSettings.HOT_LEVEL)
-                        gr.drawImage(InternalSettings.SUN, (int)((x + 1) * internalSettings.getCellWidth() - InternalSettings.SUN.getWidth() - 5),
-                                (int)(y * internalSettings.getCellHeight() + 5 + yShift), null);
-
-                    // indicate all other players that have a game object in the current cell (which should only
-                    // happen when the player can see this cell)
-                    for(int i = 0; i < playersInCell.size(); i++) {
-                        gr.setColor(playersInCell.get(i).getColor());
-                        gr.drawOval((int)(x * internalSettings.getCellWidth() + 5 + 15 * (i + 1)), (int)(y * internalSettings.getCellHeight() + 5 + yShift), 10, 10);
-                    }
-                }
+            // indicate all other players that have a game object in the current cell (which should only
+            // happen when the player can see this cell)
+            for(int i = 0; i < playersInCell.size(); i++) {
+                gr.setColor(playersInCell.get(i).getColor());
+                gr.drawOval((int)(x * internalSettings.getCellWidth() + 5 + 15 * (i + 1)) + cellShift,
+                        (int)(y * internalSettings.getCellHeight() + 5) + cellShift,
+                        10,
+                        10);
             }
         }
 
-        // In case GPS mode is enabled, the route to the nearest TownHall is indicated (minimalistic).
-        // TODO remove grid overlay
-        if(gps) {
-
-            // find the nearest townhall
-            Cell nearestTownHall =
-                    player.get().getObjects().stream()
-                            .filter(obj -> obj instanceof TownHall)
-                            .min((obj1, obj2) -> Integer.min(obj1.getCell().getLocation().distanceTo(viewpoint.getLocation())
-                                    , obj2.getCell().getLocation().distanceTo(viewpoint.getLocation())))
-                            .map(GameObject::getCell)
-                            .orElse(viewpoint);
-
-            gr.setColor(Color.black);
-            Stroke oldStroke =  gr.getStroke();
-            gr.setStroke(new BasicStroke(5));
-            Location drawLoc = nearestTownHall.getLocation().add(viewpoint.getLocation().negative());
-            gr.drawRoundRect((int)(drawLoc.x() * internalSettings.getCellWidth() - 10), (int)(drawLoc.y() * internalSettings.getCellHeight() - 10), (int)internalSettings.getCellWidth() + 20,
-                    (int)internalSettings.getCellHeight() + 20, 20, 20);
-            gr.setStroke(oldStroke);
-
-            if (drawLoc.x() >= NUMBER_OF_CELLS_IN_VIEW)
-                gr.fillOval(contentPanel.getWidth() - 60, contentPanel.getHeight() / 2 - 10, 20, 20);
-            else if(drawLoc.x() < 0)
-                gr.fillOval(40, contentPanel.getHeight() / 2 - 10, 20, 20);
-
-            if (drawLoc.y() >= NUMBER_OF_CELLS_IN_VIEW)
-                gr.fillOval(contentPanel.getWidth() / 2 - 10, contentPanel.getHeight() - 60, 20, 20);
-            else if(drawLoc.y() < 0)
-                gr.fillOval(contentPanel.getWidth() / 2 - 10, 40, 20, 20);
-        }
-
-        // draw (gray) grid
-        gr.setColor(Color.lightGray);
-        for (int i = 0; i < NUMBER_OF_CELLS_IN_VIEW - 1; i++) {
-            gr.fillRect((int)((i + 1) * internalSettings.getCellWidth() - 1),  0, 1,
-                    internalSettings.getScreenHeight());
-            gr.fillRect(0, (int)((i + 1) * internalSettings.getCellHeight() - 1), internalSettings.getScreenWidth(),
-                    1);
-        }
     }
 
     /**
@@ -892,6 +938,12 @@ public class GameFrame extends JFrame {
     private void drawWalls(Graphics2D gr, Cell cell, int x, int y) {
         // set wall color
         gr.setColor(new Color(80, 40, 10));
+
+        // shift to indicate the hovered cell
+        Cell mousePos = posToCellCoord(mouseX, mouseY, 0);
+        int cellShift = 0;
+        if (mousePos.getX() == x && mousePos.getY() == y)
+            cellShift = HOVER_SHIFT;
 
         // store old stroke style
         Stroke oldStroke = gr.getStroke();
@@ -910,10 +962,22 @@ public class GameFrame extends JFrame {
         // draw all walls
         for(Direction d : walls) {
             switch(d) {
-                case NORTH -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2);
-                case SOUTH -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2, (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2);
-                case WEST -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2, (int)(x * internalSettings.getCellWidth()) + strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2);
-                case EAST -> gr.drawLine((int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2, (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2, (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2);
+                case NORTH -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2 + cellShift,
+                        (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2 + cellShift,
+                        (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2 + cellShift,
+                        (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2 + cellShift);
+                case SOUTH -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2 + cellShift,
+                        (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2 + cellShift,
+                        (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2 + cellShift,
+                        (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2 + cellShift);
+                case WEST -> gr.drawLine((int)(x * internalSettings.getCellWidth()) + strokeWidth / 2 + cellShift,
+                        (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2 + cellShift,
+                        (int)(x * internalSettings.getCellWidth()) + strokeWidth / 2 + cellShift,
+                        (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2 + cellShift);
+                case EAST -> gr.drawLine((int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2 + cellShift,
+                        (int)(y * internalSettings.getCellHeight()) + strokeWidth / 2 + cellShift,
+                        (int)((x + 1) * internalSettings.getCellWidth()) - strokeWidth / 2 + cellShift,
+                        (int)((y + 1) * internalSettings.getCellHeight()) - strokeWidth / 2 + cellShift);
             }
         }
 

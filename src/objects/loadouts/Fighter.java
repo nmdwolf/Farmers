@@ -17,6 +17,10 @@ public class Fighter extends Loadout {
         this.range = range;
     }
 
+    public Fighter() {
+        this(0, 0, 0);
+    }
+
     public int getRange() {
         return range;
     }
@@ -29,9 +33,9 @@ public class Fighter extends Loadout {
 
     public void attack(GameObject object) { object.changeHealth(-attack); }
 
-    public void changeAttack(int amount) { attack += amount; }
+    public void increaseAttack(int amount) { attack += amount; }
 
-    public void changeRange(int amount) { range += amount; }
+    public void increaseRange(int amount) { range += amount; }
 
     @Override
     public String toString() {

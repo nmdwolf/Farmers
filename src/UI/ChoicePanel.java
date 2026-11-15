@@ -2,6 +2,7 @@ package UI;
 
 import core.*;
 import objects.*;
+import objects.loadouts.Fighter;
 import objects.units.Unit;
 import objects.units.Worker;
 
@@ -76,7 +77,7 @@ public class ChoicePanel extends JPanel {
             buttons.get(KeyEvent.VK_E).addActionListener(_ -> operationsPanel.update(selected, OperationCode.EVOLVE, cycle));
             buttons.get(KeyEvent.VK_E).setVisible(true);
         }
-        if(selected instanceof Aggressive) {
+        if(selected.hasLoadout(Fighter.class)) {
             buttons.get(KeyEvent.VK_A).addActionListener(_ -> target.setOptional(new Pair<>(null, true)));
             buttons.get(KeyEvent.VK_A).setVisible(true);
         }

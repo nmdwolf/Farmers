@@ -64,10 +64,10 @@ public class CellPanel extends JPanel {
 
         // Ranged mode
         selected.bind(opt -> {
-            opt.ifPresentOrElse(
-                    obj -> obj.getLoadout(Fighter.class).ifPresent(loadout -> settings.setRangedMode(loadout.getRange() > 0)),
-                    () -> settings.setRangedMode(false)
-            );
+            settings.setRangedMode(false);
+            opt.ifPresent(
+                    obj -> obj.dispatchToLoadout(Fighter.class,
+                            loadout -> settings.setRangedMode(loadout.getRange() > 0)));
             updateContent(true);
         });
 
@@ -184,7 +184,7 @@ public class CellPanel extends JPanel {
                         case SOUTH -> enemyRow + 2;
                     };
 
-                    if(!neighbour.isEndOfMap()) {
+                    if(!neighbour.isEndOfMap() && player.hasVisited(neighbour)) {
                         for (GameObject object : neighbour.getObjects())
                             if (!object.getPlayer().equals(player)) {
                                 objectMap.put(object, constructBoundingBox(
