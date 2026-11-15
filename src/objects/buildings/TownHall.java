@@ -6,7 +6,7 @@ import core.OperationsList;
 import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.Evolvable;
-import objects.Spacer;
+import objects.loadouts.Spacer;
 import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import objects.units.Scout;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
-public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable {
+public class TownHall extends ConstructiveBuilding implements Evolvable {
 
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
     public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});
@@ -104,12 +104,17 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
                     _ -> {
                         switch (getLevel()) {
                             case 1 -> new EvolveUpgrade<>(TownHall.this, LEVEL1_RESOURCES, 0, _ -> {
-                                changeMaxHealth(200);
-                                changeSpaceBoost(2);
+                                dispatchToLoadout(Spacer.class, s -> {
+                                    increaseMaxHealth(200);
+                                    s.increaseSpaceBoost(2);
+                                });
+
                             }).upgrade(getPlayer());
                             case 2 -> new EvolveUpgrade<>(TownHall.this, LEVEL2_RESOURCES, 0, _ -> {
-                                changeMaxHealth(300);
-                                changeSpaceBoost(3);
+                                dispatchToLoadout(Spacer.class, s -> {
+                                    increaseMaxHealth(300);
+                                    s.increaseSpaceBoost(3);
+                                });
                             }).upgrade(getPlayer());
                             default -> {}
                         }
@@ -124,15 +129,5 @@ public class TownHall extends ConstructiveBuilding implements Spacer, Evolvable 
     @Override
     public void cycle(int cycle) {
 
-    }
-
-    @Override
-    public void changeSpaceBoost(int amount) {
-        getLoadout(objects.loadouts.Spacer.class).ifPresent(spacer -> spacer.changeSpaceBoost(amount));
-    }
-
-    @Override
-    public int getSpaceBoost() {
-        return getLoadout(objects.loadouts.Spacer.class).map(objects.loadouts.Spacer::getSpaceBoost).orElseThrow();
     }
 }

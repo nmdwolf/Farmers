@@ -31,7 +31,7 @@ public class Fighter extends Loadout {
         return attackCost;
     }
 
-    public void attack(GameObject object) { object.changeHealth(-attack); }
+    public void attack(GameObject object) { object.increaseHealth(-attack); }
 
     public void increaseAttack(int amount) { attack += amount; }
 

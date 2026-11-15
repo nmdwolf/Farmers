@@ -3,9 +3,8 @@ package objects.loadouts;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import objects.GameObject;
-import objects.Healer;
 
-public class Medic extends Loadout implements Healer {
+public class Medic extends Loadout {
 
     private int heal;
 
@@ -15,19 +14,16 @@ public class Medic extends Loadout implements Healer {
         this.heal = heal;
     }
 
-    @Override
     public int getHeal() {
         return heal;
     }
 
-    @Override
     public void setHeal(int heal) {
         this.heal = heal;
     }
 
-    @Override
     public void heal(GameObject obj) {
-        obj.changeHealth(heal);
+        obj.increaseHealth(heal);
     }
 
     @Override

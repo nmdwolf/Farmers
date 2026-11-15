@@ -3,7 +3,6 @@ package core.contracts;
 import objects.Construction;
 import objects.GameObject;
 import objects.buildings.Foundation;
-import objects.Spacer;
 import objects.units.Worker;
 
 public class ConstructContract<T extends Construction> extends Contract{

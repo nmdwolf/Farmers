@@ -41,9 +41,9 @@ public class BasicUpgrade extends Upgrade {
 
         if(validateType(this, object)) {
 
-            object.changeMaxHealth(health);
-            object.changeSight(sight);
-            object.changeSize(space);
+            object.increaseMaxHealth(health);
+            object.increaseSight(sight);
+            object.increaseSize(space);
 
             if (object instanceof Energetic e)
                 e.changeMaxEnergy(energy);

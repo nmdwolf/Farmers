@@ -7,7 +7,7 @@ import core.resources.ResourceContainer;
 
 import java.util.Objects;
 
-public class Gatherer extends Loadout implements objects.Gatherer {
+public class Gatherer extends Loadout {
 
     private ResourceContainer yield;
     private int energyCost;
@@ -21,12 +21,10 @@ public class Gatherer extends Loadout implements objects.Gatherer {
         this.energyCost = energyCost;
     }
 
-    @Override
     public int getYield(String res) {
         return yield.get(res);
     }
 
-    @Override
     public int getGatherCost() {
         return energyCost;
     }

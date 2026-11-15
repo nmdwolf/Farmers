@@ -14,7 +14,7 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class Worker extends Unit implements objects.Gatherer {
+public abstract class Worker extends Unit {
 
     private List<Booster> boosters;
 
@@ -28,10 +28,9 @@ public abstract class Worker extends Unit implements objects.Gatherer {
         boosters = getPlayer().getObjects().stream().flatMap(obj -> obj.getLoadout(objects.loadouts.Booster.class).stream().filter(booster -> cell.distanceTo(obj.getCell()) <= booster.getBoostRadius())).toList();
     }
 
-    @Override
     public int getYield(String resource) {
         final AtomicInteger yield = new AtomicInteger(0);
-        getLoadout(Gatherer.class).ifPresent(loadout -> {
+        dispatchToLoadout(Gatherer.class, loadout -> {
             yield.set(loadout.getYield(resource));
             if(yield.get() > 0)
                 for(Booster booster : boosters)
@@ -55,7 +54,6 @@ public abstract class Worker extends Unit implements objects.Gatherer {
         return operations;
     }
 
-    @Override
     public int getGatherCost() {
         return getLoadout(Gatherer.class).map(Gatherer::getGatherCost).orElse(0);
     }

@@ -30,7 +30,7 @@ public class Foundation<T extends Construction> extends GameObject {
         this.constructable = constructable;
         completion = 0;
 
-        changeHealth(-(getMaxHealth() - 1));
+        increaseHealth(-(getMaxHealth() - 1));
     }
 
     public ConstructContract<T> getContract() {
@@ -98,7 +98,7 @@ public class Foundation<T extends Construction> extends GameObject {
 
     public void construct() {
         completion++;
-        changeHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
+        increaseHealth(Math.divideExact(constructable.getMaxHealth(), constructable.getConstructionTime()));
     }
 
     public boolean isComplete() {

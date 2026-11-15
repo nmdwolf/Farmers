@@ -49,9 +49,9 @@ public class Scout extends Unit implements Evolvable {
         OperationsList list = new OperationsList();
         if(code == OperationCode.EVOLVE) {
             list.put("Evolve", _ -> new EvolveUpgrade<>(this, LEVEL1_COST, 0, _ -> {
-                changeSight(1);
+                increaseSight(1);
                 changeMaxEnergy(5);
-                changeMaxHealth(20);
+                increaseMaxHealth(20);
             }).upgrade(getPlayer()));
         }
         return list;

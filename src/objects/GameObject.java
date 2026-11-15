@@ -159,7 +159,7 @@ public abstract class GameObject {
      * Sets the amount of space occupied by this object.
      * @param amount space change
      */
-    public void changeSize(int amount) { size += amount; }
+    public void increaseSize(int amount) { size += amount; }
 
     /**
      * Gives the current health of this object.
@@ -171,7 +171,7 @@ public abstract class GameObject {
      * Changes the current health of this object.
      * @param amount health change
      */
-    public void changeHealth(int amount) {
+    public void increaseHealth(int amount) {
         health = Math.min(health + amount, maxHealth);
     }
 
@@ -185,7 +185,7 @@ public abstract class GameObject {
      * Changes the maximum health of this object.
      * @param amount health change
      */
-    public void changeMaxHealth(int amount) {
+    public void increaseMaxHealth(int amount) {
         health += amount;
         maxHealth += amount;
     }
@@ -200,7 +200,7 @@ public abstract class GameObject {
      * Changes this object's observation distance.
      * @param amount distance change
      */
-    public void changeSight(int amount) { sight += amount; }
+    public void increaseSight(int amount) { sight += amount; }
 
     /**
      * Starts a new cycle for this object.
@@ -221,7 +221,7 @@ public abstract class GameObject {
      */
     public void degrade(int cycle) {
         if(cycle != startCycle && degradationTime > 0 && (cycle - startCycle) % degradationTime == 0)
-            changeHealth(-degradeAmount);
+            increaseHealth(-degradeAmount);
     }
 
     /**

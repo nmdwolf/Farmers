@@ -52,7 +52,7 @@ public abstract class Unit extends Construction implements Animated {
             work();
 
         energy = maxEnergy;
-        changeHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
+        increaseHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
     }
 
     @Override
