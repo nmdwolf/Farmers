@@ -8,6 +8,7 @@ import objects.Animated;
 import objects.GameObject;
 import core.Status;
 import objects.Obstruction;
+import objects.Operational;
 import objects.buildings.*;
 import objects.loadouts.Fighter;
 import objects.units.Unit;
@@ -312,8 +313,8 @@ public class CellPanel extends JPanel {
 
             java.util.List<GameObject> drawables = cell.getObjects().stream()
                     .filter(obj -> obj.getPlayer().equals(player))
-                    .filter(Animated.class::isInstance)
-                    .filter(obj -> ((Animated) obj).getLogger().size() > 0)
+                    .filter(Operational.class::isInstance)
+                    .filter(obj -> ((Operational) obj).getLogger().size() > 0)
                     .collect(Collectors.toCollection(ArrayList::new));
 
             animations = new ArrayDeque<>(drawables.size());
@@ -475,14 +476,14 @@ public class CellPanel extends JPanel {
             if(object.getPlayer().equals(player) && object instanceof Unit u && u.getStatus() == Status.WORKING) {
                 Rectangle sourceBox = objectMap.get(u);
                 if(settings.showArrows()) {
-                    u.getContracts().stream().filter(c -> c instanceof ConstructContract<?>).map(c -> (ConstructContract<?>)c).forEach(c -> {
-                        Rectangle targetBox = objectMap.get(c.getFoundation());
+                    u.getContracts().stream().filter(c -> c instanceof ConstructContract).forEach(c -> {
+                        Rectangle targetBox = objectMap.get(((ConstructContract)c).getFoundation());
                         if(targetBox != null)
                             drawArrow(gr, sourceBox.x, sourceBox.y, targetBox.x, targetBox.y);
                     });
 
-                    u.getContracts().stream().filter(c -> c instanceof AttackContract).map(c -> (AttackContract)c).forEach(c -> {
-                        Rectangle targetBox = objectMap.get(c.getTarget());
+                    u.getContracts().stream().filter(c -> c instanceof AttackContract).forEach(c -> {
+                        Rectangle targetBox = objectMap.get(((AttackContract)c).getTarget());
                         if(targetBox != null)
                             drawWavyArrow(gr, sourceBox.x, sourceBox.y, targetBox.x, targetBox.y);
                     });

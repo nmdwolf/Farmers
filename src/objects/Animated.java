@@ -1,28 +1,16 @@
 package objects;
 
-public interface Animated extends Energetic {
+import objects.templates.Template;
 
-    @Deprecated
-    void nextFrame();
+public abstract class Animated extends Operational {
 
-    /**
-     * Current step in the working cycle.
-     * @return current working stage
-     */
-    @Deprecated
-    int getCurrentFrame();
-
-    /**
-     * The total number of steps in a working cycle.
-     * (This should be a multiple of 4.)
-     * @return working cycle length
-     */
-    @Deprecated
-    int getAnimationLength();
+    public Animated(Template temp) {
+        super(temp);
+    }
 
     /**
      * Gives this object's "move speed". Used by {@code Motion}'s for animation purposes.
      * @return move speed
      */
-    int getAnimationDelay();
+    public abstract int getAnimationDelay();
 }

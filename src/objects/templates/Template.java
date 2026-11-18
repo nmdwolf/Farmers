@@ -3,6 +3,7 @@ package objects.templates;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import core.resources.ResourceContainer;
 import core.upgrade.BasicUpgrade;
 import core.upgrade.Upgrade;
 import objects.loadouts.LoadoutFactory;
@@ -21,13 +22,21 @@ public class Template {
     @JsonIgnore
     private final ArrayList<Upgrade> upgrades;
 
-    public int size, sight, health, degradationTime, degradeAmount;
+    public int size, sight, health, degradationTime, degradeAmount, energy, animationDelay;
     public String type, sprite;
     public String[] tags = new String[]{};
+
+    public ResourceContainer cost;
+    public int energyCost;
+    public String award;
+
+    public int obstruction = 0;
+    public boolean hasVisibleFoundation;
 
     public Template() {
         loadouts = new HashMap<>();
         upgrades = new ArrayList<>();
+        hasVisibleFoundation = true;
     }
 
     public HashMap<String, Object> getLoadouts() {

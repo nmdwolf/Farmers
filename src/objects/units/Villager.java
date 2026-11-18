@@ -30,8 +30,8 @@ public class Villager extends Worker implements Constructor {
     public OperationsList getConstructions(int cycle) {
         OperationsList constructions = new OperationsList();
         constructions.put("House", _ ->
-            addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("House"))));
-        constructions.put("Lumberjack", _ -> addContract(new ConstructContract<>(Villager.this, BasicBuilding.createBuilding("Lumberjack"))));
+            addContract(new ConstructContract(Villager.this, BasicBuilding.createBuilding("House"))));
+        constructions.put("Lumberjack", _ -> addContract(new ConstructContract(Villager.this, BasicBuilding.createBuilding("Lumberjack"))));
 
         var walls = getCell().getObjects().stream()
                 .filter(Wall.class::isInstance)
@@ -40,11 +40,11 @@ public class Villager extends Worker implements Constructor {
         for(Direction dir : Direction.values()) {
             if(!walls.containsKey(dir))
                 constructions.put("Wall (" + dir.name().charAt(0) + ")", _ -> {
-                    addContract(new ConstructContract<>(Villager.this, new Wall(dir)));
+                    addContract(new ConstructContract(Villager.this, new Wall(dir)));
                 });
             else
                 constructions.put("Gate (" + dir.name().charAt(0) + ")", _ -> {
-                    addContract(new ConstructContract<>(Villager.this, new Gate(dir, walls.get(dir))));
+                    addContract(new ConstructContract(Villager.this, new Gate(dir, walls.get(dir))));
                 });
         }
 

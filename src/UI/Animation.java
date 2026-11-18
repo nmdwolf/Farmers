@@ -22,13 +22,13 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
         super(numOfFrames * obj.getLogger().size());
 
         object = obj;
-        image = Objects.requireNonNull(((GameObject)object).getSprite().orElseThrow());
+        image = Objects.requireNonNull(object.getSprite().orElseThrow());
 
         Logger logger = obj.getLogger();
         length = numOfFrames;
         int framesPerLog = numOfFrames / logger.size();
 
-        StringBuilder description = new StringBuilder(((GameObject)object).getClassLabel() + " worked on " + logger.size() + " contract" + ((logger.size() > 1) ? 's' : "") + ".");
+        StringBuilder description = new StringBuilder(object.getClassLabel() + " worked on " + logger.size() + " contract" + ((logger.size() > 1) ? 's' : "") + ".");
 
         while(logger.size() > 0) {
             Logger.Log log = logger.pop();

@@ -1,13 +1,14 @@
 package objects.buildings;
 
-import objects.Construction;
-import objects.templates.ConstructionTemplate;
+import objects.GameObject;
+import objects.Operational;
+import objects.templates.Template;
 
 import static core.InternalSettings.BUILDING_TYPE;
 
-public class Building extends Construction {
+public class Building extends GameObject {
 
-    public Building(ConstructionTemplate temp) {
+    public Building(Template temp) {
         super(temp);
     }
 

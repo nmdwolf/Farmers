@@ -55,7 +55,6 @@ public class Main{
         LoadoutFactory.registerLoadout(Spacer.class);
         LoadoutFactory.registerLoadout(Booster.class);
 
-        TemplateFactory.loadTemplates(ConstructionTemplate.class);
         TemplateFactory.loadTemplates(UnitTemplate.class);
 
         SwingUtilities.invokeLater(Main::new);
@@ -102,8 +101,6 @@ public class Main{
                     for (GameObject obj : p.getObjects()) {
                         if ((obj.getHealth() <= 0) && !(obj instanceof Revivable))
                             p.removeObject(obj);
-                        if(obj instanceof Animated a)
-                            a.nextFrame();
 
                         // Checks whether the object has changed
                         reload = reload || obj.hasChanged();
@@ -163,7 +160,7 @@ public class Main{
      */
     private void nextPlayer() {
         for (GameObject object : currentPlayer.get().getObjects()) {
-            if(object instanceof Energetic op)
+            if(object instanceof Operational op)
                 op.initLogger();
         }
         currentPlayer.get().cycle();

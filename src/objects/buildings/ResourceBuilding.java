@@ -2,11 +2,11 @@ package objects.buildings;
 
 import core.resources.ResourceContainer;
 import core.resources.Source;
-import objects.templates.ConstructionTemplate;
+import objects.templates.Template;
 
 public abstract class ResourceBuilding extends Building implements Source {
 
-    public ResourceBuilding(ConstructionTemplate temp) {
+    public ResourceBuilding(Template temp) {
         super(temp);
 
         if(getLoadout(objects.loadouts.Source.class).isEmpty())

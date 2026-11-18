@@ -30,7 +30,6 @@ public class LaborContract extends Contract {
             int amount = w.getYield(resource);
             int gain = -cell.changeResource(resource, -amount);
             w.getPlayer().changeResource(resource, gain);
-            w.nextFrame();
 
             boolean finished = (cell.getResource(resource) == 0);
             logger.logLabour(resource, finished);

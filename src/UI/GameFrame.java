@@ -3,7 +3,6 @@ package UI;
 import core.*;
 import core.contracts.AttackContract;
 import core.player.Player;
-import objects.Energetic;
 import objects.GameObject;
 import core.Status;
 import objects.Operational;
@@ -130,7 +129,7 @@ public class GameFrame extends JFrame {
         selected.bind(_ -> {
             hidePanels(false);
             selected.ifPresent(obj -> {
-                if(obj instanceof Energetic en) // Calculate path finding costs
+                if(obj instanceof Operational en) // Calculate path finding costs
                     cells.populateDistanceMatrix(cells.get(clickLocation), player.get(), en.getEnergy());
                 showResources.set(InfoPanel.Mode.OBJECT);
                 infoPanel.getView().setVisible(true);
@@ -503,7 +502,7 @@ public class GameFrame extends JFrame {
                                     hoverPath.unset();
                                     if (cells.get(clickLocation).getUnitSpace() - cells.get(clickLocation).getUnitOccupied() >= unit.getSize()
                                             && motion.length() != 0) {
-                                        unit.changeEnergy(-travelDistance);
+                                        unit.increaseEnergy(-travelDistance);
                                         motionToThread(motion);
                                     }
                                 }

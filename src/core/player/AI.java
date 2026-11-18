@@ -82,7 +82,7 @@ public class AI extends Player {
 
                     if(path != null) {
                         Motion motion = new Motion(obj, path, grid.getPathDistance(newLoc));
-                        obj.changeEnergy(-motion.length());
+                        obj.increaseEnergy(-motion.length());
                         main.moveObject(motion.getObject(), motion.getPath()[motion.getPath().length - 1]);
 
                         harvested.put(newLoc, new ArrayList<>());

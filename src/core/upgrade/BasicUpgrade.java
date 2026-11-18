@@ -4,8 +4,8 @@ import core.InternalSettings;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import core.resources.ResourceContainer;
-import objects.Energetic;
 import objects.GameObject;
+import objects.Operational;
 import objects.loadouts.Fighter;
 
 public class BasicUpgrade extends Upgrade {
@@ -45,8 +45,8 @@ public class BasicUpgrade extends Upgrade {
             object.increaseSight(sight);
             object.increaseSize(space);
 
-            if (object instanceof Energetic e)
-                e.changeMaxEnergy(energy);
+            if (object instanceof Operational e)
+                e.increaseMaxEnergy(energy);
 
             // If object has Fighter loadout, modify its properties
             object.dispatchToLoadout(Fighter.class, fighter -> {

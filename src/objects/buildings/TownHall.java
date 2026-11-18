@@ -3,11 +3,12 @@ package objects.buildings;
 import UI.Sprite;
 import core.*;
 import core.OperationsList;
+import core.contracts.Contract;
 import core.player.Player;
 import core.resources.ResourceContainer;
+import objects.Constructor;
 import objects.Evolvable;
 import objects.loadouts.Spacer;
-import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import objects.units.Scout;
 import objects.units.Villager;
@@ -17,9 +18,10 @@ import core.upgrade.WellUpgrade;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Optional;
 
-public class TownHall extends ConstructiveBuilding implements Evolvable {
+public class TownHall extends OperationalBuilding implements Evolvable, Constructor {
 
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
     public final static ResourceContainer LEVEL2_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Iron", "Time"}, new int[]{300, 300, 200, 50, 20});
@@ -32,7 +34,7 @@ public class TownHall extends ConstructiveBuilding implements Evolvable {
     private int level;
 
     public TownHall() {
-        super((ConstructionTemplate) TemplateFactory.getTemplate("Townhall"), BASE_X, BASE_Y);
+        super(TemplateFactory.getTemplate("Townhall"), BASE_X, BASE_Y);
         level = 1;
     }
 
@@ -65,6 +67,11 @@ public class TownHall extends ConstructiveBuilding implements Evolvable {
     @Override
     public String getToken() {
         return TOKEN;
+    }
+
+    @Override
+    public int getType() {
+        return 0;
     }
 
     @Override
@@ -124,6 +131,31 @@ public class TownHall extends ConstructiveBuilding implements Evolvable {
         } else
             operations = super.getOperations(cycle, code);
         return operations;
+    }
+
+    @Override
+    public void work() {
+
+    }
+
+    @Override
+    public void addContract(Contract c) {
+
+    }
+
+    @Override
+    public void transferContract(Contract c) {
+
+    }
+
+    @Override
+    public ArrayList<Contract> getContracts() {
+        return null;
+    }
+
+    @Override
+    public void seizeActions() {
+
     }
 
     @Override

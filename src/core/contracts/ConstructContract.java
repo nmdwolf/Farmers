@@ -1,26 +1,25 @@
 package core.contracts;
 
-import objects.Construction;
 import objects.GameObject;
 import objects.buildings.Foundation;
 import objects.units.Worker;
 
-public class ConstructContract<T extends Construction> extends Contract{
+public class ConstructContract extends Contract{
 
-    private final T constructable;
-    private final Foundation<T> foundation;
+    private final GameObject constructable;
+    private final Foundation foundation;
 
-    public ConstructContract(Worker employee, T constructable) {
+    public ConstructContract(Worker employee, GameObject constructable) {
         super(employee, constructable.getEnergyCost());
         this.constructable = constructable;
-        foundation = new Foundation<>(constructable, this);
+        foundation = new Foundation(constructable, this);
     }
 
     @Override
     public void initialize() {
-        if(!isStarted() && ((GameObject)getEmployee()).getPlayer().hasResources(constructable.getCost())
-                && ((GameObject)getEmployee()).getPlayer().addObject(foundation, ((GameObject)getEmployee()).getCell())) {
-            ((GameObject)getEmployee()).getPlayer().changeResources(constructable.getCost().negative());
+        if(!isStarted() && getEmployee().getPlayer().hasResources(constructable.getCost())
+                && getEmployee().getPlayer().addObject(foundation, getEmployee().getCell())) {
+            getEmployee().getPlayer().changeResources(constructable.getCost().negative());
             super.initialize();
         }
     }
@@ -28,10 +27,10 @@ public class ConstructContract<T extends Construction> extends Contract{
     @Override
     public void terminate() {
 //        constructable.initialize(foundation.getPlayer(), foundation.getStartCycle());
-        ((GameObject)getEmployee()).getPlayer().removeObject(foundation);
-        ((GameObject)getEmployee()).getPlayer().addObject(constructable, foundation.getCell());
+        getEmployee().getPlayer().removeObject(foundation);
+        getEmployee().getPlayer().addObject(constructable, foundation.getCell());
         constructable.handleCompletion();
-        constructable.getConstructionAward().ifPresent(a -> ((GameObject)getEmployee()).getPlayer().getAwardArchive().awardExternal(a));
+        constructable.getConstructionAward().ifPresent(a -> getEmployee().getPlayer().getAwardArchive().awardExternal(a));
     }
 
     @Override
@@ -54,7 +53,7 @@ public class ConstructContract<T extends Construction> extends Contract{
         return constructable.getEnergyCost();
     }
 
-    public Foundation<T> getFoundation() {
+    public Foundation getFoundation() {
         return foundation;
     }
 }

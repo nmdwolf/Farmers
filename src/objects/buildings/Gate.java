@@ -6,20 +6,19 @@ import core.OperationsList;
 import core.contracts.Contract;
 import objects.Obstruction;
 import objects.Operational;
-import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-public class Gate extends Building implements Obstruction, Directional, Operational {
+public class Gate extends OperationalBuilding implements Obstruction, Directional {
 
     private boolean open;
     private final Direction direction;
     private final Wall src;
 
     public Gate(Direction direction, Wall src) {
-        super((ConstructionTemplate) TemplateFactory.getTemplate("Gate"));
+        super(TemplateFactory.getTemplate("Gate"), src.getCell().getX(), src.getCell().getY());
         this.direction = direction;
         this.open = false;
         this.src = src;
@@ -27,7 +26,7 @@ public class Gate extends Building implements Obstruction, Directional, Operatio
 
     @Override
     public int getObstructionCost() {
-        return ((ConstructionTemplate) getTemplate()).obstruction;
+        return getTemplate().obstruction;
     }
 
     @Override
@@ -75,14 +74,7 @@ public class Gate extends Building implements Obstruction, Directional, Operatio
     }
 
     @Override
-    public ArrayList<Contract> getContracts() {
-        return null;
-    }
-
-    @Override
-    public void seizeActions() {
-
-    }
+    public void seizeActions() {}
 
     @Override
     public void handleCompletion() {

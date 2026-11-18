@@ -49,7 +49,7 @@ public abstract class Worker extends Unit {
                     operations.put(res, _ -> addContract(new LaborContract(this, res, getCell())));
             }
         } else if(code == OperationCode.CONSTRUCTION) {
-            getCell().getObjects().stream().filter(obj -> obj instanceof Foundation<?> f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation<?>) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> this.transferContract(pair.value())));
+            getCell().getObjects().stream().filter(obj -> obj instanceof Foundation f && f.getContract().isIdle()).map(obj -> new Pair<>(obj.getClassLabel(), ((Foundation) obj).getContract())).forEach(pair -> operations.put("Continue " + pair.key(), _ -> this.transferContract(pair.value())));
         }
         return operations;
     }

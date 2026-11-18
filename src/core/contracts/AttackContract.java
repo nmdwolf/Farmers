@@ -8,11 +8,11 @@ public class AttackContract extends Contract {
 
     private final GameObject target;
 
-    public <T extends Operational> AttackContract(T aggressor, GameObject target) {
+    public AttackContract(Operational aggressor, GameObject target) {
         super(aggressor, ((GameObject)aggressor).getLoadout(Fighter.class).get().getAttackCost());
         this.target = target;
 
-        if (!((GameObject)aggressor).hasLoadout(Fighter.class))
+        if (!aggressor.hasLoadout(Fighter.class))
             throw new IllegalArgumentException("Only GameObjects carrying a Fighter loadout are expected.");
     }
 

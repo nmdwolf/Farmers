@@ -2,7 +2,6 @@ package objects.buildings;
 
 import core.Direction;
 import objects.Obstruction;
-import objects.templates.ConstructionTemplate;
 import objects.templates.TemplateFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,13 +10,13 @@ public class Wall extends Building implements Obstruction, Directional { ;
     private final Direction direction;
 
     public Wall(Direction direction) {
-        super((ConstructionTemplate) TemplateFactory.getTemplate("Wall"));
+        super(TemplateFactory.getTemplate("Wall"));
         this.direction = direction;
     }
 
     @Override
     public int getObstructionCost() {
-        return ((ConstructionTemplate) getTemplate()).obstruction;
+        return getTemplate().obstruction;
     }
 
     @Override

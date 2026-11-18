@@ -4,8 +4,8 @@ import UI.CustomMethods;
 import core.InternalSettings;
 import UI.Sprite;
 import core.contracts.ConstructContract;
-import objects.Construction;
 import objects.GameObject;
+import objects.Operational;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -16,15 +16,15 @@ import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 // TODO MERGE WITH BUILDINGS?
-public class Foundation<T extends Construction> extends GameObject {
+public class Foundation extends GameObject {
 
     public final static BufferedImage FOUNDATION_SPRITE_MAX = Sprite.loadSprite("src/img/foundation.png", InternalSettings.SPRITE_SIZE_MAX, InternalSettings.SPRITE_SIZE_MAX).orElseThrow();
 
-    private final T constructable;
-    private final ConstructContract<T> contract;
+    private final GameObject constructable;
+    private final ConstructContract contract;
     private int completion;
 
-    public Foundation(T constructable, ConstructContract<T> contract) {
+    public Foundation(GameObject constructable, ConstructContract contract) {
         super(constructable.getTemplate());
         this.contract = contract;
         this.constructable = constructable;
@@ -33,7 +33,7 @@ public class Foundation<T extends Construction> extends GameObject {
         increaseHealth(-(getMaxHealth() - 1));
     }
 
-    public ConstructContract<T> getContract() {
+    public ConstructContract getContract() {
         return contract;
     }
 

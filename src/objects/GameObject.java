@@ -3,7 +3,9 @@ package objects;
 import core.*;
 
 import UI.*;
+import core.player.Award;
 import core.player.Player;
+import core.resources.ResourceContainer;
 import core.upgrade.Upgrade;
 import objects.loadouts.Loadout;
 import objects.loadouts.LoadoutFactory;
@@ -25,6 +27,10 @@ public abstract class GameObject {
     private Cell cell;
     private Player player;
     private final Template template;
+
+    private final int energyCost, constructionTime;
+    private final boolean hasVisibleFoundation;
+    private final ResourceContainer cost;
 
     private int size, sight, health, maxHealth, degradationTime, degradeAmount, startCycle;
     private boolean changeFlag;
@@ -53,6 +59,12 @@ public abstract class GameObject {
 
         upgrades = temp.getUpgrades();
         template = temp;
+
+        cost = temp.cost;
+        constructionTime = cost.get("Time");
+
+        this.energyCost = template.energyCost;
+        this.hasVisibleFoundation = template.hasVisibleFoundation;
     }
 
     /**
@@ -310,4 +322,20 @@ public abstract class GameObject {
         return s.toString();
     }
 
+    public int getConstructionTime() { return constructionTime; }
+
+    public ResourceContainer getCost() { return cost; }
+
+    public int getEnergyCost() {
+        return energyCost;
+    }
+
+    public boolean hasVisibleFoundation() { return hasVisibleFoundation; }
+
+    public Optional<Award> getConstructionAward() { return Optional.of(Award.createFreeAward(getTemplate().award)); }
+
+    /**
+     *
+     */
+    public void handleCompletion() {};
 }
