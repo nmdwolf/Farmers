@@ -25,7 +25,6 @@ public abstract class Operational extends GameObject {
     private Logger logger;
 
     private int energy, maxEnergy;
-    private final int animationDelay;
     private Status status, oldStatus;
 
     public Operational(Template temp) {
@@ -35,7 +34,6 @@ public abstract class Operational extends GameObject {
 
         this.energy = temp.energy;
         maxEnergy = energy;
-        this.animationDelay = temp.animationDelay;
 
         this.status = IDLE;
         this.oldStatus = IDLE;
@@ -187,13 +185,6 @@ public abstract class Operational extends GameObject {
 
         increaseHealth(Math.min(0, getCell().getHeatLevel() - COLD_LEVEL));
     }
-
-    /**
-     * The total number of steps in a working cycle.
-     * (Should be a multiple of 4.)
-     * @return working cycle length
-     */
-    public int getAnimationDelay() { return animationDelay; }
 
     @Override
     public void setCell(@NotNull Cell cell) {

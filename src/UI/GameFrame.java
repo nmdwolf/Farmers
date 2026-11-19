@@ -1101,7 +1101,9 @@ public class GameFrame extends JFrame {
                 ((Timer)evt.getSource()).stop();
             }
         };
-        new Timer(motion.getObject().getAnimationDelay(), taskPerformer).start();
+
+        // timer to call the movement task every n milliseconds
+        new Timer(motion.getObject().getMovementDelay(), taskPerformer).start();
     }
 
     public void setCellMenuContent(Cell cell) {

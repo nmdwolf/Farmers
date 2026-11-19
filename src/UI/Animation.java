@@ -15,7 +15,6 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
 
     private final Animated object;
     private final BufferedImage image;
-    private final int length;
     private int code;
 
     public Animation(Animated obj, int numOfFrames) {
@@ -25,11 +24,14 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
         image = Objects.requireNonNull(object.getSprite().orElseThrow());
 
         Logger logger = obj.getLogger();
-        length = numOfFrames;
+
+        // determine how many frames are needed to handle the logs
         int framesPerLog = numOfFrames / logger.size();
 
+        // construct a string representation of the actions performed by this object (using the Logger class)
         StringBuilder description = new StringBuilder(object.getClassLabel() + " worked on " + logger.size() + " contract" + ((logger.size() > 1) ? 's' : "") + ".");
 
+        // As long as there are logs remaining, add them to the list of actions
         while(logger.size() > 0) {
             Logger.Log log = logger.pop();
             code = log.type;
@@ -37,32 +39,6 @@ public class Animation extends ArrayDeque<Pair<BufferedImage, String>> {
             for (int i = 0; i < framesPerLog; i++)
                 addLast(new Pair<>(generateFrame(i, framesPerLog), description.toString()));
         }
-    }
-
-    /**
-     * Yields the total number of frames in this animation.
-     * @return total number of frames
-     */
-    public int length() {
-        return length;
-    }
-
-    /**
-     * Returns the number of remaining frames.
-     * Equivalent to {@code size()}.
-     * @return number of remaining frames
-     */
-    public int remaining() {
-        return this.size();
-    }
-
-    /**
-     * Returns whether this animation has remaining frames.
-     * Equivalent to {@code !isEmpty()}.
-     * @return remaining frames or not
-     */
-    public boolean hasRemaining() {
-        return !this.isEmpty();
     }
 
     private BufferedImage generateFrame(int step, int length) {

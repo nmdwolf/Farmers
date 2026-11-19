@@ -4,13 +4,23 @@ import objects.templates.Template;
 
 public abstract class Animated extends Operational {
 
+    private final int movementDelay, animationDelay;
+
     public Animated(Template temp) {
         super(temp);
+        this.movementDelay = temp.animationDelay;
+        this.animationDelay = temp.animationDelay;
     }
 
     /**
-     * Gives this object's "move speed". Used by {@code Motion}'s for animation purposes.
-     * @return move speed
+     * The number of milliseconds between movement frames.
+     * @return movement delay
      */
-    public abstract int getAnimationDelay();
+    public int getMovementDelay() { return movementDelay; }
+
+    /**
+     * The number of milliseconds between animation frames.
+     * @return animation delay
+     */
+    public int getAnimationDelay() { return animationDelay; }
 }

@@ -1,12 +1,12 @@
 package objects.units;
 
-import objects.Operational;
+import objects.Animated;
 import objects.templates.UnitTemplate;
 
 import static core.InternalSettings.COLD_LEVEL;
 import static core.InternalSettings.UNIT_TYPE;
 
-public abstract class Unit extends Operational {
+public abstract class Unit extends Animated {
 
     public Unit(UnitTemplate temp) {
         super(temp);
