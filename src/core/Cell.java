@@ -1,17 +1,27 @@
 package core;
 
+import UI.CustomMethods;
+import core.player.Player;
 import core.resources.ResourceContainer;
 import objects.GameObject;
 import objects.Obstruction;
 import objects.buildings.Building;
 import objects.buildings.Directional;
+import objects.buildings.Wall;
 import objects.loadouts.Spacer;
 import objects.units.Unit;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static core.InternalSettings.HOVER_SHIFT;
 
 // TODO Fix North/South (y coordinates go down on computers)
 public class Cell {
@@ -292,7 +302,8 @@ public class Cell {
      * Returns a set of objects contained in this cell.
      * @return set of objects
      */
-    public HashSet<GameObject> getObjects() { return content; }
+    public HashSet<GameObject> getObjects() {
+        return content; }
 
     /**
      * Changes parameters of the cell when the season switches
@@ -512,5 +523,186 @@ public class Cell {
             resources.put("Water", 300 + InternalSettings.rand.nextInt(100));
 
         return resources;
+    }
+
+    /**
+     * Creates an image of this cell from the perspective of the specified player.
+     * @param currentPlayer current player
+     * @return image to draw on the game panel
+     */
+    public BufferedImage draw(InternalSettings internalSettings, Player currentPlayer) {
+        float widthFloat = internalSettings.getCellWidth();
+        float heightFloat = internalSettings.getCellHeight();
+        int width = Math.round(widthFloat);
+        int height = Math.round(heightFloat);
+
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gr = CustomMethods.optimizeGraphics(img.createGraphics());
+
+        // fill all cells outside the map boundary in black
+        if(isEndOfMap()) {
+            gr.setColor(Color.black);
+            gr.fillRect(0, 0, width, height);
+        } else {
+            // draw field effect, else draw white background
+            if (isField())
+                gr.setColor(new Color(200, 120, 0, 100));
+            else
+                gr.setColor(new Color(255, 255, 255));
+
+            gr.fillRect(0,0, width, height);
+
+            // draw forest effect
+            if (isForest()) {
+                gr.setColor(new Color(20, 150, 20));
+                gr.fillArc(width - Math.round(internalSettings.getPoolSize()) ,
+                        height - Math.round(internalSettings.getCellHeight() - internalSettings.getPoolSize()),
+                        Math.round(2 * internalSettings.getPoolSize()), Math.round(2 * internalSettings.getPoolSize()), 0, 90);
+            }
+
+            //draw river effect
+            if (isRiver()) {
+                gr.setColor(new Color(0, 100, 255));
+                if (getX() < InternalSettings.NUMBER_OF_CELLS - 2 && getY() < InternalSettings.NUMBER_OF_CELLS - 2 && fetch(1, 0, 0).isRiver() && fetch(0, 1, 0).isRiver() && fetch(1, 1, 0).isRiver())
+                    gr.fillRoundRect(Math.round(0.5f * (widthFloat - internalSettings.getPoolSize())),
+                            Math.round(0.5f * (heightFloat - internalSettings.getPoolSize())),
+                            Math.round(widthFloat + internalSettings.getPoolSize()),
+                            Math.round(heightFloat + internalSettings.getPoolSize()),
+                            Math.round(internalSettings.getPoolSize()),
+                            Math.round(internalSettings.getPoolSize()));
+                else {
+                    boolean singleFlag = true;
+                    if (getX() < InternalSettings.NUMBER_OF_CELLS - 1 && fetch(1, 0, 0).isRiver())
+                        gr.fillRect(Math.round(0.5f * widthFloat),
+                                Math.round(0.5f * (heightFloat - internalSettings.getPoolSize())),
+                                Math.round(0.5f * widthFloat) + 1,
+                                Math.round(internalSettings.getPoolSize()));
+                    if (getX() > 0 && fetch(-1, 0, 0).isRiver())
+                        gr.fillRect(Math.round(internalSettings.getCellWidth() - 1),
+                                Math.round(0.5f * (heightFloat - internalSettings.getPoolSize())),
+                                Math.round(0.5f * widthFloat),
+                                Math.round(internalSettings.getPoolSize()));
+                    if (getY() < InternalSettings.NUMBER_OF_CELLS - 1 && fetch(0, 1, 0).isRiver()) {
+                        gr.fillRect(Math.round(0.5f * (widthFloat - internalSettings.getPoolSize())),
+                                Math.round(0.5f * heightFloat),
+                                Math.round(internalSettings.getPoolSize()),
+                                Math.round(0.5f * heightFloat));
+                        singleFlag = false;
+                    }
+                    if (getY() > 0 && fetch(0, -1, 0).isRiver()) {
+                        gr.fillRect(Math.round(0.5f * (widthFloat - internalSettings.getPoolSize())),
+                                height,
+                                Math.round(internalSettings.getPoolSize()),
+                                Math.round(0.5f * heightFloat));
+                        singleFlag = false;
+                    }
+
+                    if (singleFlag)
+                        gr.fillOval(Math.round(0.5f * widthFloat - internalSettings.getPoolSize()),
+                                Math.round(0.5f * (heightFloat - internalSettings.getPoolSize())),
+                                Math.round(2 * internalSettings.getPoolSize()),
+                                Math.round(internalSettings.getPoolSize()));
+                    else
+                        gr.fillOval(Math.round(0.5f * (widthFloat - internalSettings.getPoolSize())),
+                                Math.round(0.5f * (heightFloat - internalSettings.getPoolSize())),
+                                Math.round(internalSettings.getPoolSize()),
+                                Math.round(internalSettings.getPoolSize()));
+                }
+            }
+
+            // set player color as brush color
+            gr.setColor(currentPlayer.getColor());
+
+            // fetch a list of all players that have an object in the current cell
+            List<Player> playersInCell = new ArrayList<>(getObjects().stream().map(GameObject::getPlayer).distinct().toList());
+
+            // if the active player has an object in the current cell, indicate the cell
+            if(playersInCell.contains(currentPlayer)) {
+                gr.fillOval(5, 5, 10, 10);
+                playersInCell.remove(currentPlayer);
+            }
+
+            // draw walls (if any)
+            drawWalls(gr, internalSettings);
+
+            // blur all cells that the active player has only spotted
+            if (!currentPlayer.hasVisited(this)) {
+                // draw gray, transparent overlay
+                gr.setColor(new Color(192, 192, 192, 200));
+                gr.fillRect(0, 0, width, height);
+            } else {
+
+                // indicate if the temperature of this cell is below 'freezing point'
+                if (getHeatLevel() <= InternalSettings.COLD_LEVEL)
+                    gr.drawImage(InternalSettings.CLOUD,
+                            Math.round(widthFloat - InternalSettings.CLOUD.getWidth() - 5), height + 5, null);
+                    // indicate if the temperature of this cell is above the 'boiling point'
+                else if (getHeatLevel() >= InternalSettings.HOT_LEVEL)
+                    gr.drawImage(InternalSettings.SUN,
+                            Math.round(widthFloat - InternalSettings.SUN.getWidth() - 5), height + 5, null);
+
+                // indicate all other players that have a game object in the current cell (which should only
+                // happen when the player can see this cell)
+                for (int i = 0; i < playersInCell.size(); i++) {
+                    gr.setColor(playersInCell.get(i).getColor());
+                    gr.drawOval(5 + 15 * (i + 1), 5,10,10);
+                }
+            }
+        }
+
+        return img;
+    }
+
+    /**
+     * Draws all walls in the provided cell (if any).
+     * @param gr graphics object
+     */
+    private void drawWalls(Graphics2D gr, InternalSettings internalSettings) {
+        float widthFloat = internalSettings.getCellWidth();
+        float heightFloat = internalSettings.getCellHeight();
+        int width = Math.round(widthFloat);
+        int height = Math.round(heightFloat);
+
+        // set wall color
+        gr.setColor(new Color(80, 40, 10));
+
+        // store old stroke style
+        Stroke oldStroke = gr.getStroke();
+
+        //set stroke style of wall
+        int strokeWidth = 10;
+        gr.setStroke(new BasicStroke(strokeWidth));
+
+        // fetch all walls in current cell
+        var walls = getObjects().stream()
+                .filter(Wall.class::isInstance)
+                .map(obj -> ((Wall)obj).getDirection())
+                .distinct()
+                .toList();
+
+        // draw all walls
+        for(Direction d : walls) {
+            switch(d) {
+                case NORTH -> gr.drawLine(Math.round(widthFloat + 0.5f * strokeWidth),
+                        Math.round(heightFloat + 0.5f * strokeWidth),
+                        Math.round(widthFloat - 0.5f * strokeWidth),
+                        Math.round(heightFloat + 0.5f * strokeWidth));
+                case SOUTH -> gr.drawLine(Math.round(widthFloat + 0.5f * strokeWidth),
+                        Math.round(heightFloat - 0.5f * strokeWidth),
+                        Math.round(widthFloat - 0.5f * strokeWidth),
+                        Math.round(heightFloat - 0.5f * strokeWidth));
+                case WEST -> gr.drawLine(Math.round(widthFloat + 0.5f * strokeWidth),
+                        Math.round(heightFloat + 0.5f * strokeWidth),
+                        Math.round(widthFloat + 0.5f * strokeWidth),
+                        Math.round(heightFloat - 0.5f * strokeWidth));
+                case EAST -> gr.drawLine(Math.round(widthFloat - 0.5f * strokeWidth),
+                        Math.round(heightFloat + 0.5f * strokeWidth),
+                        Math.round(widthFloat - 0.5f * strokeWidth),
+                        Math.round(heightFloat - 0.5f * strokeWidth));
+            }
+        }
+
+        // reset stroke style
+        gr.setStroke(oldStroke);
     }
 }

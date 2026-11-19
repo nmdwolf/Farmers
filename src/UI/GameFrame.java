@@ -91,7 +91,8 @@ public class GameFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
-        cellPanel = new CellPanel(cells.get(new Location(0, 0, 0)), player.get(), selected, target, gameState, settings, internalSettings);
+        cellPanel = new CellPanel(player.get().getViewPoint(), player.get(), selected, target, gameState, settings,
+                internalSettings);
 
         TranslucentLayerUI<OperationsPanel> operationsProxy =
                 new TranslucentLayerUI<>(new OperationsPanel(internalSettings.getCellWidth(), internalSettings.getCellHeight()));
@@ -246,7 +247,7 @@ public class GameFrame extends JFrame {
                                         .min((obj1, obj2) -> Integer.min(obj1.getCell().getLocation().distanceTo(viewpoint.getLocation())
                                                 , obj2.getCell().getLocation().distanceTo(viewpoint.getLocation())))
                                         .map(GameObject::getCell)
-                                        .orElse(viewpoint);
+                                        .orElse(viewpoint);     // TODO find alternative for when there is no townhall
 
                         gr.setColor(Color.black);
                         Stroke oldStroke =  gr.getStroke();
@@ -265,35 +266,6 @@ public class GameFrame extends JFrame {
                             gr.fillOval(this.getWidth() / 2 - 10, this.getHeight() - 60, 20, 20);
                         else if(drawLoc.y() < 0)
                             gr.fillOval(this.getWidth() / 2 - 10, 40, 20, 20);
-                    }
-
-                    // indicate cell over which the active player is hovering the mouse
-                    // but only if the player has already spotted that cell
-                    Cell p = posToCellCoord(mouseX, mouseY, 0);
-                    if(player.get().hasSpotted(player.get().getViewPoint().fetch(p.getLocation()))) {
-
-                        int leftEdge = (int) (p.getX() * internalSettings.getCellWidth());
-                        int rightEdge = (int) ((p.getX() + 1) * internalSettings.getCellWidth());
-                        int topEdge = (int) (p.getY() * internalSettings.getCellHeight());
-                        int bottomEdge = (int) ((p.getY() + 1) * internalSettings.getCellHeight());
-
-
-                        Color altColor = player.get().getAlternativeColor();
-                        altColor = new Color(altColor.getRed(), altColor.getGreen(), altColor.getBlue(), 20);
-                        gr.setColor(altColor);
-                        gr.fillRect(leftEdge + HOVER_SHIFT, topEdge + HOVER_SHIFT, (int) internalSettings.getCellWidth(),
-                                (int) internalSettings.getCellHeight());
-
-                        // draw small shadows around hovered cell to imitate raising
-
-                        int[] Xs = {leftEdge + HOVER_SHIFT, leftEdge, rightEdge, rightEdge};      // bottom shadow
-                        int[] Ys = {bottomEdge + HOVER_SHIFT, bottomEdge, bottomEdge, bottomEdge + HOVER_SHIFT};
-                        gr.setColor(new Color(50, 50, 50));
-                        gr.fillPolygon(Xs, Ys, 4);
-
-                        Xs = new int[]{rightEdge + HOVER_SHIFT, rightEdge, rightEdge, rightEdge + HOVER_SHIFT};     // right shadow
-                        Ys = new int[]{bottomEdge, bottomEdge, topEdge, topEdge + HOVER_SHIFT};
-                        gr.fillPolygon(Xs, Ys, 4);
                     }
 
                     // draw all relevant paths
@@ -359,41 +331,37 @@ public class GameFrame extends JFrame {
     }
 
     private void dispatchArrowKeys(KeyEvent e) {
-        Cell targetCell = null;
-        Cell targetViewpoint = null;
+
+        Cell targetCell;
+        if (cellPanel.isVisible())
+            targetCell = cellPanel.getCurrentCell();
+        else
+            targetCell = player.get().getViewPoint();
 
         switch(e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
-                if(player.get().getViewPoint().getX() > 0) {
-                    targetCell = cellPanel.getCurrentCell().fetch(-1, 0, 0);
-                    targetViewpoint = player.get().getViewPoint().fetch(-1, 0, 0);
-                }
+                if(targetCell.getX() > 0)
+                    targetCell = targetCell.fetch(-1, 0, 0);
                 break;
             case KeyEvent.VK_RIGHT:
-                if(player.get().getViewPoint().getX() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    targetCell = cellPanel.getCurrentCell().fetch(1, 0, 0);
-                    targetViewpoint = player.get().getViewPoint().fetch(1, 0, 0);
-                }
+                if(targetCell.getX() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW)
+                    targetCell = targetCell.fetch(1, 0, 0);
                 break;
             case KeyEvent.VK_UP:
-                if(player.get().getViewPoint().getY() > 0) {
-                    targetCell = cellPanel.getCurrentCell().fetch(0, -1, 0);
-                    targetViewpoint = player.get().getViewPoint().fetch(0, -1, 0);
-                }
+                if(targetCell.getY() > 0)
+                    targetCell = targetCell.fetch(0, -1, 0);
                 break;
             case KeyEvent.VK_DOWN:
-                if(player.get().getViewPoint().getY() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW) {
-                    targetCell = cellPanel.getCurrentCell().fetch(0, 1, 0);
-                    targetViewpoint = player.get().getViewPoint().fetch(0, 1, 0);
-                }
+                if(targetCell.getY() < InternalSettings.NUMBER_OF_CELLS - NUMBER_OF_CELLS_IN_VIEW)
+                    targetCell = targetCell.fetch(0, 1, 0);
         }
 
         // Check if target cell lies within map boundary and whether player has visited it before
-        if (targetCell != null && player.get().hasVisited(targetCell)) {
-            player.get().changeViewpoint(targetViewpoint);
-            if(cellPanel.isVisible())
+        if (cellPanel.isVisible()) {
+            if (player.get().hasVisited(targetCell))
                 cellPanel.updateContent(targetCell, player.get());
-        }
+        } else
+            player.get().changeViewpoint(targetCell);
     }
 
     /**
@@ -705,87 +673,49 @@ public class GameFrame extends JFrame {
          */
         for (int x = 0; x < NUMBER_OF_CELLS_IN_VIEW; x++) {
             for (int y = 0; y < NUMBER_OF_CELLS_IN_VIEW; y++) {
-                Cell currentCell = cells.get(viewPoint.getLocation().add(x, y, 0));
+                Cell currentCell = viewPoint.fetch(x, y, 0);
 
                 // do not draw cells that have not been visited
                 if(!player.get().hasSpotted(currentCell))
                     continue;
 
+                // determine whether cell should be beveled
                 int cellShift = 0;
                 if (mousePos.getX() == x && mousePos.getY() == y)
                     cellShift = HOVER_SHIFT;
 
-                // draw field effect, else draw white background
-                if (currentCell.isField())
-                    gr.setColor(new Color(200, 120, 0, 100));
-                else
-                    gr.setColor(new Color(255, 255, 255));
-
-                gr.fillRect((int)(x * internalSettings.getCellWidth()) + cellShift,
-                        (int)(y * internalSettings.getCellHeight()) + cellShift,
-                        (int)(internalSettings.getCellWidth()), (int)(internalSettings.getCellHeight()));
-
-                // draw forest effect
-                if (currentCell.isForest()) {
-                    gr.setColor(new Color(20, 150, 20));
-                    gr.fillArc((int)(x * internalSettings.getCellWidth() - internalSettings.getPoolSize()) + cellShift,
-                            (int)((y + 1) * internalSettings.getCellHeight() - internalSettings.getPoolSize()) + cellShift,
-                            (int)(2 * internalSettings.getPoolSize()), (int)(2 * internalSettings.getPoolSize()), 0, 90);
-                }
-
-                //draw river effect
-                if (currentCell.isRiver()) {
-                    gr.setColor(new Color(0, 100, 255));
-                    if (currentCell.getX() < InternalSettings.NUMBER_OF_CELLS - 2 && currentCell.getY() < InternalSettings.NUMBER_OF_CELLS - 2 && currentCell.fetch(1, 0, 0).isRiver() && currentCell.fetch(0, 1, 0).isRiver() && currentCell.fetch(1, 1, 0).isRiver())
-                        gr.fillRoundRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                (int)(internalSettings.getCellWidth() + internalSettings.getPoolSize()),
-                                (int)(internalSettings.getCellHeight() + internalSettings.getPoolSize()),
-                                (int)internalSettings.getPoolSize(),
-                                (int)internalSettings.getPoolSize());
-                    else {
-                        boolean singleFlag = true;
-                        if (currentCell.getX() < InternalSettings.NUMBER_OF_CELLS - 1 && currentCell.fetch(1, 0, 0).isRiver())
-                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth()) + cellShift,
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    Math.round(internalSettings.getCellWidth() / 2f) + 1,
-                                    (int)internalSettings.getPoolSize());
-                        if (currentCell.getX() > 0 && currentCell.fetch(-1, 0, 0).isRiver())
-                            gr.fillRect((int)(x * internalSettings.getCellWidth() - 1) + cellShift,
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    Math.round(internalSettings.getCellWidth() / 2f),
-                                    (int)internalSettings.getPoolSize());
-                        if (currentCell.getY() < InternalSettings.NUMBER_OF_CELLS - 1 && currentCell.fetch(0, 1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight()) + cellShift,
-                                    (int)internalSettings.getPoolSize(),
-                                    Math.round(internalSettings.getCellHeight() / 2f));
-                            singleFlag = false;
-                        }
-                        if (currentCell.getY() > 0 && currentCell.fetch(0, -1, 0).isRiver()) {
-                            gr.fillRect(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    (int)(y * internalSettings.getCellHeight()) + cellShift,
-                                    (int)internalSettings.getPoolSize(),
-                                    Math.round(internalSettings.getCellHeight() / 2f));
-                            singleFlag = false;
-                        }
-
-                        if (singleFlag)
-                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - internalSettings.getPoolSize()) + cellShift,
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    (int)(internalSettings.getPoolSize() * 2),
-                                    (int)internalSettings.getPoolSize());
-                        else
-                            gr.fillOval(Math.round((x + 0.5f) * internalSettings.getCellWidth() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    Math.round((y + 0.5f) * internalSettings.getCellHeight() - (internalSettings.getPoolSize() / 2f)) + cellShift,
-                                    (int)internalSettings.getPoolSize(),
-                                    (int)internalSettings.getPoolSize());
-                    }
-                }
-
-                // draw all elements of the cell
-                drawDetails(gr, currentCell, x, y);
+                gr.drawImage(currentCell.draw(internalSettings, player.get()),
+                        (int)(x * internalSettings.getCellWidth()) + cellShift,
+                        (int)(y * internalSettings.getCellHeight()) + cellShift, null);
             }
+        }
+
+        // indicate cell over which the active player is hovering the mouse
+        // but only if the player has already spotted that cell
+        if(player.get().hasSpotted(player.get().getViewPoint().fetch(mousePos.getLocation()))) {
+
+            int leftEdge = Math.round(mousePos.getX() * internalSettings.getCellWidth());
+            int rightEdge = Math.round((mousePos.getX() + 1) * internalSettings.getCellWidth());
+            int topEdge = Math.round(mousePos.getY() * internalSettings.getCellHeight());
+            int bottomEdge = Math.round((mousePos.getY() + 1) * internalSettings.getCellHeight());
+
+
+            Color altColor = player.get().getAlternativeColor();
+            altColor = new Color(altColor.getRed(), altColor.getGreen(), altColor.getBlue(), 20);
+            gr.setColor(altColor);
+            gr.fillRect(leftEdge + HOVER_SHIFT, topEdge + HOVER_SHIFT, Math.round(internalSettings.getCellWidth()),
+                    Math.round(internalSettings.getCellHeight()));
+
+            // draw small shadows around hovered cell to imitate raising
+
+            int[] Xs = {leftEdge + HOVER_SHIFT, leftEdge, rightEdge, rightEdge};      // bottom shadow
+            int[] Ys = {bottomEdge + HOVER_SHIFT, bottomEdge, bottomEdge, bottomEdge + HOVER_SHIFT};
+            gr.setColor(new Color(50, 50, 50));
+            gr.fillPolygon(Xs, Ys, 4);
+
+            Xs = new int[]{rightEdge + HOVER_SHIFT, rightEdge, rightEdge, rightEdge + HOVER_SHIFT};     // right shadow
+            Ys = new int[]{bottomEdge, bottomEdge, topEdge, topEdge + HOVER_SHIFT};
+            gr.fillPolygon(Xs, Ys, 4);
         }
     }
 
@@ -854,7 +784,6 @@ public class GameFrame extends JFrame {
      * @param gr Graphics object of the game panel
      */
     private void drawDetails(Graphics2D gr, Cell currentCell, int x, int y) {
-        Cell viewpoint = player.get().getViewPoint();
         Cell mousePos = posToCellCoord(mouseX, mouseY, 0);
 
         // shift to indicate the hovered cell

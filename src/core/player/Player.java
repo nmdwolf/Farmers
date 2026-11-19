@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static core.InternalSettings.BUILDING_TYPE;
+
 public class Player {
 
     private final Color color, altColor;
@@ -112,7 +114,7 @@ public class Player {
 
         if((object instanceof Unit) && (cell.getUnitAvailable() >= object.getSize()))
             added = true;
-        else if((object instanceof Building || object instanceof Foundation) && (cell.getBuildingAvailable() >= object.getSize()))
+        else if((object.getType() == BUILDING_TYPE || object instanceof Foundation) && (cell.getBuildingAvailable() >= object.getSize()))
             added = true;
 
         if(added) {

@@ -21,6 +21,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import static core.InternalSettings.BUILDING_TYPE;
+
 public class TownHall extends OperationalBuilding implements Evolvable, Constructor {
 
     public final static ResourceContainer LEVEL1_RESOURCES = new ResourceContainer(new String[]{"Wood", "Stone", "Water", "Time"}, new int[]{300, 100, 100, 10});
@@ -67,11 +69,6 @@ public class TownHall extends OperationalBuilding implements Evolvable, Construc
     @Override
     public String getToken() {
         return TOKEN;
-    }
-
-    @Override
-    public int getType() {
-        return 0;
     }
 
     @Override

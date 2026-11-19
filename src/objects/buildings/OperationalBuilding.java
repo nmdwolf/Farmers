@@ -45,8 +45,4 @@ public abstract class OperationalBuilding extends Operational {
         return BUILDING_TYPE;
     }
 
-    @Override
-    public OperationsList getOperations(int cycle, OperationCode code) {
-            return new OperationsList();
-    }
 }
